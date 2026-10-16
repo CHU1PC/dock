@@ -3,6 +3,34 @@ import AppKit
 @MainActor
 final class DockAppDelegate: NSObject, NSApplicationDelegate {
     weak var store: DockStore?
+    private var nativeTile: NativeDockTileController?
+    var tileOnly = false
+    var tileNotice = ""
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        guard tileOnly, let store else { return }
+        let controller = NativeDockTileController(store: store, notice: tileNotice)
+        nativeTile = controller
+        controller.start()
+    }
+
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        nativeTile?.makeMenu()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard tileOnly else { return true }
+        nativeTile?.showDetails()
+        return false
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        nativeTile?.stop()
+    }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let store else { return .terminateNow }
