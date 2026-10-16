@@ -1,0 +1,25 @@
+[package]
+name = "dockstudio-gpui"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+gpui = { version = "=0.2.2", default-features = false, features = ["font-kit"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+raw-window-handle = "0.6"
+unicode-segmentation = "1"
+chrono = "0.4"
+block2 = "0.6"
+libc = "0.2"
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSView", "NSApplication", "NSRunningApplication", "NSVisualEffectView", "NSScreen"] }
+objc2-foundation = { version = "0.3", features = ["NSString", "NSGeometry"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

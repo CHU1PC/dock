@@ -1,6 +1,12 @@
 # macOS Dock アプリの実装計画
 
-## 方針
+## 現行の UI 方針
+
+2026-10-16 に、Custom Dock と管理画面の UI を Rust と GPUI に移す方針が承認された。背景とアイコンを自由に編集し、現在の Mac の Apple Dock に近い外観と操作感を目指す。保存形式と macOS の操作は既存の Swift 処理を引き継ぐ。[具体的な移行計画](GPUI_MIGRATION.md)に実装順序と検証条件を記載した。
+
+## 初期の方針と理由
+
+次の SwiftUI による UI 実装の方針は、GPUI への移行決定によって置き換えられた。保存と権限管理、Apple Dock の安全な制御については引き続き適用する。
 
 [要件](REQUIREMENTS.md)を満たすネイティブ macOS アプリを Swift で作る。設定画面と編集画面には SwiftUI を使い、Custom Dock のウィンドウ制御には AppKit を使う。プロファイルはローカルのバージョン付きデータとして保存し、資格情報は Keychain に分離する。Apple Dock の制御方法は、公開 API の範囲と対象 OS での実測に基づいて技術検証後に確定する。
 

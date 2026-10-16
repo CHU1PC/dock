@@ -2,6 +2,18 @@
 
 Apple Dock の配置管理と、アプリやウィジェットを並べる Custom Dock を開発しています。macOS 15 以降が対象です。
 
+## GPUI 版を起動する
+
+Custom Dock、設定、プロファイル編集を Rust と GPUI に移行しています。Rust と Xcode の開発環境を用意し、リポジトリのルートで実行します。
+
+```bash
+gpui/scripts/run.sh
+```
+
+背景の色、画像、ぼかし、不透明度、完全透明を設定できます。アイコンは通常、白黒、透けた単色のガラス調から選べます。ホバー拡大、起動中の点、自動非表示に対応します。
+
+既存のプロファイルと下書きの保存処理を引き継ぎます。外観設定は別ファイルに保存します。詳しい起動手順と制約は [GPUI 版の説明](gpui/README.md)、構成と移行方針は [移行計画](docs/GPUI_MIGRATION.md)に記載しています。SwiftUI 版は比較と回帰確認のため残しています。
+
 ## 現在使える機能
 
 - プロファイルの作成、名前変更、複製、削除、並べ替え、保存ができます。
@@ -17,7 +29,7 @@ Apple Dock の配置管理と、アプリやウィジェットを並べる Custo
 
 Apple Dock 自体への配置の適用、集中モード連携、外部サービスのウィジェットは今後実装します。独立した Dock の表示状態と実行中のタイマーは、アプリ終了時にリセットされます。
 
-## Xcode で見る
+## 旧 SwiftUI 版を Xcode で見る
 
 1. `DockStudio.xcodeproj` を Xcode で開きます。
 2. `DockStudio/CustomDockPreview.swift`、`DockStudio/SettingsPreview.swift`、`DockStudio/ProfileEditorPreview.swift` のいずれかを選びます。
