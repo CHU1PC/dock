@@ -5,10 +5,11 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
     weak var store: DockStore?
     private var nativeTile: NativeDockTileController?
     var tileOnly = false
+    var tileNotice = ""
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        guard let store else { return }
-        let controller = NativeDockTileController(store: store)
+        guard tileOnly, let store else { return }
+        let controller = NativeDockTileController(store: store, notice: tileNotice)
         nativeTile = controller
         controller.start()
     }

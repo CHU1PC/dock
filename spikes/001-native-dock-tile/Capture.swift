@@ -7,7 +7,7 @@ struct CaptureNativeDockTile {
         NSApplication.shared.setActivationPolicy(.prohibited)
         let output = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-        let window = NSWindow(contentRect: NSRect(x: -20000, y: -20000, width: 320, height: 290),
+        let window = NSWindow(contentRect: NSRect(x: -20000, y: -20000, width: 360, height: 380),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         let controller = NativeDockTileController(store: .preview(), tile: window.dockTile)
@@ -32,7 +32,7 @@ struct CaptureNativeDockTile {
         try capture(tile, name: "timer")
         let detail = NSHostingView(rootView: NativeDockTileDetail(controller: controller)
             .preferredColorScheme(.dark).background(Color(nsColor: .windowBackgroundColor)))
-        detail.frame = NSRect(x: 0, y: 0, width: 320, height: 290)
+        detail.frame = NSRect(x: 0, y: 0, width: 360, height: 380)
         try capture(detail, name: "detail")
         state.reset(at: start)
         for frame in 0..<12 {

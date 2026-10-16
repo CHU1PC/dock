@@ -9,21 +9,24 @@ final class NativeDockTileState {
     var mode: Mode = .clock
     var session = FocusSession()
     var now = Date()
+    private(set) var hasStarted = false
 
     var seconds: Int { session.seconds(at: now) }
     var timerText: String { String(format: "%02d:%02d", seconds / 60, seconds % 60) }
     var isRunning: Bool { session.deadline != nil && seconds > 0 }
-    var status: String { seconds == 0 ? "完了" : (isRunning ? "集中中" : "一時停止") }
+    var status: String { seconds == 0 ? "完了" : (isRunning ? "集中中" : (hasStarted ? "一時停止" : "待機")) }
 
     func toggle(at date: Date = .now) {
         now = date
         session.toggle(at: date)
+        hasStarted = true
         mode = .focus
     }
 
     func reset(at date: Date = .now) {
         now = date
         session = FocusSession()
+        hasStarted = false
     }
 }
 
@@ -80,15 +83,21 @@ final class NativeDockTileView: NSView {
 @MainActor
 final class NativeDockTileController: NSObject {
     let state = NativeDockTileState()
-    private let store: DockStore
+    fileprivate let store: DockStore
+    let notice: String
     private let tile: NSDockTile
     private var timer: Timer?
     private var detailWindow: NSWindow?
     private var content: NativeDockTileView?
+    private weak var activeMenu: NSMenu?
+    private var wakeObserver: NSObjectProtocol?
+    private var activity: NSObjectProtocol?
+    private(set) var isStarted = false
 
-    init(store: DockStore, tile: NSDockTile? = nil) {
+    init(store: DockStore, tile: NSDockTile? = nil, notice: String = "サンプルの試用です。Dock の配置は変更しません。") {
         self.store = store
         self.tile = tile ?? NSApplication.shared.dockTile
+        self.notice = notice
         super.init()
     }
 
@@ -96,6 +105,7 @@ final class NativeDockTileController: NSObject {
         guard timer == nil else { return }
         let content = NativeDockTileView(state: state)
         self.content = content
+        isStarted = true
         tile.contentView = content
         refresh()
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
@@ -103,21 +113,42 @@ final class NativeDockTileController: NSObject {
         }
         self.timer = timer
         RunLoop.main.add(timer, forMode: .common)
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in MainActor.assumeIsolated { self?.refresh() } }
     }
 
     func stop() {
         timer?.invalidate()
         timer = nil
+        isStarted = false
+        if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
+        wakeObserver = nil
+        if let activity { ProcessInfo.processInfo.endActivity(activity) }
+        activity = nil
         detailWindow?.close()
         detailWindow = nil
         tile.contentView = nil
         tile.badgeLabel = nil
         tile.display()
         content = nil
+        activeMenu = nil
     }
 
     func refresh(at date: Date = .now) {
         state.now = date
+        if isStarted, state.isRunning, activity == nil {
+            activity = ProcessInfo.processInfo.beginActivity(options: .userInitiatedAllowingIdleSystemSleep,
+                                                             reason: "Updating the active focus timer in the Dock")
+        } else if !state.isRunning, let activity {
+            ProcessInfo.processInfo.endActivity(activity)
+            self.activity = nil
+        }
+        if let item = activeMenu?.item(withTag: 100) {
+            item.title = timerActionTitle
+        }
+        activeMenu?.item(withTag: 101)?.state = state.mode == .clock ? .on : .off
+        activeMenu?.item(withTag: 102)?.state = state.mode == .focus ? .on : .off
         content?.setAccessibilityLabel(state.mode == .clock ? "時計" : "集中タイマー \(state.timerText) \(state.status)")
         tile.display()
     }
@@ -125,14 +156,14 @@ final class NativeDockTileController: NSObject {
     func makeMenu() -> NSMenu {
         refresh()
         let menu = NSMenu()
-        add("時計を表示", action: #selector(showClock), to: menu).state = state.mode == .clock ? .on : .off
-        add("集中タイマーを表示", action: #selector(showFocus), to: menu).state = state.mode == .focus ? .on : .off
+        add("時計を表示", action: #selector(showClock), to: menu).tag = 101
+        add("集中タイマーを表示", action: #selector(showFocus), to: menu).tag = 102
         menu.addItem(.separator())
-        add(state.isRunning ? "タイマーを一時停止" : "25 分タイマーを開始・再開", action: #selector(toggleTimer), to: menu)
+        add(timerActionTitle, action: #selector(toggleTimer), to: menu).tag = 100
         add("タイマーをリセット", action: #selector(resetTimer), to: menu)
         add("詳細を開く…", action: #selector(showDetails), to: menu)
         menu.addItem(.separator())
-        let profiles = NSMenuItem(title: "Custom Dock のプロファイル", action: nil, keyEquivalent: "")
+        let profiles = NSMenuItem(title: "プロファイルを試す（配置は変更しません）", action: nil, keyEquivalent: "")
         let submenu = NSMenu()
         for profile in store.document.profiles {
             let item = add(profile.name, action: #selector(selectProfile(_:)), to: submenu)
@@ -146,7 +177,13 @@ final class NativeDockTileController: NSObject {
         menu.addItem(NSMenuItem(title: "標準 Dock の配置は変更しません", action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
         add("Dock Studio を終了", action: #selector(quit), to: menu)
+        activeMenu = menu
+        refresh()
         return menu
+    }
+
+    private var timerActionTitle: String {
+        state.isRunning ? "タイマーを一時停止" : (state.hasStarted && state.seconds > 0 ? "タイマーを再開" : "25 分タイマーを開始")
     }
 
     @discardableResult
@@ -163,19 +200,31 @@ final class NativeDockTileController: NSObject {
     @objc func resetTimer() { state.reset(); refresh() }
     @objc private func selectProfile(_ sender: NSMenuItem) {
         guard let value = sender.representedObject as? String, let id = UUID(uuidString: value) else { return }
-        store.activateProfile(id)
-        if let error = store.errorMessage {
+        if let error = activateProfile(id) {
             let alert = NSAlert()
             alert.messageText = "プロファイルを切り替えられませんでした"
             alert.informativeText = error
             alert.runModal()
         }
     }
+
+    func activateProfile(_ id: UUID) -> String? {
+        store.errorMessage = nil
+        store.activateProfile(id)
+        let error = store.errorMessage
+        store.errorMessage = nil
+        if let submenu = activeMenu?.items.first(where: { $0.submenu != nil })?.submenu {
+            for item in submenu.items {
+                item.state = item.representedObject as? String == store.document.activeProfileID.uuidString ? .on : .off
+            }
+        }
+        return error
+    }
     @objc private func quit() { NSApplication.shared.terminate(nil) }
 
     @objc func showDetails() {
         if detailWindow == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 290),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 360, height: 380),
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = "Dock Studio — 標準 Dock"
             window.isReleasedWhenClosed = false
@@ -184,29 +233,45 @@ final class NativeDockTileController: NSObject {
             detailWindow = window
         }
         detailWindow?.makeKeyAndOrderFront(nil)
-        NSApplication.shared.activate(ignoringOtherApps: true)
+        NSApplication.shared.activate()
     }
 }
 
 struct NativeDockTileDetail: View {
-    let controller: NativeDockTileController
+    let state: NativeDockTileState
+    let store: DockStore
+    let notice: String
+    let showClock: () -> Void
+    let showFocus: () -> Void
+    let toggleTimer: () -> Void
+    let resetTimer: () -> Void
+
+    init(controller: NativeDockTileController) {
+        state = controller.state
+        store = controller.store
+        notice = controller.notice
+        showClock = { [weak controller] in controller?.showClock() }
+        showFocus = { [weak controller] in controller?.showFocus() }
+        toggleTimer = { [weak controller] in controller?.toggleTimer() }
+        resetTimer = { [weak controller] in controller?.resetTimer() }
+    }
     var body: some View {
         VStack(spacing: 16) {
-            Text(controller.state.mode == .clock ? "時計" : "集中タイマー").font(.headline)
-            Text(controller.state.mode == .clock
-                 ? controller.state.now.formatted(date: .omitted, time: .shortened)
-                 : controller.state.timerText)
+            Text(state.mode == .clock ? "時計" : "集中タイマー").font(.headline)
+            Text(state.mode == .clock ? state.now.formatted(date: .omitted, time: .shortened) : state.timerText)
                 .font(.system(size: 48, weight: .medium, design: .rounded)).monospacedDigit()
             HStack {
-                Button("時計") { controller.showClock() }
-                Button("タイマー") { controller.showFocus() }
+                Button("時計", action: showClock)
+                Button("タイマー", action: showFocus)
             }
             HStack {
-                Button(controller.state.isRunning ? "一時停止" : "開始・再開") { controller.toggleTimer() }
-                Button("リセット") { controller.resetTimer() }
+                Button(state.isRunning ? "一時停止" : "開始・再開", action: toggleTimer)
+                Button("リセット", action: resetTimer)
             }
+            Text("選択中：\(store.activeProfile.name)").font(.callout)
+            Text(notice).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
             Text("標準 Dock のアイコンを右クリックして操作できます。")
                 .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
-        }.padding(24).frame(width: 320, height: 290)
+        }.padding(24).frame(width: 360, height: 380)
     }
 }

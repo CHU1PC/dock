@@ -13,10 +13,12 @@ struct DockStudioApp: App {
         let persistence = directory.map {
             ProfilePersistence(fileURL: URL(fileURLWithPath: $0).appendingPathComponent("profiles.json"))
         } ?? .applicationDefault
-        let store = DockStore(persistence: tileOnly ? nil : persistence)
+        let preview = tileOnly ? NativeDockTilePreview(persistence: persistence) : nil
+        let store = preview?.store ?? DockStore(persistence: persistence)
         _store = State(initialValue: store)
         appDelegate.store = store
         appDelegate.tileOnly = tileOnly
+        appDelegate.tileNotice = preview?.notice ?? ""
     }
 
     var body: some Scene {
@@ -31,7 +33,7 @@ struct DockStudioApp: App {
         .defaultLaunchBehavior(tileOnly ? .suppressed : .automatic)
         .restorationBehavior(tileOnly ? .disabled : .automatic)
 
-        MenuBarExtra("Dock Studio", systemImage: "square.stack.3d.up.fill") {
+        MenuBarExtra("Dock Studio", systemImage: "square.stack.3d.up.fill", isInserted: .constant(!tileOnly)) {
             DockMenu()
                 .environment(store)
         }
