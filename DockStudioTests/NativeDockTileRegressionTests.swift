@@ -5,6 +5,30 @@ import XCTest
 
 final class NativeDockTileRegressionTests: XCTestCase {
     @MainActor
+    func testClosingLastWindowKeepsDockUtilityRunning() {
+        let delegate = DockAppDelegate()
+        delegate.tileOnly = true
+        XCTAssertFalse(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared))
+        delegate.tileOnly = false
+        XCTAssertFalse(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared))
+    }
+
+    @MainActor
+    func testWakeNotificationRecomputesElapsedTime() {
+        let window = NSWindow()
+        let controller = NativeDockTileController(store: .preview(), tile: window.dockTile)
+        controller.start()
+        defer { controller.stop() }
+        let beforeSleep = Date().addingTimeInterval(-1600)
+        controller.state.toggle(at: beforeSleep)
+        controller.refresh(at: beforeSleep)
+        XCTAssertEqual(controller.state.seconds, 1500)
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        XCTAssertEqual(controller.state.seconds, 0)
+        XCTAssertEqual(controller.state.status, "完了")
+    }
+
+    @MainActor
     func testOrdinaryLaunchDoesNotInstallTileOrMenu() {
         let delegate = DockAppDelegate()
         let store = DockStore.preview()

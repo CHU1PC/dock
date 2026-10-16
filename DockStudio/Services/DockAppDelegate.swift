@@ -24,6 +24,10 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         nativeTile?.stop()
     }
