@@ -78,7 +78,7 @@ struct DockBar: View {
             DockBackdrop(appearance: store.appearance)
                 .frame(width: vertical ? DockMetrics.barThickness(for: store) : nil,
                        height: vertical ? nil : DockMetrics.barThickness(for: store))
-                .shadow(color: .black.opacity(store.appearance.background == .transparent ? 0 : 0.18), radius: 4, y: -2)
+                .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
             ScrollView(vertical ? .vertical : .horizontal) {
                 let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
                 DockGlassContainer(enabled: store.appearance.iconStyle == .glass) {

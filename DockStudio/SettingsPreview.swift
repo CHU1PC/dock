@@ -133,7 +133,10 @@ struct SettingsPreview: View {
                         Text("選んだ画像はアプリの保存先へコピーします。")
                             .font(.caption).foregroundStyle(StudioColor.muted)
                     }
-                    if store.appearance.background != .transparent {
+                    if store.appearance.background == .appleDock {
+                        Text("標準の Dock に近い背景です。不透明度とぼかしは、macOS の素材に合わせて自動調整されます。")
+                            .font(.caption).foregroundStyle(StudioColor.muted)
+                    } else if store.appearance.background != .transparent {
                         HStack {
                             Text("不透明度")
                             Slider(value: stagedAppearance(\.opacity), in: 0...1, step: 0.05, onEditingChanged: { if !$0 { store.finishAppearanceEditing() } })

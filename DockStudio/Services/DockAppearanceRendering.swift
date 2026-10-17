@@ -205,6 +205,22 @@ struct DockBackdrop: View {
               blue: Double(appearance.color & 255) / 255)
     }
     var body: some View {
+        Group {
+            if appearance.background == .appleDock {
+                if #available(macOS 26.0, *) {
+                    Color.clear.glassEffect(.clear, in: .rect(cornerRadius: DockAppearance.cornerRadius))
+                } else {
+                    DockSystemMaterial()
+                        .clipShape(RoundedRectangle(cornerRadius: DockAppearance.cornerRadius, style: .continuous))
+                }
+            } else {
+                customBackground
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var customBackground: some View {
         ZStack {
             if appearance.background != .transparent {
                 if appearance.blur { DockSystemMaterial().opacity(appearance.opacity) }
@@ -221,7 +237,7 @@ struct DockBackdrop: View {
                                 .opacity(appearance.opacity)
                         }
                     } else { tint.opacity(appearance.opacity) }
-                case .transparent: EmptyView()
+                case .appleDock, .transparent: EmptyView()
                 }
             }
         }

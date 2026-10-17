@@ -2,10 +2,11 @@ import Foundation
 
 struct DockAppearance: Codable, Equatable {
     enum Background: String, Codable, CaseIterable, Identifiable {
-        case system, color, image, transparent
+        case appleDock, system, color, image, transparent
         var id: String { rawValue }
         var title: String {
             switch self {
+            case .appleDock: "Apple Dock"
             case .system: "システム素材"
             case .color: "単色"
             case .image: "画像"
