@@ -463,6 +463,48 @@ final class DockStore {
         return true
     }
 
+    @discardableResult
+    func addDroppedItems(_ urls: [URL], at index: Int) -> (added: Int, rejected: [String]) {
+        var items: [DockItem] = []
+        var rejected: [String] = []
+        for url in urls {
+            if let item = Self.droppedItem(from: url) { items.append(item) } else { rejected.append(url.lastPathComponent) }
+        }
+        var candidate = document
+        guard !items.isEmpty, let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+            reportDropFailure(rejected: rejected)
+            return (0, rejected)
+        }
+        let position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
+        candidate.profiles[profileIndex].items.insert(contentsOf: items, at: position)
+        guard commit(candidate) else { return (0, rejected) }
+        let profileID = candidate.profiles[profileIndex].id
+        if var draft = drafts[profileID] {
+            draft.items.insert(contentsOf: items, at: min(position, draft.items.count))
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(items.count) 個の項目を Dock に追加しました"
+        reportDropFailure(rejected: rejected)
+        return (items.count, rejected)
+    }
+
+    private func reportDropFailure(rejected: [String]) {
+        guard !rejected.isEmpty else { return }
+        errorMessage = "次の項目は Dock に追加できませんでした。\n\(rejected.joined(separator: "\n"))"
+    }
+
+    private static func droppedItem(from url: URL) -> DockItem? {
+        guard url.isFileURL,
+              let values = try? url.standardizedFileURL.resolvingSymlinksInPath().resourceValues(forKeys: [.isDirectoryKey])
+        else { return nil }
+        let isApplication = values.isDirectory == true && url.pathExtension.lowercased() == "app"
+        let kind: DockItemKind = isApplication ? .application : values.isDirectory == true ? .folder : .file
+        let item = DockItem(name: isApplication ? url.deletingPathExtension().lastPathComponent : url.lastPathComponent,
+                            kind: kind, target: url.absoluteString)
+        return (try? ItemLaunchPolicy().validate(item)) == nil ? nil : item
+    }
+
     func undoRemoval() {
         guard let removedItem, removedItem.profileID == editingProfileID else { return }
         var profile = editorProfile
