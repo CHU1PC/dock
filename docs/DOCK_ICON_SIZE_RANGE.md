@@ -12,19 +12,20 @@ Apple の Dock 設定仕様（[Dock payload](https://developer.apple.com/documen
 | 左端までドラッグ | 16 |
 | 右端までドラッグ | 128 |
 
-標準 Dock の Size スライダーの範囲は、Apple の仕様値と同じ16〜128だった。Magnification スライダーの `largesize` も、同様に16〜128だった。Accessibility API による AXMinValue と AXMaxValue の取得は、VM 内で権限のないバイナリからは値が返らず、行えなかった。画面の画像は [最小](media/dock-icon-size-range/standard-dock-size-min.png) と [最大](media/dock-icon-size-range/standard-dock-size-max.png) になる。最大の画像は撮影時にスライダーが右端へ動く途中の状態で、値は `defaults` の読み取りを根拠にしている。
+標準 Dock の Size スライダーの範囲は、Apple の仕様値と同じ16〜128だった。Magnification スライダーの `largesize` も、`defaults` の読み取りでは16〜128に見えたが、値の記録と画像は残していない。Accessibility API による AXMinValue と AXMaxValue の取得は、VM 内で権限のないバイナリからは値が返らず、行えなかった。画面の画像は [最小](media/dock-icon-size-range/standard-dock-size-min.png) と [最大](media/dock-icon-size-range/standard-dock-size-max.png) になる。最大の画像は撮影時にスライダーが右端へ動く途中の状態で、値は `defaults` の読み取りを根拠にしている。
 
 macOS 26.6.2 以外のバージョンでの範囲は確認していない。
 
 ## 変更内容
 
-`DockSettings.iconSizeRange` を16〜128として定義し、次の3か所で共通に使う。
+`DockSettings.iconSizeRange` を16〜128として定義し、次の2か所で共通に使う。
 
 | 箇所 | 変更前 | 変更後 |
 | --- | --- | --- |
 | 保存データの検証（`DockDocument.validate`） | 40〜76 | 16〜128 |
 | 設定画面のスライダー（刻みは2のまま） | 40〜76 | 16〜128 |
-| アイコンのスタイル変換の解像度（`DockIconRenderer`） | 76を基準 | 上限の128を基準 |
+
+白黒とガラス調の変換解像度（`DockIconRenderer`、76pt基準）は変えていない。128 px の設定や拡大率2倍で荒くならないかと、キャッシュ上限との関係は #74 で扱う。
 
 古い保存データとバックアップは、40〜76の値も、`revealAnimationDuration` が欠けた形式もそのまま読み込める。範囲外の値と非有限値は従来どおり拒否する。`iconSize` 自体は従来から必須項目で、この変更でも変えていない。
 
@@ -61,7 +62,7 @@ macOS 26.6.2、1600×1000の専用ヘッドレス VM で、Release ビルドを�
 
 動画は約23秒で、撮影時刻の間隔を維持して15fpsに変換した。倍速にはしていない。VM の撮影であり、実機での描画性能を示すものではない。
 
-画面内プレビューの確認で、128 px では次の見た目の問題を見つけた。今回は直していない。
+画面内プレビューの確認で、128 px では次の見た目の問題を見つけた。#68 の範囲ではなく、#75 で扱う。
 
 - 下配置の画面内プレビューの Dock が、「デスクトップに Dock を表示」ボタンに重なる。ボタンは右上の切替ボタンから操作できる。
 - 左右配置の画面内プレビューの Dock が、ウィンドウの内容や右上の切替ボタンに重なる。
@@ -70,10 +71,10 @@ macOS 26.6.2、1600×1000の専用ヘッドレス VM で、Release ビルドを�
 
 - 変更前（40〜76）のビルドとの比較画像
 - macOS 15〜25 での標準 Dock の範囲
-- Retina（2倍）の画面。VM の画面は1600×1000で、ピクセル密度は確認していない
+- Retina（2倍）の画面。VM の画面は1600×1000で、ピクセル密度は確認していない。#76 で扱う
 - 128 px での描画性能
 - 16 px と 128 px のアイコンの当たり判定の厳密な範囲。Terminal のクリックを1回だけ確認した
-- `xcodebuild test` の件数。ホストの画面にアプリが表示されるため実行していない
+- `xcodebuild test` の件数。テストホストのアプリがホストの画面に表示されるため実行していない。Xcode 側の登録は `xcodebuild build-for-testing` の成功で確認した
 
 ## 既知の制約
 
