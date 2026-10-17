@@ -240,7 +240,7 @@ private struct DockDropDelegate: DropDelegate {
     func dropEntered(info: DropInfo) { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical)
+        if index != nil { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
         return DropProposal(operation: .copy)
     }
 
@@ -260,6 +260,7 @@ private struct DockDropDelegate: DropDelegate {
                 if let url { urls.append(url) }
             }
             store.addDroppedItems(urls, at: position)
+            index = nil
         }
         return true
     }
