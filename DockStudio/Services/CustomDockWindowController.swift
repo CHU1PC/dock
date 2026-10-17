@@ -184,7 +184,10 @@ final class CustomDockWindowController {
             return NSRect(x: frame.minX, y: frame.minY, width: frame.width,
                           height: max(store.effectiveIconSize * maximum, 54) + 30)
         }
-        return frame
+        let bar = DockMetrics.barThickness(for: store)
+        return store.document.settings.position == .left
+            ? NSRect(x: frame.minX, y: frame.minY, width: bar, height: frame.height)
+            : NSRect(x: frame.maxX - bar, y: frame.minY, width: bar, height: frame.height)
     }
 
     private var autoHideEnabled: Bool { store.document.settings.autoHide && !NSWorkspace.shared.isVoiceOverEnabled }
@@ -209,7 +212,7 @@ final class CustomDockWindowController {
         let padding = DockInteractionGeometry.panelPadding * 2
         let maximumLength = vertical ? visible.height : screen.frame.insetBy(dx: 10, dy: 10).width
         let length = min(DockMetrics.length(for: store) + padding, maximumLength)
-        let thickness = DockMetrics.thickness(for: store) + padding
+        let thickness = DockMetrics.thickness(for: store) + padding + (vertical ? DockMetrics.sideLabelGutter : 0)
         var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
         frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
                                                            size: frame.size, position: store.document.settings.position)
@@ -270,7 +273,10 @@ private struct PanelDockContent: View {
     var body: some View {
         ZStack {
             DockBar(vertical: layout.vertical, isPanel: true)
+                .frame(width: layout.vertical ? DockMetrics.barThickness(for: store) : nil)
                 .padding(DockInteractionGeometry.panelPadding)
+                .frame(maxWidth: .infinity, maxHeight: .infinity,
+                       alignment: layout.position == .left ? .leading : layout.position == .right ? .trailing : .center)
                 .offset(x: layout.collapsed ? (layout.position == .left ? -layout.size.width : layout.position == .right ? layout.size.width : 0) : 0,
                         y: layout.collapsed && layout.position == .bottom ? layout.size.height : 0)
                 .opacity(layout.collapsed ? 0 : 1)
