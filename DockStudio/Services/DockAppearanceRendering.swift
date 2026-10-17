@@ -20,7 +20,7 @@ enum DockIconRenderer {
             cache.setObject(original, forKey: key, cost: 512 * 512 * 4)
             return original
         }
-        let pixels = Int(ceil(DockSettings.iconSizeRange.upperBound * 2 * max(2, NSScreen.screens.map(\.backingScaleFactor).max() ?? 2)))
+        let pixels = Int(ceil(76 * 2 * max(2, NSScreen.screens.map(\.backingScaleFactor).max() ?? 2)))
         let image = render(original, style: style, pixels: pixels)
         cache.setObject(image, forKey: key, cost: pixels * pixels * 4)
         return image
