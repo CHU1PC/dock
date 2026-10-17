@@ -130,7 +130,34 @@ final class DockAppearanceTests: XCTestCase {
         let color = try XCTUnwrap(bitmap.colorAt(x: 16, y: 16)?.usingColorSpace(.deviceRGB))
         XCTAssertEqual(color.redComponent, color.greenComponent, accuracy: 0.01)
         XCTAssertEqual(color.greenComponent, color.blueComponent, accuracy: 0.01)
-        XCTAssertEqual(color.alphaComponent, 0.36, accuracy: 0.02)
+        XCTAssertLessThan(color.alphaComponent, 0.1)
+    }
+
+    func testGlassForegroundLeavesDarkBaseTransparentAndKeepsBrightDetails() {
+        let dark = DockIconRenderer.transformed(red: 16, green: 16, blue: 16, alpha: 255, style: .glass, backgroundBrightness: 16.0 / 255)
+        let detail = DockIconRenderer.transformed(red: 240, green: 240, blue: 240, alpha: 255, style: .glass, backgroundBrightness: 16.0 / 255)
+        XCTAssertLessThan(dark.3, 16)
+        XCTAssertGreaterThan(detail.3, 100)
+        XCTAssertLessThan(detail.3, 200)
+        XCTAssertEqual(detail.0, detail.3)
+        XCTAssertEqual(detail.1, detail.3)
+        XCTAssertEqual(detail.2, detail.3)
+    }
+
+    func testGlassKeepsDetailsVisibleOnBothLightAndDarkIconBases() throws {
+        for lightBackground in [true, false] {
+            let image = NSImage(size: NSSize(width: 32, height: 32), flipped: false) { rect in
+                (lightBackground ? NSColor.white : .black).setFill()
+                rect.fill()
+                (lightBackground ? NSColor.black : .white).setFill()
+                NSRect(x: 8, y: 8, width: 16, height: 16).fill()
+                return true
+            }
+            let converted = DockIconRenderer.render(image, style: .glass, pixels: 32)
+            let bitmap = try XCTUnwrap(NSBitmapImageRep(data: XCTUnwrap(converted.tiffRepresentation)))
+            XCTAssertLessThan(try XCTUnwrap(bitmap.colorAt(x: 3, y: 3)).alphaComponent, 0.1)
+            XCTAssertGreaterThan(try XCTUnwrap(bitmap.colorAt(x: 16, y: 16)).alphaComponent, 0.5)
+        }
     }
 
     func testRevealReachesPhysicalScreenEdgesAndKeepsOtherRegionsClear() {

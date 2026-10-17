@@ -19,7 +19,8 @@ struct PreviewWorkspace: View {
                 Button {
                     store.toggleDockVisibility()
                 } label: {
-                    Image(systemName: store.isDockEffectivelyVisible ? "dock.rectangle.fill" : "dock.rectangle")
+                    Image(systemName: "dock.rectangle")
+                        .foregroundStyle(store.isDockEffectivelyVisible ? StudioColor.accent : Color.primary)
                 }
                 .help(store.isDockEffectivelyVisible ? "デスクトップの Dock を隠す" : "デスクトップに Dock を表示")
                 .accessibilityLabel("デスクトップの Dock を切り替え")
@@ -28,6 +29,7 @@ struct PreviewWorkspace: View {
             .padding(.horizontal, 22)
             .frame(height: 54)
             .background(StudioColor.chrome)
+            .zIndex(1)
 
             if store.storageIsReadOnly {
                 VStack(alignment: .leading, spacing: 8) {

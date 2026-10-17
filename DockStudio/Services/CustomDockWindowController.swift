@@ -80,8 +80,12 @@ final class CustomDockWindowController {
         panel.contentView = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
         refreshRunningApps()
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
-            observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refreshRunningApps() }
+            observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
+                MainActor.assumeIsolated {
+                    if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                       let url = app.bundleURL { DockIconRenderer.invalidate(url: url) }
+                    self?.refreshRunningApps()
+                }
             })
         }
         for center in [NotificationCenter.default, NSWorkspace.shared.notificationCenter] {
@@ -113,8 +117,13 @@ final class CustomDockWindowController {
         pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.updateAutoHide(); self?.updatePointerPassThrough() }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .keyDown]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDown, .keyDown]) { [weak self] event in
             let handled = MainActor.assumeIsolated {
+                if event.type == .rightMouseDown, let self, event.window === self.panel {
+                    // 非アクティブ時も SwiftUI のメニューにキーボードフォーカスを渡す。
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                    self.panel.makeKeyAndOrderFront(nil)
+                }
                 if event.type == .keyDown {
                     if event.keyCode == 53, self?.panel.isKeyWindow == true, self?.trackingMenus == 0 { self?.panel.resignKey(); return true }
                 } else { self?.updateAutoHide(); self?.updatePointerPassThrough() }
@@ -229,7 +238,6 @@ final class CustomDockWindowController {
     }
 
     private func refreshRunningApps() {
-        DockIconRenderer.invalidate()
         let previous = store.runningItems
         var seen: Set<String> = []
         store.runningItems = NSWorkspace.shared.runningApplications.compactMap { app in

@@ -151,7 +151,7 @@ struct SettingsPreview: View {
                     Picker("アイコンの外観", selection: appearance(\.iconStyle)) {
                         ForEach(DockAppearance.IconStyle.allCases) { Text($0.title).tag($0) }
                     }.pickerStyle(.segmented)
-                    Text("ガラス調は、元のアイコンの形と濃淡を保った、透ける単色の加工です。")
+                    Text("ガラス調は、透ける素材に元のアイコンの絵柄を重ねます。背景の色と光を取り込んだ表現になります。")
                         .font(.caption).foregroundStyle(StudioColor.muted)
                     Divider()
                     Toggle("起動中のアプリに点を表示", isOn: appearance(\.runningIndicators))

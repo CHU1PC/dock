@@ -26,7 +26,11 @@ enum DockIconRenderer {
         return image
     }
 
-    static func invalidate() { cache.removeAllObjects() }
+    static func invalidate(url: URL) {
+        for style in DockAppearance.IconStyle.allCases {
+            cache.removeObject(forKey: "\(url.path)|\(style.rawValue)" as NSString)
+        }
+    }
 
     static func render(_ original: NSImage, style: DockAppearance.IconStyle, pixels: Int) -> NSImage {
         guard pixels > 0, let space = CGColorSpace(name: CGColorSpace.sRGB),
@@ -42,7 +46,17 @@ enum DockIconRenderer {
         original.draw(in: CGRect(x: 0, y: 0, width: pixels, height: pixels))
         NSGraphicsContext.restoreGraphicsState()
         let bytes = data.bindMemory(to: UInt8.self, capacity: pixels * pixels * 4)
-        if style != .original {
+        if style == .glass {
+            let background = glassBackgroundBrightness(bytes, pixelCount: pixels * pixels)
+            let opacity = (0..<256).map { glassOpacity(brightness: Double($0) / 255, background: background) }
+            for i in stride(from: 0, to: pixels * pixels * 4, by: 4) {
+                let alpha = Double(bytes[i + 3])
+                let brightness = alpha == 0 ? 0 : min(255, Int(luminance(bytes[i], bytes[i + 1], bytes[i + 2]) / alpha * 255))
+                let value = UInt8(alpha * opacity[brightness])
+                bytes[i] = value; bytes[i + 1] = value
+                bytes[i + 2] = value; bytes[i + 3] = value
+            }
+        } else if style == .monochrome {
             for i in stride(from: 0, to: pixels * pixels * 4, by: 4) {
                 let converted = transformed(red: bytes[i], green: bytes[i + 1], blue: bytes[i + 2], alpha: bytes[i + 3], style: style)
                 bytes[i] = converted.0; bytes[i + 1] = converted.1
@@ -54,6 +68,28 @@ enum DockIconRenderer {
             return original
         }
         return NSImage(cgImage: result, size: NSSize(width: pixels, height: pixels))
+    }
+
+    private static func luminance(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> Double {
+        Double(red) * 0.2126 + Double(green) * 0.7152 + Double(blue) * 0.0722
+    }
+
+    private static func glassBackgroundBrightness(_ bytes: UnsafeMutablePointer<UInt8>, pixelCount: Int) -> Double {
+        var counts = [Int](repeating: 0, count: 32)
+        var totals = [Double](repeating: 0, count: 32)
+        for i in stride(from: 0, to: pixelCount * 4, by: 4) where bytes[i + 3] >= 64 {
+            let brightness = min(1, luminance(bytes[i], bytes[i + 1], bytes[i + 2]) / Double(bytes[i + 3]))
+            let bin = min(31, Int(brightness * 32))
+            counts[bin] += 1
+            totals[bin] += brightness
+        }
+        guard let bin = counts.indices.max(by: { counts[$0] < counts[$1] }), counts[bin] > 0 else { return 0.5 }
+        return totals[bin] / Double(counts[bin])
+    }
+
+    private static func glassOpacity(brightness: Double, background: Double) -> Double {
+        let contrast = min(1, abs(brightness - background) / max(background, 1 - background))
+        return 0.02 + 0.7 * pow(contrast, 0.9)
     }
 
     private static var backgroundCache: (path: String, checked: Date, version: TimeInterval, image: NSImage?)?
@@ -83,17 +119,65 @@ enum DockIconRenderer {
     }
 
     static func transformed(red: UInt8, green: UInt8, blue: UInt8, alpha: UInt8,
-                            style: DockAppearance.IconStyle) -> (UInt8, UInt8, UInt8, UInt8) {
+                            style: DockAppearance.IconStyle, backgroundBrightness: Double = 0) -> (UInt8, UInt8, UInt8, UInt8) {
         guard style != .original else { return (red, green, blue, alpha) }
-        let luminance = (Double(red) * 0.2126 + Double(green) * 0.7152 + Double(blue) * 0.0722)
+        let luminance = luminance(red, green, blue)
         if style == .monochrome {
             let value = UInt8(min(Double(alpha), luminance))
             return (value, value, value, alpha)
         }
-        let newAlpha = Double(alpha) * 0.72
-        let shade = alpha == 0 ? 0 : 0.45 + 0.55 * min(1, luminance / Double(alpha))
-        let value = UInt8(newAlpha * shade)
-        return (value, value, value, UInt8(newAlpha))
+        // 台座の明暗に依存せず、絵柄をガラス素材の前景として残す。
+        let brightness = alpha == 0 ? 0 : min(1, luminance / Double(alpha))
+        let value = UInt8(Double(alpha) * glassOpacity(brightness: brightness, background: backgroundBrightness))
+        return (value, value, value, value)
+    }
+}
+
+struct DockGlassContainer<Content: View>: View {
+    let enabled: Bool
+    let content: Content
+
+    init(enabled: Bool, @ViewBuilder content: () -> Content) {
+        self.enabled = enabled
+        self.content = content()
+    }
+
+    var body: some View {
+        if #available(macOS 26.0, *), enabled {
+            GlassEffectContainer(spacing: 0) { content }
+        } else {
+            content
+        }
+    }
+}
+
+struct DockIconGlassEffect: ViewModifier {
+    let enabled: Bool
+    let size: Double
+    var enhancedContrast = false
+    var interactive = true
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
+    }
+
+    func body(content: Content) -> some View {
+        if !enabled {
+            content
+        } else if #available(macOS 26.0, *) {
+            content.glassEffect((enhancedContrast ? Glass.regular : Glass.clear).interactive(interactive), in: shape)
+        } else {
+            content.background {
+                shape.fill(reduceTransparency ? AnyShapeStyle(Color(nsColor: .windowBackgroundColor)) : AnyShapeStyle(.ultraThinMaterial))
+                    .overlay {
+                        shape.strokeBorder(
+                            LinearGradient(colors: [.white.opacity(0.65), .white.opacity(0.08), .white.opacity(0.3)],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.7)
+                    }
+                    .accessibilityHidden(true)
+                }
+        }
     }
 }
 

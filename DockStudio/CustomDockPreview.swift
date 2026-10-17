@@ -81,23 +81,25 @@ struct DockBar: View {
                 .shadow(color: .black.opacity(store.appearance.background == .transparent ? 0 : 0.18), radius: 4, y: -2)
             ScrollView(vertical ? .vertical : .horizontal) {
                 let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
-                layout {
-                    if items.isEmpty {
-                        Label("プロファイルに項目を追加", systemImage: "plus.circle")
-                            .font(.callout).foregroundStyle(StudioColor.muted).padding(10)
-                    }
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        if item.kind == .spacer {
-                            Rectangle().fill(.white.opacity(0.55)).shadow(color: .black.opacity(0.75), radius: 1)
-                                .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
-                        } else if item.kind == .clock {
-                            ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
-                                .onHover { if $0 { hovered = nil } }
-                        } else if item.kind == .focusTimer {
-                            FocusTimerTile(itemID: item.id, vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
-                                .onHover { if $0 { hovered = nil } }
-                        } else {
-                            dockItem(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
+                DockGlassContainer(enabled: store.appearance.iconStyle == .glass) {
+                    layout {
+                        if items.isEmpty {
+                            Label("プロファイルに項目を追加", systemImage: "plus.circle")
+                                .font(.callout).foregroundStyle(StudioColor.muted).padding(10)
+                        }
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            if item.kind == .spacer {
+                                Rectangle().fill(.white.opacity(0.55)).shadow(color: .black.opacity(0.75), radius: 1)
+                                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                            } else if item.kind == .clock {
+                                ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                                    .onHover { if $0 { hovered = nil } }
+                            } else if item.kind == .focusTimer {
+                                FocusTimerTile(itemID: item.id, vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                                    .onHover { if $0 { hovered = nil } }
+                            } else {
+                                dockItem(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
+                            }
                         }
                     }
                 }
@@ -138,8 +140,10 @@ struct DockBar: View {
         let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
-                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle)
-                    .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                         glassNeedsContrast: store.appearance.background == .transparent,
+                         glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
+                    .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
@@ -174,6 +178,8 @@ struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
     var style: DockAppearance.IconStyle = .original
+    var glassNeedsContrast = false
+    var glassInteractive = true
 
     var body: some View {
         Group {
@@ -186,11 +192,13 @@ struct ItemIcon: View {
                     .foregroundStyle(style == .original ? StudioColor.accent : .white)
                     .opacity(style == .glass ? 0.72 : 1)
                     .frame(width: size, height: size)
-                    .background(style == .original ? StudioColor.elevated : Color.white.opacity(style == .glass ? 0.12 : 0.2),
+                    .background(style == .original ? StudioColor.elevated : Color.white.opacity(style == .glass ? 0 : 0.2),
                                 in: RoundedRectangle(cornerRadius: size * 0.23))
             }
         }
         .frame(width: size, height: size)
+        .modifier(DockIconGlassEffect(enabled: style == .glass, size: size,
+                                      enhancedContrast: glassNeedsContrast, interactive: glassInteractive))
     }
 }
 
