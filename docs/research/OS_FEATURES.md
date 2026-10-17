@@ -18,13 +18,29 @@ SDK は `xcrun --show-sdk-path` の `MacOSX26.5`（`SDKSettings.json` の `Versi
 
 結論は「実装可能」「条件付きで可能」「公開 API では不可」「未確認」のいずれかで書く。
 
-### VM を使えなかったこと
+### VM での確認（2026-10-18）
 
-VM は他のエージェントと共有しており、ロックを取れなかった。`mkdir /private/tmp/dockstudio-vm.lock` を15秒間隔で30分間試したが、取得できずに打ち切った。そのため、VM 上の画面確認と撮影は行っていない。`docs/media/research-os-features/` に画像はない。
+macOS 26.6.2 のヘッドレス VM で、確認できる範囲だけを確認した。共有 VM のロックは、最初の試み（2026-10-17）では取れなかったが、2回目に取得でき、約3分で解放した。画像は [docs/media/research-os-features/](../media/research-os-features/) に保存した。
 
-ロックを取る前に、1回だけ `ssh` で `sw_vers -productVersion` と `whoami` を実行した。出力は `26.6.2` と `admin` で、画面にも設定にも触れていない。
+| 確認した内容 | 結果 | 画像 |
+| --- | --- | --- |
+| 「最近使ったアプリを表示」を有効にして Calculator と Stickies を起動、終了した | Dock の区切り線の右側に、Terminal、Calculator、Stickies の3個が並んだ | `03-dock-show-recents-on.png` |
+| `defaults read com.apple.dock recent-apps` | 上の3個の `bundle-identifier` が並んだ | なし（出力は #14 に記載） |
+| `NSWorkspace` で `com.apple.apps.launcher` を開く | URL は引けた。完了ハンドラの `app` は `nil`、`error` も `nil`。撮影した画面にアプリ一覧は出なかった | `05-apps-view-after-open.png` |
+| Dock の Apps アイコンのクリック（VNC） | ホバー表示の「Apps」だけが出て、一覧は出なかった。VNC のクリックが効かなかった可能性があり、結論にしない | `06-dock-apps-icon-click.png` |
+| 「AirDrop & Continuity」の画面 | 「Allow Handoff between this Mac and your iCloud devices」のスイッチが存在し、有効だった。Apple Account は未サインイン | `07-handoff-setting.png` |
+| 「Login Items & Extensions」の画面 | 「Open at Login」と「Extensions」が表示され、「Background App Activity」は上部に見えなかった（スクロールはしていない） | `08-login-items-26.png` |
 
-標準 Dock の表示条件は、Apple のサポート文書だけを根拠にしている。実機の観察ではない。
+VM の状態は、確認前に戻した。Dock の `autohide` は元の 1、`show-recents` は 0 に戻した。確認用のアプリは終了し、ゲストの一時ファイルは削除した。
+
+実施した作業で、次の2点が元と違う。
+
+- 確認前の `recent-apps` には Terminal が1件あったが、戻すときに空にした。バックアップは、片付けで削除してしまった。
+- `strings` を実行したことで、`xcode-select` の「Command Line Developer Tools をインストール」ダイアログが VM に出た。プロセスを `kill -9` で終了し、インストールは行われていない。
+
+画面確認には限界がある。画面の撮影は VNC で行い、画面の更新が遅れる場合があった。「Apps」が開かなかったことは、アプリ一覧が存在しないことの証明にはならない。
+
+macOS 15 と macOS 27 は、環境がないため確認できていない。
 
 ## 結論の一覧
 
@@ -76,13 +92,29 @@ $ defaults read com.apple.dock recent-apps
 )
 ```
 
-OS が最近使ったアプリを `com.apple.dock` の `recent-apps` に保存していることは、このキーの存在から推測できる。ただし、ホストでは `show-recents` が 0 のため、中身は空だった。キーの形式と更新条件は確認できていない。
+VM（macOS 26.6.2）で、設定を有効にして確認した。
+
+```
+$ defaults write com.apple.dock show-recents -bool true; killall Dock
+$ open -a Calculator; (終了); open -a Stickies; (終了)
+$ defaults read com.apple.dock recent-apps | grep -E "bundle-identifier|file-label"
+"bundle-identifier" = "com.apple.Terminal";   "file-label" = Terminal;
+"bundle-identifier" = "com.apple.calculator"; "file-label" = Calculator;
+"bundle-identifier" = "com.apple.Stickies";   "file-label" = Stickies;
+```
+
+次のことが分かった。画像は `docs/media/research-os-features/03-dock-show-recents-on.png` になる。
+
+- 起動して終了したアプリが、Dock の区切り線の右側に、最近使ったアプリとして並んだ（この VM では3個）。
+- `show-recents` が 0 でも、`recent-apps` には Terminal が残っていた。表示の有無とは別に、OS が履歴を保存している。
+- この VM では、ユーザーが起動した順に記録され、「提案」と思われるアプリは出なかった。Apple Account が未サインインで、利用履歴もないためで、提案の挙動は確認できていない。
+- 履歴は `com.apple.dock` の `recent-apps` に、`tile-data` として入る。形式は非公開で、更新条件は上の観察以上には確認していない。
 
 ### 受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
 | --- | --- |
-| OS の提案が出る条件を対象 OS で確認する | 一部のみ。サポート文書で、設定項目と上限が3個であること（26）は確認した。提案の選び方（何を基準に選ぶか）は、Apple の公開資料に書かれていない。15 と 26 の実機での確認は、VM を使えなかったため未実施 |
+| OS の提案が出る条件を対象 OS で確認する | 一部のみ。26.6.2 の VM で、最近使ったアプリが起動順に3個まで並ぶことを確認した。「提案」の出現条件は、利用履歴のない VM では再現できず、Apple の公開資料にも書かれていない。macOS 15 は未確認 |
 | 公開 API で取得できる範囲と、最近使ったアプリとの違いを記録する | 公開 API で取得できるのは、実行中のアプリまで。提案アプリと最近使ったアプリは、どちらも公開 API で読めない。Apple の文書は、両者を同じ設定項目で扱っている。提案と最近使ったアプリを区別する資料は見つからなかった |
 | 取得できない場合は、明示的な制約または同意済みの代替を決める | 制約として明示する。代替は下の「方針」の案になる。実装には加藤さんの同意が要る |
 
@@ -99,9 +131,9 @@ OS が最近使ったアプリを `com.apple.dock` の `recent-apps` に保存�
 
 ### 残る未確認
 
-- 15 と 26 の実機での、提案アプリの出現条件。
+- 提案アプリの出現条件（26.6.2 の VM では、利用履歴がなく再現できなかった）。15 の挙動。
 - 提案と最近使ったアプリが、見た目で区別されるか。
-- `recent-apps` の形式と、サンドボックスでの可否。
+- `recent-apps` の更新条件と、サンドボックスでの可否。
 
 ## #56 Handoff の継続中アプリを表示・起動する方法
 
@@ -138,7 +170,7 @@ macOS の Dock が表示する Handoff アイコンを、DockStudio のカスタ
 
 | 条件 | 結果 |
 | --- | --- |
-| 対応するアカウント・機器・アプリで、標準 Dock の表示条件を確認する | 条件はサポート文書で確認した（上記）。実機は確認していない。iPhone などの別デバイスと、同じ Apple Account の環境が、この調査の環境にないため。VM は他のデバイスと連携できない見込みで、これも確認していない |
+| 対応するアカウント・機器・アプリで、標準 Dock の表示条件を確認する | 条件はサポート文書で確認した（上記）。26.6.2 の VM では、「Allow Handoff between this Mac and your iCloud devices」のスイッチが存在し、有効だった（`07-handoff-setting.png`）。ただし Apple Account が未サインインで、別デバイスもないため、Dock への表示は確認できていない |
 | 自アプリの Handoff 対応と、別アプリの継続候補を読む手段を区別する | 自アプリ: `NSUserActivity` と `NSApplication` のデリゲートで対応できる（実装可能）。別アプリ: 読む公開 API はない（公開 API では不可） |
 | 公開経路と制約を記録し、取得できない場合の案内を決める | 上記に記録した。案内の文面は下の「方針」の案になる |
 
@@ -154,7 +186,7 @@ macOS の Dock が表示する Handoff アイコンを、DockStudio のカスタ
 
 ### 残る未確認
 
-- 実機（別デバイスと同じ Apple Account）での、標準 Dock のアイコンの表示条件と位置。
+- 実機（別デバイスと同じ Apple Account）での、標準 Dock のアイコンの表示条件と位置。VM では、設定のスイッチの存在までを確認した。
 - 15 と 26 の差。
 - システムの Dock の Handoff アイコンを、サードパーティが置き換えたときの挙動。
 
@@ -193,13 +225,28 @@ $ defaults read /System/Applications/Apps.app/Contents/Info LSUIElement
 
 `Launchpad.app` は、26.5.2 の `/System/Applications` にない。`Apps.app` の `Info.plist` には、`CFBundleDisplayName` が `Apps`、`LSMinimumSystemVersion` が `26.5`、`LSUIElement` が `true` と書かれている。
 
-`NSWorkspace.h:114` の `URLForApplicationWithBundleIdentifier:` は、バンドル ID から URL を引ける。`NSWorkspace.h:46` の `openApplicationAtURL:configuration:completionHandler:` で開ける。どちらも公開 API になる。`Apps.app` に対して実際に開く操作は、ホストの画面を出さないために実行していない。
+`NSWorkspace.h:114` の `URLForApplicationWithBundleIdentifier:` は、バンドル ID から URL を引ける。`NSWorkspace.h:46` の `openApplicationAtURL:configuration:completionHandler:` で開ける。どちらも公開 API になる。VM（macOS 26.6.2）で、次の小さなプログラムを実行した。
+
+```
+$ /tmp/ws-r3
+url: /System/Applications/Apps.app
+opened: nil policy: -1 error: nil
+launchpad url: nil
+```
+
+- `urlForApplication(withBundleIdentifier: "com.apple.apps.launcher")` は `/System/Applications/Apps.app` を返した。
+- `openApplication(at:configuration:)` は、エラーなしで完了した。ただし、完了ハンドラの `NSRunningApplication` は `nil` で、実行中のアプリにも `com.apple.apps.launcher` は現れなかった。
+- 撮影した画面には、アプリ一覧が表示されなかった（`05-apps-view-after-open.png`）。Dock の Apps アイコンを VNC でクリックしても、同様に表示されなかった（`06-dock-apps-icon-click.png`）。クリックが効かなかった可能性があり、これだけで「開けない」とは言えない。
+- `com.apple.launchpad.launcher` は、26.6.2 では `nil` になった。
+- 26.6.2 の標準 Dock の既定の項目の2番目は `com.apple.apps.launcher` だった（`defaults read com.apple.dock persistent-apps`）。
+
+つまり、`Apps.app` を引いて開く呼び出しは通るが、アプリ一覧が実際に表示されるかは、確認できていない。
 
 ### 受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
 | --- | --- |
-| 15 の Launchpad と 26 以降のアプリ一覧への起動方法を、公式資料と実機で確認する | 26: 公式資料と、ホストのバンドルの確認（実際に開く操作は未実行）。15: 公式資料の一部のみ。実機は未確認。VM は 26.6.2 のみで、15 の環境がない。26 の VM の画面確認は、ロックを取れず未実施 |
+| 15 の Launchpad と 26 以降のアプリ一覧への起動方法を、公式資料と実機で確認する | 26: 公式資料と、ホストおよび VM のバンドルの確認。VM で `NSWorkspace` から開く呼び出しは成功したが、アプリ一覧の表示は撮影できなかった。15: 公式資料の一部のみ。実機は未確認（15 の環境がない） |
 | 公開された入口があれば専用項目として利用し、OS 別に無効な参照を残さない | 方針あり（下記）。`URLForApplicationWithBundleIdentifier:` が `nil` を返すときは、項目を表示しない。`Apps.app` と Launchpad の実体は、OS で異なる |
 | Spotlight や OS のアプリ検索自体を複製しない | 方針に含める。DockStudio は検索画面を持たず、OS の入口を開くだけにする |
 
@@ -218,7 +265,7 @@ OS 別の「アプリ一覧」項目を追加する。バンドル ID の候補�
 ### 残る未確認
 
 - macOS 15 の Launchpad のバンドル ID と、`NSWorkspace` で開けること。
-- macOS 26 で `Apps.app` を `NSWorkspace` から開いたときの、実際の表示と、フォーカスの挙動。
+- macOS 26 で `Apps.app` を開いたときの、アプリ一覧の実際の表示。VM では呼び出しは成功したが、画面に出なかった。ssh 経由の起動や、画面更新の遅れが原因の可能性がある（いずれも未切り分け）。
 - 26 より後の OS（27 を含む）での入口の変更。
 
 ## #67 macOS 27 のバックグラウンド実行表示との互換性
@@ -254,13 +301,15 @@ macOS 27 のベータ版の挙動を、開発者フォーラムが伝えてい�
 
 これらから、表示の条件は、アプリが Launch Services 経由で起動され、ウィンドウがない状態で動き続けていることに関係する、と推測できる。正確な条件は、公式資料に書かれていない。
 
+VM（macOS 26.6.2）の `Dock.app` の実行ファイルには、「Running in Background」「Stop Running in Background」の文字列がなかった（`grep -c -a` の結果は、どちらも 0）。ただし、文言が別のリソースにある可能性があり、不在の証明にはならない。26.6.2 の標準 Dock にこの機能がないことの、補助的な確認にとどまる。
+
 DockStudio の現在の実行中アプリの列挙（`CustomDockWindowController.swift:256`）は、`activationPolicy == .regular` のアプリだけを拾う。macOS 27 で、ウィンドウのないバックグラウンドのアプリが、`regular` で `runningApplications` に残るかは未確認になる。
 
 ### 受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
 | --- | --- |
-| macOS 27 の代表アプリと公式条件で、標準 Dock の表示を確認する | 公式条件は、サポート文書で確認した。代表アプリの実機での確認は未実施（macOS 27 の環境がない）。報道は Gemini アプリを例に挙げている |
+| macOS 27 の代表アプリと公式条件で、標準 Dock の表示を確認する | 26.6.2 の VM では、この表示は確認できなかった（27 の機能のため想定どおりで、Dock の実行ファイルに文言もない）。公式条件は、サポート文書で確認した。代表アプリの実機での確認は未実施（macOS 27 の環境がない）。報道は Gemini アプリを例に挙げている |
 | 別プロセスの稼働状態を公開 API で識別できるか調査し、単なる起動中の点と区別する | 26.5 の SDK には、識別できる公開 API がない。`NSRunningApplication` は、起動中かどうかまでしか分からない。27 の SDK は未確認 |
 | 15 と 26 へ存在しない状態を持ち込まず、取得できない情報やプライバシー上の制約を記録する | 15 と 26 には、この状態がないものとして扱う。取得できない情報は、バックグラウンドで実行している理由と、実行中のタスクの内容になる。システム全体のプロセスの調査は、プライバシー上の問題が大きく、サンドボックスでも制限される |
 
@@ -312,7 +361,7 @@ SDK では、次を確認した。
 
 | 条件 | 結果 |
 | --- | --- |
-| 対応 OS の標準 Dock で、操作の条件と停止する範囲を確認する | 操作の条件（コンテキストメニュー）は、サポート文書で確認した。停止する範囲は、文書に書かれていない。実機での確認は未実施（macOS 27 の環境がない） |
+| 対応 OS の標準 Dock で、操作の条件と停止する範囲を確認する | 26.6.2 の VM では、この操作を確認できない（27 の機能）。「Login Items & Extensions」の画面にも、上部には「Background App Activity」がなかった（`08-login-items-26.png`、スクロールはしていない）。操作の条件（コンテキストメニュー）は、サポート文書で確認した。停止する範囲は、文書に書かれていない。実機での確認は未実施（macOS 27 の環境がない） |
 | 公開経路で停止できるかと、OS の Login Items 設定へ案内できる範囲を調査する | 停止: 公開 API では確認できなかった（未確認）。案内: `SMAppService.openSystemSettingsLoginItems` で、画面を開くまでは可能。特定のアプリの行までは開けない。ヘッダにその指定がない |
 | 通常終了や強制終了と混同せず、同期や更新が中断する影響を説明する。無関係なヘルパーを一括で終了しない | 方針に含める。`terminate` と `forceTerminate` を、この操作の代わりに使わない。影響の説明の文面は下記 |
 
@@ -351,7 +400,7 @@ macOS 27 の SDK に公開 API が見つかるまでは、停止操作を実装�
 
 | 項目 | 理由 |
 | --- | --- |
-| VM での画面確認と撮影（全5件） | 共有 VM のロックを30分取れなかった |
+| VM での撮影の一部 | #58 のアプリ一覧の表示は、VNC の更新遅れやクリック不達の可能性があり、撮影できなかった。他の項目は、26.6.2 の範囲で確認した |
 | macOS 15 の実機での確認（#14、#56、#58） | macOS 15 の環境がない |
 | macOS 27 の実機と SDK（#67、#70） | macOS 27 の環境と SDK がない。サポート文書と報道だけを根拠にした |
 | Handoff の実機での確認（#56） | 別デバイスと同じ Apple Account の環境がない |
