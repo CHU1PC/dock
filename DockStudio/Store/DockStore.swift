@@ -518,7 +518,7 @@ final class DockStore {
             let alreadyRunning = Bundle(url: url)?.bundleIdentifier.map {
                 !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty
             } ?? false
-            if !alreadyRunning { beginLaunch(item.id) }
+            if document.settings.launchBounce && !alreadyRunning { beginLaunch(item.id) }
             NSWorkspace.shared.openApplication(at: url, configuration: .init()) { [weak self] app, error in
                 Task { @MainActor in
                     guard let self else { return }

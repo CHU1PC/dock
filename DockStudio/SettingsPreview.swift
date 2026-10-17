@@ -105,7 +105,7 @@ struct SettingsPreview: View {
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("起動中にアイコンを跳ねさせる", isOn: setting(\.launchBounce))
-                Text("Custom Dock から開いたアプリが起動を終えるまで跳ねます。「アニメーションを減らす」が有効なときは、動かさず薄く表示します。")
+                Text("Custom Dock から開いたアプリが起動を終えるまで跳ねます。「アニメーションを減らす」が有効なときは跳ねません。")
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))

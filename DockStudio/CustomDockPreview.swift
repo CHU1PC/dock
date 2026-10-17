@@ -138,20 +138,23 @@ struct DockBar: View {
         let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
         let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
-        let launching = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
-        let reduceMotion = store.appearance.reduceMotion || systemReduceMotion
+        let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
+            && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
-                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
-                         glassNeedsContrast: store.appearance.background == .transparent,
-                         glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
+                let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                                    glassNeedsContrast: store.appearance.background == .transparent,
+                                    glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
-                    .opacity(launching && reduceMotion ? 0.55 : 1)
-                    .modifier(LaunchBounce(active: launching && !reduceMotion, position: store.document.settings.position,
-                                           height: min(store.effectiveIconSize * 0.5, 28)))
+                if bouncing {
+                    icon.modifier(LaunchBounce(position: store.document.settings.position,
+                                               height: min(store.effectiveIconSize * 0.5, 28)))
+                } else {
+                    icon
+                }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(launching ? "\(item.name)、開いています" : running ? "\(item.name)、起動中" : item.name)
+            .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
@@ -201,12 +204,11 @@ enum DockLabelPlacement {
 }
 
 private struct LaunchBounce: ViewModifier {
-    let active: Bool
     let position: DockPosition
     let height: CGFloat
 
     func body(content: Content) -> some View {
-        content.keyframeAnimator(initialValue: 0.0, repeating: active) { view, lift in
+        content.keyframeAnimator(initialValue: 0.0, repeating: true) { view, lift in
             switch position {
             case .bottom: view.offset(y: -lift * height)
             case .left: view.offset(x: lift * height)
