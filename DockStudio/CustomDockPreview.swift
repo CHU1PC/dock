@@ -64,6 +64,7 @@ struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var hovered: UUID?
+    @FocusState private var focused: UUID?
     let vertical: Bool
     var isPanel = false
     private var motion: Animation? {
@@ -118,15 +119,15 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if !vertical, let hovered, let anchor = frames[hovered], let item = items.first(where: { $0.id == hovered }) {
+                if let labelID = hovered ?? focused, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
                     let frame = geometry[anchor]
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
-                    let width = min(240, max(40, min(measured, geometry.size.width - 16)))
+                    let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
                     Text(item.name).font(.system(size: 12, weight: .medium))
                         .lineLimit(1).padding(.horizontal, 10).padding(.vertical, 6)
                         .frame(width: width).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 7))
-                        .position(x: max(width / 2 + 8, min(geometry.size.width - width / 2 - 8, frame.midX)),
-                                  y: max(16, frame.minY - 18))
+                        .position(DockLabelPlacement.center(position: store.document.settings.position, itemFrame: frame,
+                                                            bounds: geometry.size, width: width))
                         .allowsHitTesting(false).accessibilityHidden(true)
                 }
             }.allowsHitTesting(false)
@@ -148,6 +149,7 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
+            .focused($focused, equals: item.id)
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
@@ -172,6 +174,26 @@ struct DockBar: View {
         .contentShape(Rectangle())
         .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
         .onHover { if $0 { hovered = item.id } }
+    }
+}
+
+enum DockLabelPlacement {
+    static let maxWidth: CGFloat = 240
+    static let gap: CGFloat = 8
+
+    static func width(measured: CGFloat, available: CGFloat) -> CGFloat {
+        min(maxWidth, max(40, min(measured, available)))
+    }
+
+    static func center(position: DockPosition, itemFrame: CGRect, bounds: CGSize, width: CGFloat) -> CGPoint {
+        switch position {
+        case .bottom:
+            return CGPoint(x: max(width / 2 + gap, min(bounds.width - width / 2 - gap, itemFrame.midX)),
+                           y: max(16, itemFrame.minY - 18))
+        case .left, .right:
+            let y = max(16, min(bounds.height - 16, itemFrame.midY))
+            return CGPoint(x: position == .left ? bounds.width + gap + width / 2 : -gap - width / 2, y: y)
+        }
     }
 }
 
@@ -291,6 +313,7 @@ enum DockMetrics {
         CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 30 :
                     max(174, store.effectiveIconSize * (store.appearance.magnification ? store.appearance.magnificationScale : 1) + 32))
     }
+    static let sideLabelGutter = DockLabelPlacement.maxWidth + DockLabelPlacement.gap
     static func thickness(for store: DockStore) -> CGFloat {
         let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
         return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) : barThickness(for: store)
