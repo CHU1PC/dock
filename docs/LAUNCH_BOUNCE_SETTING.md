@@ -29,7 +29,7 @@
 GUI は macOS 26.6.2、1600×1000の専用ヘッドレス VM 内で確認した。ホストのデスクトップには、アプリや VM の画面を表示していない。`xcodebuild test` は、テストホストがホストの画面に出るため実行していない。
 
 - 項目のない保存データで起動し、設定画面でスイッチが有効だった（[設定画面](media/launch-bounce-setting/settings-on.png)）。
-- 有効で、Custom Dock の Calendar をクリックすると、起動中に跳ね続け、Calendar のウィンドウが出て起動の点が付いた後に止まった。跳ね上がった瞬間は[静止画](media/launch-bounce-setting/bounce-on-midair.png)、動きは[動画](media/launch-bounce-setting/bounce-on.mp4)に残した。
+- 有効で、Custom Dock の Calendar をクリックすると、録画した約8秒間は跳ね続けた。録画後の画面では、Calendar のウィンドウが出て起動の点が付き、アイコンは止まっていた（録画後の約10秒間に撮った3枚で位置が同じだった。止まった時刻は測っていない）。跳ね上がった瞬間は[静止画](media/launch-bounce-setting/bounce-on-midair.png)、動きは[動画](media/launch-bounce-setting/bounce-on.mp4)に残した。
 - スイッチを無効にして保存ファイルが `launchBounce: false` になったことを確認した（[設定画面](media/launch-bounce-setting/settings-off.png)）。同じ操作で Calendar は起動したが、アイコンは動かなかった（[動画](media/launch-bounce-setting/bounce-off.mp4)）。
 - 有効に戻し、「アニメーションを減らす」を有効にして同じ操作をした。アイコンは動かなかった（[設定画面](media/launch-bounce-setting/settings-reduce-motion.png)、[動画](media/launch-bounce-setting/bounce-reduce-motion.mp4)）。
 
@@ -40,7 +40,7 @@ GUI は macOS 26.6.2、1600×1000の専用ヘッドレス VM 内で確認した�
 ## 未検証
 
 - 標準 Dock のバウンドとの差。高さ、周期、回数、アプリが最初のウィンドウを出すまで続くかを、標準 Dock と並べて測っていない。このバウンドの高さ（アイコンの半分、最大28pt）と周期（約1.1秒）は、標準 Dock を観察して決めた値ではない。
-- 起動の終わりの判定は `isFinishedLaunching` と30秒の上限による。起動中の跳ねは、Calendar が前面に出た後に止まることだけ確認した。完了の判定が標準 Dock と一致するかは未確認になる。
+- 起動の終わりの判定は `isFinishedLaunching` と30秒の上限による。起動中の跳ねが、録画後に止まっていたことだけ確認した。完了の判定が標準 Dock と一致するかは未確認になる。
 - 「アニメーションを減らす」のときの不透明度0.55は、撮影した画像では見分けられなかった。起動したアプリがウィンドウを出すと、Dock の他のアイコンも暗く見えるためで、表示の確認はできていない。動かないことだけ確認した。macOS の「視差効果を減らす」は VM では切り替えていない。
 - 左右配置での跳ねる向き。
 - VoiceOver での読み上げ。
