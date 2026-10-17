@@ -48,7 +48,7 @@ macOS 15 と macOS 27 は、環境がないため確認できていない。
 | --- | --- | --- |
 | #14 | 公開 API では不可。代替として、自アプリの利用履歴による「最近使った項目」は実装可能 | 提案アプリを返す公開 API が SDK にない。`NSWorkspace.runningApplications` は実行中のアプリだけを返す |
 | #56 | 他アプリの継続候補を読むことは公開 API では不可。自アプリが Handoff を受ける側になることは実装可能 | `NSUserActivity` は同じ Team ID のアプリ間でだけ継続できる。他デバイスの活動を列挙する API がない |
-| #58 | 条件付きで可能。26 は `com.apple.apps.launcher` を `NSWorkspace` で開ける。15 の Launchpad は未確認 | ホストの `/System/Applications/Apps.app` を確認した。Launchpad の実体は15の実機で確認できていない |
+| #58 | 条件付きで可能。26 は `com.apple.apps.launcher` を `NSWorkspace` で引いて開く呼び出しが通る（一覧の表示は未撮影）。15 の Launchpad は未確認 | ホストの `/System/Applications/Apps.app` を確認した。Launchpad の実体は15の実機で確認できていない |
 | #67 | 公開 API では不可。ただし、macOS 27 では Dock 側が自動で表示するため、実装は不要の可能性が高い | 26.5 の SDK に該当する API がない。27 の API は未確認 |
 | #70 | 未確認。公開 API で他アプリのバックグラウンド実行だけを止める経路は見つかっていない。System Settings への案内は 26 までの API で可能 | `SMAppService.openSystemSettingsLoginItems` は実在する。27 の停止操作の API は確認できていない |
 
@@ -194,7 +194,7 @@ macOS の Dock が表示する Handoff アイコンを、DockStudio のカスタ
 
 ### 結論
 
-条件付きで可能。macOS 26 は、ホストで確認した `com.apple.apps.launcher` の `Apps.app` を、`NSWorkspace` で開ける見込みになる。macOS 15 の Launchpad は、実機で確認できていないため未確認。
+条件付きで可能。macOS 26 は、`com.apple.apps.launcher` の `Apps.app` を `NSWorkspace` で引いて開く呼び出しまでは通る（VM で確認）。ただし、アプリ一覧の表示は撮影できていない。macOS 15 の Launchpad は、実機で確認できていないため未確認。
 
 ### 根拠
 
