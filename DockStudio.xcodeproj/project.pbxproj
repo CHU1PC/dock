@@ -32,6 +32,7 @@
 		B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */; };
 		BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */; };
 		C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */; };
+		C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */; };
 		D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */; };
 		E2E1B7F75933FAFCC70FBCE4 /* NativeDockTilePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */; };
 		E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D821980A359C628760823676 /* DockIconSizeRangeTests.swift */; };
@@ -82,6 +83,7 @@
 		D821980A359C628760823676 /* DockIconSizeRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSizeRangeTests.swift; sourceTree = "<group>"; };
 		DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileTests.swift; sourceTree = "<group>"; };
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropDockItemsTests.swift; sourceTree = "<group>"; };
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
 		F60EB0DB463C5447E89F603D /* SettingsPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreview.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -129,6 +131,7 @@
 				99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */,
 				08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */,
 				EF63433C32EE891D1543248B /* DockStoreTests.swift */,
+				E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */,
 				48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */,
 				238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */,
 				DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */,
@@ -253,6 +256,7 @@
 				66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */,
 				F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */,
 				71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */,
+				C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */,
 				C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */,
 				BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */,
 				345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */,
