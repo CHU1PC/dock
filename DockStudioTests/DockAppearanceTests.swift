@@ -60,6 +60,27 @@ final class DockAppearanceTests: XCTestCase {
         XCTAssertEqual(store.appearance.opacity, 0.55)
     }
 
+    func testAppleDockPresetRestoresPreviousCustomBackgroundValues() throws {
+        let root = try directory()
+        let persistence = ProfilePersistence(fileURL: root.appendingPathComponent("profiles.json"))
+        let store = DockStore(persistence: persistence)
+        var value = DockAppearance()
+        value.opacity = 0.2
+        value.blur = false
+        value.color = 0x123456
+        value.background = .appleDock
+        XCTAssertTrue(store.updateAppearance(value))
+        let restored = DockStore(persistence: persistence)
+        XCTAssertEqual(restored.appearance, value)
+        restored.stageAppearance(\.background, value: .color)
+        XCTAssertTrue(restored.finishAppearanceEditing())
+        let custom = DockStore(persistence: persistence).appearance
+        XCTAssertEqual(custom.background, .color)
+        XCTAssertEqual(custom.opacity, 0.2)
+        XCTAssertFalse(custom.blur)
+        XCTAssertEqual(custom.color, 0x123456)
+    }
+
     func testFailedWriteDoesNotApplyUnsavedAppearance() throws {
         let root = try directory()
         let blocked = root.appendingPathComponent("blocked")
