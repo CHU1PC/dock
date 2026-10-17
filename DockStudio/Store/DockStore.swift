@@ -15,6 +15,9 @@ final class DockStore {
     var status = ""
     var isDockVisible = false
     var runningItems: [DockItem] = []
+    var trashState = TrashState.unknown
+    @ObservationIgnored var trashInspector = TrashInspector()
+    @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
