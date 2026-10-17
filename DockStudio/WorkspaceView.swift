@@ -76,6 +76,8 @@ struct DockMenu: View {
         Divider()
         Button(store.isDockEffectivelyVisible ? "Custom Dock を隠す" : "Custom Dock を表示") { store.toggleDockVisibility() }
             .disabled(store.storageIsReadOnly)
+        Button("Dock をキーボードで操作") { store.focusDock() }
+            .disabled(store.storageIsReadOnly)
         Button("Dock を管理…") {
             openWindow(id: "studio")
             NSApplication.shared.activate(ignoringOtherApps: true)

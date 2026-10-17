@@ -1,0 +1,10 @@
+App=app.dockstudio.gpui (pid 55197)
+Window: "Dock Studio", App: Dock Studio.
+
+0 standard window Dock Studio
+	1 close button
+	2 full screen button, Secondary Actions: zoom the window
+	3 minimize button
+	4 text Dock Studio
+
+The focused UI element is 0 standard window Dock Studio.

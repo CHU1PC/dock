@@ -1,0 +1,38 @@
+App=app.dockstudio.preview (pid 90636)
+Window: "Dock Studio", App: Dock Studio.
+
+0 standard window Dock Studio
+	1 image
+	2 text Dock Studio
+	3 text 画面
+	4 radio group
+		5 radio button Custom Dock, Value: 0
+		6 radio button 設定, Value: 0
+		7 radio button プロファイル, Value: 1
+	8 button
+	9 text プロファイル
+	10 text field (settable) プロファイル名, Value: 日本語
+	11 scroll area, Secondary Actions: scroll up, scroll down
+		12 button (selected)
+	13 text 未保存の変更があります
+	14 button
+	15 text 項目を選び、下の矢印で順番を整えます。
+	16 scroll area, Secondary Actions: scroll up, scroll down
+		17 button
+		18 button
+		19 button
+		20 button
+	21 button
+	22 menu button 項目を追加
+	23 button (disabled)
+	24 button (disabled)
+	25 button (disabled)
+	26 button
+	27 menu button プロファイルの操作
+	28 text Custom Dock
+	29 close button
+	30 full screen button, Secondary Actions: zoom the window
+	31 minimize button
+	32 text Dock Studio
+
+The focused UI element is 10 text field (settable) プロファイル名, Value: 日本語.

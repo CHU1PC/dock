@@ -1,0 +1,27 @@
+App=app.dockstudio.preview (pid 33948)
+Window: "Dock Studio", App: Dock Studio.
+
+0 standard window Dock Studio
+	1 image
+	2 text Dock Studio
+	3 text 画面
+	4 radio group
+		5 radio button Custom Dock, Value: 1
+		6 radio button 設定, Value: 0
+		7 radio button プロファイル, Value: 0
+	8 button
+	9 text Custom Dock
+	10 menu button 比較検証
+	11 text アプリとウィジェットを、使う場面ごとにまとめます。
+	12 button
+	13 scroll area, Secondary Actions: scroll up, scroll down
+		14 button
+		15 button
+		16 button
+		17 button
+	18 close button
+	19 full screen button, Secondary Actions: zoom the window
+	20 minimize button
+	21 text Dock Studio
+
+The focused UI element is 0 standard window Dock Studio.

@@ -34,7 +34,14 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let store else { return .terminateNow }
-        guard store.finishIconSizeEditing() else { return cancelAfterSaveFailure(store) }
+        guard !store.isChoosingDockBackground else {
+            let alert = NSAlert()
+            alert.messageText = "背景画像を読み込み中です"
+            alert.informativeText = "画像の読み込みが終わってから、もう一度終了してください。"
+            alert.runModal()
+            return .terminateCancel
+        }
+        guard store.finishIconSizeEditing(), store.finishAppearanceEditing() else { return cancelAfterSaveFailure(store) }
         guard store.hasPendingDrafts else { return .terminateNow }
         let alert = NSAlert()
         alert.messageText = "未保存の編集内容があります"

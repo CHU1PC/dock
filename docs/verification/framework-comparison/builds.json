@@ -1,0 +1,23 @@
+{
+  "source_head": "f48056138803e688c9d18ebe89ff0386be80fc4d",
+  "local_integration_from_main": "9227da4df48a9659619d460876e3956f54d075ba",
+  "configuration": "Release",
+  "platform": "macOS 26.5.2 Apple M4 Pro 24 GB",
+  "binaries": [
+    {
+      "name": "SwiftUI",
+      "size_bytes": 2932072,
+      "sha256": "67131470ec5be3e6ae5aab79c953ce35dee12c31e5647b1d558eb0fdd1d2df3c"
+    },
+    {
+      "name": "GPUI",
+      "size_bytes": 8954368,
+      "sha256": "61b4cf602ebe7a9314e404addf3df86f3d8f91720510af800ccb69b91c44eea3"
+    },
+    {
+      "name": "Swift helper",
+      "size_bytes": 665792,
+      "sha256": "b77c4253ac2a6656bcf3c66242095af8218ea70844b60dbcba627bb6e47e1d29"
+    }
+  ]
+}

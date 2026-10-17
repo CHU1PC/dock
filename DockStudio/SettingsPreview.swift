@@ -30,6 +30,7 @@ struct SettingsPreview: View {
                     Text(section.title).font(.system(size: 29, weight: .semibold, design: .rounded))
                     switch section {
                     case .dock: dockSettings
+                    case .appearance: appearanceSettings
                     case .widgets: widgetSettings
                     case .general: generalSettings
                     }
@@ -94,6 +95,99 @@ struct SettingsPreview: View {
         }
     }
 
+    private var appearanceSettings: some View {
+        VStack(alignment: .leading, spacing: 25) {
+            Text("Dock 自体の背景とアイコンを設定します。デスクトップの壁紙は変わりません。")
+                .foregroundStyle(StudioColor.muted)
+            if let error = store.appearanceLoadError {
+                VStack(alignment: .leading, spacing: 10) {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                    Button("外観設定を読み込み直す") { store.retryAppearance() }
+                }.padding().background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+            }
+            VStack(alignment: .leading, spacing: 25) {
+                settingsGroup("Dock の背景") {
+                    Picker("背景", selection: appearance(\.background)) {
+                        ForEach(DockAppearance.Background.allCases) { Text($0.title).tag($0) }
+                    }.pickerStyle(.segmented)
+                    if store.appearance.background == .color {
+                        ColorPicker("背景色", selection: Binding(get: {
+                            let value = store.appearance.color
+                            return Color(red: Double((value >> 16) & 255) / 255,
+                                         green: Double((value >> 8) & 255) / 255, blue: Double(value & 255) / 255)
+                        }, set: { color in
+                            guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return }
+                            var next = store.appearance
+                            next.color = UInt32((rgb.redComponent * 255).rounded()) << 16
+                                | UInt32((rgb.greenComponent * 255).rounded()) << 8
+                                | UInt32((rgb.blueComponent * 255).rounded())
+                            store.stageAppearance(\.color, value: next.color)
+                        }), supportsOpacity: false)
+                    }
+                    if store.appearance.background == .image {
+                        HStack {
+                            Button(store.isChoosingDockBackground ? "画像を読み込み中…" : "背景画像を選ぶ…") { store.chooseDockBackground() }.disabled(store.isChoosingDockBackground)
+                            Text(store.appearance.image == nil ? "画像が選択されていません" : "選択した画像を使用中")
+                                .font(.caption).foregroundStyle(StudioColor.muted)
+                        }
+                        Text("選んだ画像はアプリの保存先へコピーします。")
+                            .font(.caption).foregroundStyle(StudioColor.muted)
+                    }
+                    if store.appearance.background != .transparent {
+                        HStack {
+                            Text("不透明度")
+                            Slider(value: stagedAppearance(\.opacity), in: 0...1, step: 0.05, onEditingChanged: { if !$0 { store.finishAppearanceEditing() } })
+                                .accessibilityLabel("Dock の背景の不透明度")
+                            Text("\(Int(store.appearance.opacity * 100))%")
+                                .monospacedDigit().frame(width: 45)
+                        }
+                        Toggle("背景をぼかす", isOn: appearance(\.blur))
+                    } else {
+                        Text("背景と輪郭を消し、アイコンだけを表示します。")
+                            .font(.caption).foregroundStyle(StudioColor.muted)
+                    }
+                }
+                settingsGroup("アイコン") {
+                    Picker("アイコンの外観", selection: appearance(\.iconStyle)) {
+                        ForEach(DockAppearance.IconStyle.allCases) { Text($0.title).tag($0) }
+                    }.pickerStyle(.segmented)
+                    Text("ガラス調は、元のアイコンの形と濃淡を保った、透ける単色の加工です。")
+                        .font(.caption).foregroundStyle(StudioColor.muted)
+                    Divider()
+                    Toggle("起動中のアプリに点を表示", isOn: appearance(\.runningIndicators))
+                }
+                settingsGroup("ホバーとアニメーション") {
+                    Toggle("ポインタを重ねたアイコンを拡大", isOn: appearance(\.magnification))
+                    if store.appearance.magnification {
+                        HStack {
+                            Text("拡大率")
+                            Slider(value: stagedAppearance(\.magnificationScale), in: 1...2, step: 0.05, onEditingChanged: { if !$0 { store.finishAppearanceEditing() } })
+                                .accessibilityLabel("アイコンの拡大率")
+                            Text(String(format: "%.2f×", store.appearance.magnificationScale)).monospacedDigit()
+                        }
+                    }
+                    Toggle("アニメーションを減らす", isOn: appearance(\.reduceMotion))
+                    Text("macOS の「視差効果を減らす」も反映します。")
+                        .font(.caption).foregroundStyle(StudioColor.muted)
+                }
+            }.disabled(store.appearanceIsReadOnly)
+            Text("外観はすべてのプロファイルに共通です。現在のプロファイル書き出しには含まれません。")
+                .font(.caption).foregroundStyle(StudioColor.muted)
+        }
+    }
+
+    private func stagedAppearance<Value>(_ path: WritableKeyPath<DockAppearance, Value>) -> Binding<Value> {
+        Binding(get: { store.appearance[keyPath: path] }, set: { store.stageAppearance(path, value: $0) })
+    }
+
+    private func appearance<Value>(_ path: WritableKeyPath<DockAppearance, Value>) -> Binding<Value> {
+        Binding(get: { store.appearance[keyPath: path] }, set: { value in
+            var next = store.appearance
+            next[keyPath: path] = value
+            store.updateAppearance(next)
+        })
+    }
+
     private var widgetSettings: some View {
         settingsGroup("使用できるウィジェット") {
             Label("時計", systemImage: "clock")
@@ -149,11 +243,12 @@ struct SettingsPreview: View {
 }
 
 private enum SettingsSection: String, CaseIterable, Identifiable {
-    case dock, widgets, general
+    case dock, appearance, widgets, general
     var id: String { rawValue }
     var title: String {
         switch self {
         case .dock: "Dock"
+        case .appearance: "外観"
         case .widgets: "ウィジェット"
         case .general: "一般"
         }
@@ -161,6 +256,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .dock: "dock.rectangle"
+        case .appearance: "paintpalette"
         case .widgets: "square.grid.2x2"
         case .general: "gearshape"
         }

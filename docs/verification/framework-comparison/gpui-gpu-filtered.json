@@ -1,0 +1,458 @@
+[
+  {
+    "start_ns": 1245013333,
+    "duration_ns": 20917,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c8603"
+  },
+  {
+    "start_ns": 1245034375,
+    "duration_ns": 111208,
+    "depth": 1,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c8602"
+  },
+  {
+    "start_ns": 1286628208,
+    "duration_ns": 21333,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c87d3"
+  },
+  {
+    "start_ns": 1286649708,
+    "duration_ns": 102208,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c87d2"
+  },
+  {
+    "start_ns": 1327259250,
+    "duration_ns": 21625,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c8977"
+  },
+  {
+    "start_ns": 1327281000,
+    "duration_ns": 107375,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680c8976"
+  },
+  {
+    "start_ns": 2252628458,
+    "duration_ns": 21750,
+    "depth": 1,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cae82"
+  },
+  {
+    "start_ns": 2252650666,
+    "duration_ns": 160375,
+    "depth": 1,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cae81"
+  },
+  {
+    "start_ns": 2285918166,
+    "duration_ns": 20542,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cafd4"
+  },
+  {
+    "start_ns": 2285938833,
+    "duration_ns": 101292,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cafd3"
+  },
+  {
+    "start_ns": 2326856541,
+    "duration_ns": 21417,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cb1bb"
+  },
+  {
+    "start_ns": 2326878083,
+    "duration_ns": 108333,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cb1ba"
+  },
+  {
+    "start_ns": 3261411625,
+    "duration_ns": 20416,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cd7fc"
+  },
+  {
+    "start_ns": 3261432291,
+    "duration_ns": 105500,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cd7fb"
+  },
+  {
+    "start_ns": 3286020291,
+    "duration_ns": 20417,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cd922"
+  },
+  {
+    "start_ns": 3286040833,
+    "duration_ns": 112417,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cd921"
+  },
+  {
+    "start_ns": 3326180875,
+    "duration_ns": 20666,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cdac0"
+  },
+  {
+    "start_ns": 3326201666,
+    "duration_ns": 102792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680cdabf"
+  },
+  {
+    "start_ns": 4269447666,
+    "duration_ns": 21584,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d00a3"
+  },
+  {
+    "start_ns": 4269469416,
+    "duration_ns": 103709,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d00a2"
+  },
+  {
+    "start_ns": 4286227125,
+    "duration_ns": 21000,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d017c"
+  },
+  {
+    "start_ns": 4286248291,
+    "duration_ns": 102459,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d017b"
+  },
+  {
+    "start_ns": 4327058166,
+    "duration_ns": 21084,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d0339"
+  },
+  {
+    "start_ns": 4327079375,
+    "duration_ns": 111708,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d0338"
+  },
+  {
+    "start_ns": 5276985125,
+    "duration_ns": 20708,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d28d0"
+  },
+  {
+    "start_ns": 5277005958,
+    "duration_ns": 102042,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d28cf"
+  },
+  {
+    "start_ns": 5284827958,
+    "duration_ns": 21042,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d2933"
+  },
+  {
+    "start_ns": 5284849166,
+    "duration_ns": 110250,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d2932"
+  },
+  {
+    "start_ns": 5335189541,
+    "duration_ns": 21584,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d2b4e"
+  },
+  {
+    "start_ns": 5335211250,
+    "duration_ns": 118041,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d2b4d"
+  },
+  {
+    "start_ns": 6291310333,
+    "duration_ns": 20792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d5243"
+  },
+  {
+    "start_ns": 6291331250,
+    "duration_ns": 108333,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d5242"
+  },
+  {
+    "start_ns": 6331302708,
+    "duration_ns": 20792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d53c5"
+  },
+  {
+    "start_ns": 6331323625,
+    "duration_ns": 109250,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d53c4"
+  },
+  {
+    "start_ns": 7290051333,
+    "duration_ns": 21000,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d79e3"
+  },
+  {
+    "start_ns": 7290072458,
+    "duration_ns": 108583,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d79e2"
+  },
+  {
+    "start_ns": 7297985041,
+    "duration_ns": 20209,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d7a6f"
+  },
+  {
+    "start_ns": 7298005375,
+    "duration_ns": 101958,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d7a6e"
+  },
+  {
+    "start_ns": 7331273750,
+    "duration_ns": 20791,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d7bdf"
+  },
+  {
+    "start_ns": 7331294666,
+    "duration_ns": 102334,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680d7bde"
+  },
+  {
+    "start_ns": 8289681333,
+    "duration_ns": 21542,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da15f"
+  },
+  {
+    "start_ns": 8289703000,
+    "duration_ns": 108125,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da15e"
+  },
+  {
+    "start_ns": 8307560666,
+    "duration_ns": 24417,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da1f3"
+  },
+  {
+    "start_ns": 8307585208,
+    "duration_ns": 110708,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da1f2"
+  },
+  {
+    "start_ns": 8339378750,
+    "duration_ns": 21583,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da363"
+  },
+  {
+    "start_ns": 8339400500,
+    "duration_ns": 106666,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680da362"
+  },
+  {
+    "start_ns": 9290050916,
+    "duration_ns": 20250,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dc9c0"
+  },
+  {
+    "start_ns": 9290071291,
+    "duration_ns": 108084,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dc9bf"
+  },
+  {
+    "start_ns": 9314682250,
+    "duration_ns": 20833,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dcabf"
+  },
+  {
+    "start_ns": 9314703250,
+    "duration_ns": 102458,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dcabe"
+  },
+  {
+    "start_ns": 9331155500,
+    "duration_ns": 21416,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dcb98"
+  },
+  {
+    "start_ns": 9331177041,
+    "duration_ns": 111959,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680dcb97"
+  },
+  {
+    "start_ns": 10290849958,
+    "duration_ns": 23375,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df240"
+  },
+  {
+    "start_ns": 10290873500,
+    "duration_ns": 117125,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df23f"
+  },
+  {
+    "start_ns": 10322689791,
+    "duration_ns": 21459,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df3b6"
+  },
+  {
+    "start_ns": 10322711375,
+    "duration_ns": 111333,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df3b5"
+  },
+  {
+    "start_ns": 10339610958,
+    "duration_ns": 20792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df443"
+  },
+  {
+    "start_ns": 10339631875,
+    "duration_ns": 105500,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680df442"
+  },
+  {
+    "start_ns": 11298245500,
+    "duration_ns": 20750,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e19c2"
+  },
+  {
+    "start_ns": 11298266416,
+    "duration_ns": 101750,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e19c1"
+  },
+  {
+    "start_ns": 11331288958,
+    "duration_ns": 21167,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e1b1a"
+  },
+  {
+    "start_ns": 11331310291,
+    "duration_ns": 108459,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e1b19"
+  },
+  {
+    "start_ns": 11339350166,
+    "duration_ns": 20792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e1b79"
+  },
+  {
+    "start_ns": 11339371083,
+    "duration_ns": 107875,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e1b78"
+  },
+  {
+    "start_ns": 12299223500,
+    "duration_ns": 23708,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4094"
+  },
+  {
+    "start_ns": 12299247375,
+    "duration_ns": 108166,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4093"
+  },
+  {
+    "start_ns": 12347754208,
+    "duration_ns": 23792,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4266"
+  },
+  {
+    "start_ns": 12347778125,
+    "duration_ns": 113083,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4265"
+  },
+  {
+    "start_ns": 12356409916,
+    "duration_ns": 21125,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4298"
+  },
+  {
+    "start_ns": 12356431166,
+    "duration_ns": 111750,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e4297"
+  },
+  {
+    "start_ns": 13298152000,
+    "duration_ns": 20708,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e687e"
+  },
+  {
+    "start_ns": 13298172875,
+    "duration_ns": 107833,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e687d"
+  },
+  {
+    "start_ns": 13331159291,
+    "duration_ns": 20750,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e69f4"
+  },
+  {
+    "start_ns": 13331180208,
+    "duration_ns": 118917,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e69f3"
+  },
+  {
+    "start_ns": 13355948708,
+    "duration_ns": 21250,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e6af8"
+  },
+  {
+    "start_ns": 13355970083,
+    "duration_ns": 111125,
+    "depth": 0,
+    "label": "Command Buffer 0:Render Command 0     ( DockStudio (74143) )  0x680e6af7"
+  }
+]

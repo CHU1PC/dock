@@ -62,60 +62,132 @@ struct CustomDockPreview: View {
 
 struct DockBar: View {
     @Environment(DockStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @State private var hovered: UUID?
     let vertical: Bool
+    var isPanel = false
+    private var motion: Animation? {
+        store.appearance.reduceMotion || systemReduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82)
+    }
 
     var body: some View {
-        ScrollView(vertical ? .vertical : .horizontal) {
-            let layout = vertical ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
-            layout {
-                if store.displayedItems.isEmpty {
-                    Label("プロファイルに項目を追加", systemImage: "plus.circle")
-                        .font(.callout).foregroundStyle(StudioColor.muted).padding(10)
-                }
-                ForEach(store.displayedItems) { item in
-                    if item.kind == .spacer {
-                        Rectangle().fill(.white.opacity(0.2))
-                            .frame(width: vertical ? 80 : 1, height: vertical ? 1 : 40)
-                            .padding(5)
-                    } else if item.kind == .clock {
-                        ClockTile(vertical: vertical)
-                    } else if item.kind == .focusTimer {
-                        FocusTimerTile(itemID: item.id, vertical: vertical)
-                    } else {
-                        Button { store.openItem(item) } label: {
-                            ItemIcon(item: item, size: store.effectiveIconSize)
+        let items = store.displayedItems
+        let hoverIndex = items.firstIndex { $0.id == hovered }
+        let running = Set(store.runningItems.compactMap(\.applicationIdentity))
+        ZStack(alignment: vertical ? .center : .bottom) {
+            DockBackdrop(appearance: store.appearance)
+                .frame(width: vertical ? DockMetrics.barThickness(for: store) : nil,
+                       height: vertical ? nil : DockMetrics.barThickness(for: store))
+                .shadow(color: .black.opacity(store.appearance.background == .transparent ? 0 : 0.18), radius: 4, y: -2)
+            ScrollView(vertical ? .vertical : .horizontal) {
+                let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
+                layout {
+                    if items.isEmpty {
+                        Label("プロファイルに項目を追加", systemImage: "plus.circle")
+                            .font(.callout).foregroundStyle(StudioColor.muted).padding(10)
+                    }
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        if item.kind == .spacer {
+                            Rectangle().fill(.white.opacity(0.55)).shadow(color: .black.opacity(0.75), radius: 1)
+                                .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                        } else if item.kind == .clock {
+                            ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                                .onHover { if $0 { hovered = nil } }
+                        } else if item.kind == .focusTimer {
+                            FocusTimerTile(itemID: item.id, vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                                .onHover { if $0 { hovered = nil } }
+                        } else {
+                            dockItem(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(item.name)
-                        .help(item.name)
                     }
                 }
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .frame(minWidth: vertical ? nil : DockMetrics.length(for: store),
+                       minHeight: vertical ? DockMetrics.length(for: store) : DockMetrics.thickness(for: store),
+                       alignment: vertical ? .center : .bottom)
             }
-            .padding(12)
+            .scrollIndicators(.hidden)
+            .scrollClipDisabled()
         }
-        .scrollIndicators(.hidden)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
-        .overlay(RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(0.23)))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .animation(motion, value: hovered)
+        .onChange(of: items.map(\.id)) { hovered = nil }
+        .onChange(of: store.document.settings.position) { hovered = nil }
+        .onHover { if !$0 { hovered = nil } }
+        .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
+        .overlayPreferenceValue(DockItemFrames.self) { frames in
+            GeometryReader { geometry in
+                if !vertical, let hovered, let anchor = frames[hovered], let item = items.first(where: { $0.id == hovered }) {
+                    let frame = geometry[anchor]
+                    let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
+                    let width = min(240, max(40, min(measured, geometry.size.width - 16)))
+                    Text(item.name).font(.system(size: 12, weight: .medium))
+                        .lineLimit(1).padding(.horizontal, 10).padding(.vertical, 6)
+                        .frame(width: width).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 7))
+                        .position(x: max(width / 2 + 8, min(geometry.size.width - width / 2 - 8, frame.midX)),
+                                  y: max(16, frame.minY - 18))
+                        .allowsHitTesting(false).accessibilityHidden(true)
+                }
+            }.allowsHitTesting(false)
+        }
         .preferredColorScheme(.dark)
+    }
+
+    private func dockItem(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
+        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+        let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
+        let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
+        return VStack(spacing: 5) {
+            Button { store.openItem(item) } label: {
+                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle)
+                    .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
+            .focusable()
+            .onKeyPress(.return) { store.openItem(item); return .handled }
+            .onKeyPress(.space) { store.openItem(item); return .handled }
+            .contextMenu {
+                Button("開く") { store.openItem(item) }
+                if let url = item.targetURL, url.isFileURL {
+                    Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                }
+            }
+            Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
+                .frame(width: 4, height: 4).opacity(running ? 1 : 0)
+                .accessibilityHidden(true)
+        }
+        .padding(vertical ? .vertical : .horizontal, 5)
+        .contentShape(Rectangle())
+        .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
+        .onHover { if $0 { hovered = item.id } }
+    }
+}
+
+private struct DockItemFrames: PreferenceKey {
+    static var defaultValue: [UUID: Anchor<CGRect>] { [:] }
+    static func reduce(value: inout [UUID: Anchor<CGRect>], nextValue: () -> [UUID: Anchor<CGRect>]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 
 struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
+    var style: DockAppearance.IconStyle = .original
 
     var body: some View {
         Group {
             if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: item.kind.symbol)
                     .font(.system(size: size * 0.5, weight: .medium))
-                    .foregroundStyle(StudioColor.accent)
+                    .foregroundStyle(style == .original ? StudioColor.accent : .white)
+                    .opacity(style == .glass ? 0.72 : 1)
                     .frame(width: size, height: size)
-                    .background(StudioColor.elevated, in: RoundedRectangle(cornerRadius: size * 0.23))
+                    .background(style == .original ? StudioColor.elevated : Color.white.opacity(style == .glass ? 0.12 : 0.2),
+                                in: RoundedRectangle(cornerRadius: size * 0.23))
             }
         }
         .frame(width: size, height: size)
@@ -139,6 +211,7 @@ private struct ClockTile: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("時計")
+            .accessibilityValue(context.date.formatted(date: .omitted, time: .shortened))
             .onChange(of: expanded) {
                 if expanded { store.activePopoverTokens.insert(popoverToken) }
                 else { store.activePopoverTokens.remove(popoverToken) }
@@ -195,10 +268,16 @@ enum DockMetrics {
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        return CGFloat(max(220, total))
+        let reserve = store.appearance.magnification ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
+        return CGFloat(max(220, total + reserve))
+    }
+    static func barThickness(for store: DockStore) -> CGFloat {
+        CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 30 :
+                    max(174, store.effectiveIconSize * (store.appearance.magnification ? store.appearance.magnificationScale : 1) + 32))
     }
     static func thickness(for store: DockStore) -> CGFloat {
-        CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 24 : 174)
+        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+        return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) : barThickness(for: store)
     }
 }
 

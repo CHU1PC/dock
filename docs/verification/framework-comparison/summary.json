@@ -1,0 +1,62 @@
+[
+  {
+    "condition": "gpui-manager",
+    "seconds": 30.13332000002265,
+    "cpu_percent": 0.09786432427617613,
+    "footprint_MiB": 191.79859161376953
+  },
+  {
+    "condition": "gpui-hidden",
+    "seconds": 60.21558899991214,
+    "cpu_percent": 0.07412557402712631,
+    "footprint_MiB": 106.50171661376953
+  },
+  {
+    "condition": "gpui-dock-idle",
+    "seconds": 60.22714000009,
+    "cpu_percent": 0.10253887034965915,
+    "footprint_MiB": 208.50171661376953
+  },
+  {
+    "condition": "gpui-hover",
+    "seconds": 20.063116000033915,
+    "cpu_percent": 0.5762800354631084,
+    "footprint_MiB": 210.51734161376953
+  },
+  {
+    "condition": "swiftui-manager",
+    "seconds": 30.124375000130385,
+    "cpu_percent": 0.019259460154691637,
+    "footprint_MiB": 58.06355285644531
+  },
+  {
+    "condition": "swiftui-hidden",
+    "seconds": 60.221497000195086,
+    "cpu_percent": 0.00923106577702974,
+    "footprint_MiB": 60.37605285644531
+  },
+  {
+    "condition": "swiftui-dock-idle",
+    "seconds": 60.21203999966383,
+    "cpu_percent": 0.0029769660685969247,
+    "footprint_MiB": 62.09480285644531
+  },
+  {
+    "condition": "swiftui-hover",
+    "seconds": 20.0704510002397,
+    "cpu_percent": 0.0343138377902806,
+    "footprint_MiB": 62.11042785644531
+  },
+  {
+    "condition": "gpui-control-dock",
+    "seconds": 60.227382000070065,
+    "cpu_percent": 0.10015196576190183,
+    "footprint_MiB": 179.90792083740234
+  },
+  {
+    "condition": "swiftui-control-dock",
+    "seconds": 60.196820999961346,
+    "cpu_percent": 0.003366579773375908,
+    "footprint_MiB": 37.90711975097656
+  }
+]
