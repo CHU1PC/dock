@@ -205,10 +205,17 @@ private struct DockItemFrames: PreferenceKey {
 struct DockColorSchemeOverride: ViewModifier {
     let mode: DockAppearance.ColorMode
     let isPanel: Bool
-    @Environment(\.colorScheme) private var systemScheme
+    @Environment(\.colorScheme) private var environmentScheme
+    @State private var appScheme = Self.scheme(of: NSApp.effectiveAppearance)
+
+    private static func scheme(of appearance: NSAppearance) -> ColorScheme {
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
+    }
 
     func body(content: Content) -> some View {
-        content.environment(\.colorScheme, isPanel ? systemScheme : mode.colorScheme ?? systemScheme)
+        content
+            .environment(\.colorScheme, isPanel ? environmentScheme : mode.colorScheme ?? appScheme)
+            .onReceive(NSApp.publisher(for: \.effectiveAppearance)) { appScheme = Self.scheme(of: $0) }
     }
 }
 

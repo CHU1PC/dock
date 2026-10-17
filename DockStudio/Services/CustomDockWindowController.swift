@@ -202,6 +202,7 @@ final class CustomDockWindowController {
 
     private func update() {
         updateVisibility()
+        panel.appearance = store.appearance.colorMode.nsAppearance
         guard store.isDockEffectivelyVisible, let screen = selectedScreen else {
             timer?.invalidate(); timer = nil
             panel.orderOut(nil)
@@ -216,7 +217,6 @@ final class CustomDockWindowController {
         var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
         frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
                                                            size: frame.size, position: store.document.settings.position)
-        panel.appearance = store.appearance.colorMode.nsAppearance
         layout.position = store.document.settings.position
         layout.reduceMotion = store.appearance.reduceMotion || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         layout.revealAnimationDuration = store.effectiveRevealAnimationDuration
