@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "id": "b2d977b7-f810-4f56-82ae-b50e7d57ee0b",
+      "name": "比較検証",
+      "items": [
+        {
+          "id": "8ef0df50-668d-4c69-92ac-e7d2ef15c869",
+          "name": "Finder",
+          "kind": "application",
+          "target": "file:///System/Library/CoreServices/Finder.app",
+          "bundleIdentifier": "com.apple.finder"
+        },
+        {
+          "id": "27d2236b-1431-481e-a6b8-e8c64bb8c196",
+          "name": "Safari",
+          "kind": "application",
+          "target": "file:///System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app",
+          "bundleIdentifier": "com.apple.Safari"
+        },
+        {
+          "id": "30c23342-70cd-4d3c-ad40-ebd71756d56c",
+          "name": "Mail",
+          "kind": "application",
+          "target": "file:///System/Applications/Mail.app",
+          "bundleIdentifier": "com.apple.mail"
+        },
+        {
+          "id": "7cc85c65-4afa-4cbd-8ab3-9fe0d6a6945b",
+          "name": "Terminal",
+          "kind": "application",
+          "target": "file:///System/Applications/Utilities/Terminal.app",
+          "bundleIdentifier": "com.apple.Terminal"
+        }
+      ]
+    }
+  ],
+  "activeProfileID": "b2d977b7-f810-4f56-82ae-b50e7d57ee0b",
+  "settings": {
+    "mode": "both",
+    "position": "bottom",
+    "iconSize": 52,
+    "autoHide": false,
+    "showRunningApps": false
+  }
+}

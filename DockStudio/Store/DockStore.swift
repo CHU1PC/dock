@@ -22,6 +22,16 @@ final class DockStore {
     private(set) var isReadingNativeDock = false
     private(set) var draftRecoveryFailed = false
     private(set) var transientIconSize: Double?
+    private var savedAppearance = DockAppearance()
+    private var transientAppearance: DockAppearance?
+    private var appearanceSavedData: Data?
+    @ObservationIgnored private var appearanceSaveTask: Task<Void, Never>?
+    private(set) var isChoosingDockBackground = false
+    var dockKeyboardFocusRequested = false
+    var isDockPointerInside = false
+    var appearance: DockAppearance { transientAppearance ?? savedAppearance }
+    private(set) var appearanceIsReadOnly = false
+    var appearanceLoadError: String?
     @ObservationIgnored private var iconSizeSaveTask: Task<Void, Never>?
     private var hasPersistedDocument = false
     let isPreview: Bool
@@ -47,9 +57,127 @@ final class DockStore {
             isUsingFallbackData = !hasPersistedDocument
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
+        loadAppearance()
     }
 
     static func preview() -> DockStore { DockStore(persistence: nil) }
+
+    private var appearanceURL: URL? {
+        persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("appearance.json")
+    }
+
+    private func loadAppearance() {
+        guard let url = appearanceURL, FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            var value = try JSONDecoder().decode(DockAppearance.self, from: data)
+            if let path = value.image, !FileManager.default.fileExists(atPath: path) {
+                let old = URL(fileURLWithPath: path)
+                let moved = url.deletingLastPathComponent().appendingPathComponent("backgrounds").appendingPathComponent(old.lastPathComponent)
+                if old.deletingLastPathComponent().lastPathComponent == "backgrounds",
+                   UUID(uuidString: old.deletingPathExtension().lastPathComponent) != nil,
+                   old.pathExtension == "png", FileManager.default.fileExists(atPath: moved.path) {
+                    value.image = moved.path
+                }
+            }
+            savedAppearance = value
+            appearanceSavedData = data
+        }
+        catch {
+            appearanceIsReadOnly = true
+            appearanceLoadError = "外観設定を読み込めませんでした。元のファイルを保護しています。\n\(error.localizedDescription)"
+        }
+    }
+
+    func retryAppearance() {
+        appearanceIsReadOnly = false
+        appearanceLoadError = nil
+        appearanceSaveTask?.cancel()
+        transientAppearance = nil
+        appearanceSavedData = nil
+        savedAppearance = DockAppearance()
+        loadAppearance()
+    }
+
+    @discardableResult
+    func updateAppearance(_ next: DockAppearance) -> Bool {
+        guard !storageIsReadOnly, !appearanceIsReadOnly else { return false }
+        do {
+            try next.validate()
+            if let url = appearanceURL {
+                appearanceSavedData = try DockAppearancePersistence.save(next, to: url, expected: appearanceSavedData)
+            }
+            appearanceSaveTask?.cancel()
+            transientAppearance = nil
+            savedAppearance = next
+            return true
+        } catch {
+            if error is DockAppearanceWriteError {
+                appearanceIsReadOnly = true
+                appearanceLoadError = "外観設定が別のアプリで変更されました。読み込み直してから編集してください。"
+            }
+            errorMessage = "外観設定を保存できませんでした。\n\(error.localizedDescription)"
+            return false
+        }
+    }
+
+    func stageAppearance<Value>(_ path: WritableKeyPath<DockAppearance, Value>, value: Value) {
+        guard !storageIsReadOnly, !appearanceIsReadOnly else { return }
+        var next = appearance
+        next[keyPath: path] = value
+        guard (try? next.validate()) != nil else { return }
+        transientAppearance = next
+        appearanceSaveTask?.cancel()
+        appearanceSaveTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(300)) }
+            catch { return }
+            self?.finishAppearanceEditing()
+        }
+    }
+
+    @discardableResult
+    func finishAppearanceEditing() -> Bool {
+        appearanceSaveTask?.cancel()
+        appearanceSaveTask = nil
+        guard let next = transientAppearance else { return true }
+        transientAppearance = nil
+        return updateAppearance(next)
+    }
+
+    func focusDock() {
+        if !isDockEffectivelyVisible { toggleDockVisibility() }
+        if isDockEffectivelyVisible { dockKeyboardFocusRequested = true }
+    }
+
+    func chooseDockBackground() {
+        guard !storageIsReadOnly, !appearanceIsReadOnly, !isChoosingDockBackground,
+              finishAppearanceEditing() else { return }
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let sourceURL = panel.url else { return }
+        isChoosingDockBackground = true
+        let directory = appearanceURL?.deletingLastPathComponent()
+        Task { [weak self] in
+            do {
+                let path = try await Task.detached(priority: .userInitiated) {
+                    try DockBackgroundAssets.importImage(sourceURL, directory: directory)
+                }.value
+                guard let self else { DockBackgroundAssets.removeManagedImage(path, directory: directory); return }
+                let previous = self.appearance.image
+                var next = self.appearance
+                next.background = .image
+                next.image = path
+                if self.updateAppearance(next) {
+                    if previous != path { DockBackgroundAssets.removeManagedImage(previous, directory: directory) }
+                } else { DockBackgroundAssets.removeManagedImage(path, directory: directory) }
+            } catch {
+                self?.errorMessage = "背景画像を読み込めませんでした。\n\(error.localizedDescription)"
+            }
+            self?.isChoosingDockBackground = false
+        }
+    }
 
     var activeProfile: DockProfile {
         document.profiles.first { $0.id == document.activeProfileID } ?? document.profiles[0]
@@ -428,12 +556,11 @@ final class DockStore {
         let work = DockProfile(name: "仕事", items: [
             app("com.apple.finder", "Finder"), app("com.apple.Safari", "Safari"),
             app("com.apple.mail", "メール"), app("com.apple.Terminal", "ターミナル"),
-            DockItem(name: "スペーサー", kind: .spacer),
-            DockItem(name: "時計", kind: .clock), DockItem(name: "集中タイマー", kind: .focusTimer)
+            DockItem(name: "スペーサー", kind: .spacer)
         ].compactMap { $0 })
         let personal = DockProfile(name: "プライベート", items: [
             app("com.apple.finder", "Finder"), app("com.apple.Music", "ミュージック"),
-            app("com.apple.Photos", "写真"), DockItem(name: "時計", kind: .clock)
+            app("com.apple.Photos", "写真")
         ].compactMap { $0 })
         return DockDocument(profiles: [work, personal], activeProfileID: work.id)
     }

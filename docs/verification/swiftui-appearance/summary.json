@@ -1,0 +1,23 @@
+{
+  "manager": {
+    "seconds": 29.112321000080556,
+    "samples": 30,
+    "footprint_mib": 52.141563415527344,
+    "rss_mib": 118.421875,
+    "cpu_percent_one_core": 0.01010961990970028
+  },
+  "hover": {
+    "seconds": 20.04904399998486,
+    "samples": 21,
+    "footprint_mib": 56.782188415527344,
+    "rss_mib": 106.1875,
+    "cpu_percent_one_core": 0.7895868700777929
+  },
+  "dock-idle": {
+    "seconds": 45.16606800025329,
+    "samples": 46,
+    "footprint_mib": 56.735313415527344,
+    "rss_mib": 111.6875,
+    "cpu_percent_one_core": 0.02639751594035845
+  }
+}

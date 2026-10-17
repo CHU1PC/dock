@@ -20,12 +20,35 @@ struct DisplayOption: Identifiable {
     }
 }
 
+enum DockInteractionGeometry {
+    static func reveal(screen: NSRect, panel: NSRect, position: DockPosition) -> NSRect {
+        switch position {
+        case .bottom:
+            return NSRect(x: panel.minX, y: screen.minY, width: panel.width,
+                          height: max(8, panel.minY - screen.minY + 16))
+        case .left:
+            return NSRect(x: screen.minX, y: panel.minY, width: max(8, panel.minX - screen.minX + 16), height: panel.height)
+        case .right:
+            return NSRect(x: panel.maxX - 16, y: panel.minY,
+                          width: max(8, screen.maxX - panel.maxX + 16), height: panel.height)
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class DockPanelLayout {
     var vertical = false
     var collapsed = false
     var size = CGSize(width: 220, height: 80)
+    var position: DockPosition = .bottom
+    var reduceMotion = false
+}
+
+@MainActor
+private final class DockPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 }
 
 @MainActor
@@ -37,35 +60,51 @@ final class CustomDockWindowController {
     private var timer: Timer?
     private var visibility = DockVisibilityState()
     private var trackingMenus = 0
+    private var pointerMonitor: Any?
+    private var localMonitor: Any?
 
     init(store: DockStore) {
         self.store = store
-        panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        panel = DockPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "Dock Studio — Custom Dock"
         panel.isFloatingPanel = true
-        panel.level = .floating
+        // 標準 Dock と同じ画面端でも、Custom Dock の操作領域を背面に隠さない。
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.dockWindow)) + 1)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        panel.acceptsMouseMovedEvents = true
         panel.isReleasedWhenClosed = false
         panel.contentView = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
         refreshRunningApps()
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
-            observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refreshRunningApps() }
+            observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
+                MainActor.assumeIsolated {
+                    if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                       let url = app.bundleURL { DockIconRenderer.invalidate(url: url) }
+                    self?.refreshRunningApps()
+                }
             })
         }
-        observers.append(NotificationCenter.default.addObserver(
-            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
-        ) { [weak self] _ in
+        for center in [NotificationCenter.default, NSWorkspace.shared.notificationCenter] {
+            observers.append(center.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.update() }
+            })
+        }
+        observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.store.availableDisplays = DisplayOption.current
                 self.update()
             }
         })
+        for name in [NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification] {
+            observers.append(NotificationCenter.default.addObserver(forName: name, object: panel, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateAutoHide() }
+            })
+        }
         for name in [NSMenu.didBeginTrackingNotification, NSMenu.didEndTrackingNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
@@ -75,15 +114,30 @@ final class CustomDockWindowController {
                 }
             })
         }
-        timer = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateAutoHide() }
+        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateAutoHide(); self?.updatePointerPassThrough() }
         }
-        if let timer { RunLoop.main.add(timer, forMode: .common) }
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDown, .keyDown]) { [weak self] event in
+            let handled = MainActor.assumeIsolated {
+                if event.type == .rightMouseDown, let self, event.window === self.panel {
+                    // 非アクティブ時も SwiftUI のメニューにキーボードフォーカスを渡す。
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                    self.panel.makeKeyAndOrderFront(nil)
+                }
+                if event.type == .keyDown {
+                    if event.keyCode == 53, self?.panel.isKeyWindow == true, self?.trackingMenus == 0 { self?.panel.resignKey(); return true }
+                } else { self?.updateAutoHide(); self?.updatePointerPassThrough() }
+                return false
+            }
+            return handled ? nil : event
+        }
         observeChanges()
     }
 
     deinit {
         timer?.invalidate()
+        if let pointerMonitor { NSEvent.removeMonitor(pointerMonitor) }
+        if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         for observer in observers {
             NotificationCenter.default.removeObserver(observer)
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
@@ -105,43 +159,79 @@ final class CustomDockWindowController {
         } ?? screens.first
     }
 
+    private var revealFrame: NSRect {
+        DockInteractionGeometry.reveal(screen: selectedScreen?.frame ?? panel.frame, panel: panel.frame,
+                                       position: store.document.settings.position)
+    }
+
+    private var interactionFrame: NSRect {
+        let frame = panel.frame.insetBy(dx: 8, dy: 8)
+        if store.document.settings.position == .bottom {
+            let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+            return NSRect(x: frame.minX, y: frame.minY, width: frame.width,
+                          height: max(store.effectiveIconSize * maximum, 54) + 30)
+        }
+        return frame
+    }
+
+    private var autoHideEnabled: Bool { store.document.settings.autoHide && !NSWorkspace.shared.isVoiceOverEnabled }
+
     private func updateVisibility() {
-        visibility.update(visible: store.isDockEffectivelyVisible,
-                          autoHide: store.document.settings.autoHide,
-                          hovering: panel.isVisible && panel.frame.insetBy(dx: -24, dy: -24).contains(NSEvent.mouseLocation),
-                          interacting: trackingMenus > 0 || !store.activePopoverTokens.isEmpty, now: .now)
+        let point = NSEvent.mouseLocation
+        visibility.update(visible: store.isDockEffectivelyVisible, autoHide: autoHideEnabled,
+                          hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && interactionFrame.contains(point))),
+                          interacting: trackingMenus > 0 || !store.activePopoverTokens.isEmpty
+                            || panel.isKeyWindow || store.dockKeyboardFocusRequested, now: .now)
     }
 
     private func update() {
         updateVisibility()
         guard store.isDockEffectivelyVisible, let screen = selectedScreen else {
+            timer?.invalidate(); timer = nil
             panel.orderOut(nil)
             return
         }
         let visible = screen.visibleFrame.insetBy(dx: 10, dy: 10)
         let vertical = store.document.settings.position != .bottom
-        let length = min(DockMetrics.length(for: store), vertical ? visible.height : visible.width)
-        let thickness = DockMetrics.thickness(for: store)
+        let length = min(DockMetrics.length(for: store) + 16, vertical ? visible.height : visible.width)
+        let thickness = DockMetrics.thickness(for: store) + 16
         var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
         switch store.document.settings.position {
-        case .bottom:
-            if visibility.isCollapsed { frame.size = NSSize(width: 100, height: 8) }
-            frame.origin = NSPoint(x: visible.midX - frame.width / 2, y: visible.minY)
-        case .left:
-            if visibility.isCollapsed { frame.size = NSSize(width: 8, height: 100) }
-            frame.origin = NSPoint(x: visible.minX, y: visible.midY - frame.height / 2)
-        case .right:
-            if visibility.isCollapsed { frame.size = NSSize(width: 8, height: 100) }
-            frame.origin = NSPoint(x: visible.maxX - frame.width, y: visible.midY - frame.height / 2)
+        case .bottom: frame.origin = NSPoint(x: visible.midX - frame.width / 2, y: visible.minY)
+        case .left: frame.origin = NSPoint(x: visible.minX, y: visible.midY - frame.height / 2)
+        case .right: frame.origin = NSPoint(x: visible.maxX - frame.width, y: visible.midY - frame.height / 2)
         }
+        layout.position = store.document.settings.position
+        layout.reduceMotion = store.appearance.reduceMotion || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         layout.vertical = vertical
         layout.collapsed = visibility.isCollapsed
         layout.size = frame.size
-        panel.setFrame(frame, display: true)
+        if panel.frame != frame { panel.setFrame(frame, display: true) }
         if !panel.isVisible { panel.orderFrontRegardless() }
+        if store.dockKeyboardFocusRequested {
+            store.dockKeyboardFocusRequested = false
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+        }
+        updatePointerPassThrough()
+        if autoHideEnabled && timer == nil {
+            timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateAutoHide(); self?.updatePointerPassThrough() }
+            }
+            if let timer { RunLoop.main.add(timer, forMode: .common) }
+        } else if !autoHideEnabled { timer?.invalidate(); timer = nil }
+    }
+
+    private func updatePointerPassThrough() {
+        guard panel.isVisible else { return }
+        let inside = !visibility.isCollapsed && interactionFrame.contains(NSEvent.mouseLocation)
+        if store.isDockPointerInside != inside { store.isDockPointerInside = inside }
+        panel.ignoresMouseEvents = !(visibility.isCollapsed ? revealFrame.contains(NSEvent.mouseLocation) : inside)
+            && trackingMenus == 0 && store.activePopoverTokens.isEmpty
     }
 
     private func updateAutoHide() {
+        guard store.isDockEffectivelyVisible else { return }
         let oldValue = visibility.isCollapsed
         updateVisibility()
         if oldValue != visibility.isCollapsed { update() }
@@ -166,19 +256,26 @@ private struct PanelDockContent: View {
     let layout: DockPanelLayout
     var body: some View {
         ZStack {
-            DockBar(vertical: layout.vertical)
+            DockBar(vertical: layout.vertical, isPanel: true)
+                .padding(8)
+                .offset(x: layout.collapsed ? (layout.position == .left ? -layout.size.width : layout.position == .right ? layout.size.width : 0) : 0,
+                        y: layout.collapsed && layout.position == .bottom ? layout.size.height : 0)
                 .opacity(layout.collapsed ? 0 : 1)
+                .animation(layout.reduceMotion ? nil : .easeInOut(duration: 0.22), value: layout.collapsed)
                 .allowsHitTesting(!layout.collapsed)
                 .accessibilityHidden(layout.collapsed)
                 .contextMenu {
                     Button("Dock を隠す") { store.isDockVisible = false }
+                    Button("キーボードで操作") { store.focusDock() }
                     ForEach(store.document.profiles) { profile in
                         Button(profile.name) { store.activateProfile(profile.id) }
                     }
                 }
             if layout.collapsed {
-                Capsule().fill(StudioColor.accent.opacity(0.8)).padding(1)
-                    .accessibilityLabel("Custom Dock を表示するにはポインタを重ねます")
+                Color.clear.accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Custom Dock を表示")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { store.focusDock() }
             }
         }
         .frame(width: layout.size.width, height: layout.size.height)
