@@ -164,6 +164,13 @@ struct SettingsPreview: View {
                             .font(.caption).foregroundStyle(StudioColor.muted)
                     }
                 }
+                settingsGroup("Dock の明るさ") {
+                    Picker("明るさ", selection: appearance(\.colorMode)) {
+                        ForEach(DockAppearance.ColorMode.allCases) { Text($0.title).tag($0) }
+                    }.pickerStyle(.segmented)
+                    Text("「システムに合わせる」では、macOS のライトとダークの切り替えに Dock が従います。選んだ単色と画像の色は変えません。")
+                        .font(.caption).foregroundStyle(StudioColor.muted)
+                }
                 settingsGroup("アイコン") {
                     Picker("アイコンの外観", selection: appearance(\.iconStyle)) {
                         ForEach(DockAppearance.IconStyle.allCases) { Text($0.title).tag($0) }

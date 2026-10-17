@@ -202,6 +202,7 @@ final class CustomDockWindowController {
 
     private func update() {
         updateVisibility()
+        panel.appearance = store.appearance.colorMode.nsAppearance
         guard store.isDockEffectivelyVisible, let screen = selectedScreen else {
             timer?.invalidate(); timer = nil
             panel.orderOut(nil)
