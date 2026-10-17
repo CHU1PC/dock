@@ -41,7 +41,8 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
             alert.runModal()
             return .terminateCancel
         }
-        guard store.finishIconSizeEditing(), store.finishAppearanceEditing() else { return cancelAfterSaveFailure(store) }
+        guard store.finishIconSizeEditing(), store.finishRevealAnimationDurationEditing(),
+              store.finishAppearanceEditing() else { return cancelAfterSaveFailure(store) }
         guard store.hasPendingDrafts else { return .terminateNow }
         let alert = NSAlert()
         alert.messageText = "未保存の編集内容があります"

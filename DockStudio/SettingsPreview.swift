@@ -89,6 +89,20 @@ struct SettingsPreview: View {
                 Toggle("使用していないときに隠す", isOn: setting(\.autoHide))
                 Text("デスクトップの Dock が隠れたら、画面端にポインタを移すと表示します。")
                     .font(.caption).foregroundStyle(StudioColor.muted)
+                HStack {
+                    Text("表示アニメーションの時間")
+                    Slider(value: Binding(get: { store.effectiveRevealAnimationDuration },
+                                          set: { store.stageRevealAnimationDuration($0) }),
+                           in: 0...1, step: 0.01,
+                           onEditingChanged: { if !$0 { store.finishRevealAnimationDurationEditing() } })
+                        .accessibilityLabel("表示アニメーションの時間")
+                        .accessibilityValue(String(format: "%.2f秒", store.effectiveRevealAnimationDuration))
+                    Text(String(format: "%.2f秒", store.effectiveRevealAnimationDuration))
+                        .monospacedDigit().frame(width: 58, alignment: .trailing)
+                }
+                .disabled(!store.document.settings.autoHide)
+                Text("0〜1秒で調整できます。0秒にすると、画面端で即時に表示します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
             }

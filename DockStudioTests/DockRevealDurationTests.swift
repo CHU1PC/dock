@@ -59,4 +59,38 @@ final class DockRevealDurationTests: XCTestCase {
         }
     }
 
+    func testSliderEditsStageRoundedValuesUntilFinished() throws {
+        let store = DockStore.preview()
+        for (input, expected) in [(0.456, 0.46), (1.0000000000000002, 1.0), (-0.0000000000000002, 0.0)] {
+            let original = store.document.settings.revealAnimationDuration
+            store.stageRevealAnimationDuration(input)
+            XCTAssertEqual(store.effectiveRevealAnimationDuration, expected)
+            XCTAssertEqual(store.document.settings.revealAnimationDuration, original)
+            XCTAssertTrue(store.finishRevealAnimationDurationEditing())
+            XCTAssertEqual(store.document.settings.revealAnimationDuration, expected)
+        }
+        store.stageRevealAnimationDuration(.nan)
+        XCTAssertNil(store.transientRevealAnimationDuration)
+    }
+
+    func testKeyboardSliderEditsSaveAfterDebounce() async throws {
+        let store = DockStore.preview()
+        store.stageRevealAnimationDuration(0.5)
+        store.stageRevealAnimationDuration(1)
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertNil(store.transientRevealAnimationDuration)
+        XCTAssertEqual(store.document.settings.revealAnimationDuration, 1)
+    }
+
+    func testFinishingSliderDoesNotClaimSuccessWhenSavingFails() throws {
+        let blocker = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try Data().write(to: blocker)
+        defer { try? FileManager.default.removeItem(at: blocker) }
+        let store = DockStore(persistence: ProfilePersistence(fileURL: blocker.appendingPathComponent("profiles.json")))
+        let original = store.document
+        store.stageRevealAnimationDuration(1)
+        XCTAssertFalse(store.finishRevealAnimationDurationEditing())
+        XCTAssertEqual(store.document, original)
+        XCTAssertNotNil(store.errorMessage)
+    }
 }

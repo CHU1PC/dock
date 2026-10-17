@@ -22,6 +22,7 @@ final class DockStore {
     private(set) var isReadingNativeDock = false
     private(set) var draftRecoveryFailed = false
     private(set) var transientIconSize: Double?
+    private(set) var transientRevealAnimationDuration: Double?
     private var savedAppearance = DockAppearance()
     private var transientAppearance: DockAppearance?
     private var appearanceSavedData: Data?
@@ -33,6 +34,7 @@ final class DockStore {
     private(set) var appearanceIsReadOnly = false
     var appearanceLoadError: String?
     @ObservationIgnored private var iconSizeSaveTask: Task<Void, Never>?
+    @ObservationIgnored private var revealDurationSaveTask: Task<Void, Never>?
     private var hasPersistedDocument = false
     let isPreview: Bool
     private let persistence: ProfilePersistence?
@@ -292,6 +294,7 @@ final class DockStore {
     }
 
     var effectiveIconSize: Double { transientIconSize ?? document.settings.iconSize }
+    var effectiveRevealAnimationDuration: Double { transientRevealAnimationDuration ?? document.settings.revealAnimationDuration }
     var isDockEffectivelyVisible: Bool { isDockVisible && document.settings.mode != .native }
     var hasPendingDrafts: Bool {
         drafts.values.contains { draft in document.profiles.first(where: { $0.id == draft.id }) != draft }
@@ -327,6 +330,28 @@ final class DockStore {
         transientIconSize = nil
         var settings = document.settings
         settings.iconSize = size
+        return updateSettings(settings)
+    }
+
+    func stageRevealAnimationDuration(_ duration: Double) {
+        guard !storageIsReadOnly, duration.isFinite else { return }
+        transientRevealAnimationDuration = min(1, max(0, (duration * 100).rounded() / 100))
+        revealDurationSaveTask?.cancel()
+        revealDurationSaveTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(300)) }
+            catch { return }
+            self?.finishRevealAnimationDurationEditing()
+        }
+    }
+
+    @discardableResult
+    func finishRevealAnimationDurationEditing() -> Bool {
+        revealDurationSaveTask?.cancel()
+        revealDurationSaveTask = nil
+        guard let duration = transientRevealAnimationDuration else { return true }
+        transientRevealAnimationDuration = nil
+        var settings = document.settings
+        settings.revealAnimationDuration = duration
         return updateSettings(settings)
     }
 

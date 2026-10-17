@@ -55,6 +55,7 @@ final class DockPanelLayout {
     var size = CGSize(width: 220, height: 80)
     var position: DockPosition = .bottom
     var reduceMotion = false
+    var revealAnimationDuration = DockSettings().revealAnimationDuration
 }
 
 @MainActor
@@ -214,6 +215,7 @@ final class CustomDockWindowController {
                                                            size: frame.size, position: store.document.settings.position)
         layout.position = store.document.settings.position
         layout.reduceMotion = store.appearance.reduceMotion || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        layout.revealAnimationDuration = store.effectiveRevealAnimationDuration
         layout.vertical = vertical
         layout.collapsed = visibility.isCollapsed
         layout.size = frame.size
@@ -272,7 +274,9 @@ private struct PanelDockContent: View {
                 .offset(x: layout.collapsed ? (layout.position == .left ? -layout.size.width : layout.position == .right ? layout.size.width : 0) : 0,
                         y: layout.collapsed && layout.position == .bottom ? layout.size.height : 0)
                 .opacity(layout.collapsed ? 0 : 1)
-                .animation(layout.reduceMotion ? nil : .easeInOut(duration: 0.22), value: layout.collapsed)
+                .animation(layout.reduceMotion || (!layout.collapsed && layout.revealAnimationDuration == 0)
+                           ? nil : .easeInOut(duration: layout.collapsed ? 0.22 : layout.revealAnimationDuration),
+                           value: layout.collapsed)
                 .allowsHitTesting(!layout.collapsed)
                 .accessibilityHidden(layout.collapsed)
                 .contextMenu {
