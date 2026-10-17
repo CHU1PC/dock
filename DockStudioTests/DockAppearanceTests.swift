@@ -19,6 +19,45 @@ final class DockAppearanceTests: XCTestCase {
         XCTAssertTrue(appearance.magnification)
     }
 
+    func testColorModeDefaultsToSystemAndRoundTrips() throws {
+        let legacy = try JSONDecoder().decode(DockAppearance.self, from: Data("{\"background\":\"color\",\"color\":3158064}".utf8))
+        XCTAssertEqual(legacy.colorMode, .system)
+        XCTAssertEqual(legacy.background, .color)
+        XCTAssertEqual(legacy.color, 0x303030)
+        var value = DockAppearance()
+        value.colorMode = .light
+        let data = try JSONEncoder().encode(value)
+        XCTAssertEqual(try JSONDecoder().decode(DockAppearance.self, from: data).colorMode, .light)
+        XCTAssertThrowsError(try JSONDecoder().decode(DockAppearance.self, from: Data("{\"colorMode\":\"sepia\"}".utf8)))
+    }
+
+    func testColorModeResolvesToSystemOrExplicitAppearance() {
+        XCTAssertNil(DockAppearance.ColorMode.system.colorScheme)
+        XCTAssertNil(DockAppearance.ColorMode.system.nsAppearance)
+        XCTAssertEqual(DockAppearance.ColorMode.light.colorScheme, .light)
+        XCTAssertEqual(DockAppearance.ColorMode.dark.colorScheme, .dark)
+        XCTAssertEqual(DockAppearance.ColorMode.light.nsAppearance?.name, .aqua)
+        XCTAssertEqual(DockAppearance.ColorMode.dark.nsAppearance?.name, .darkAqua)
+    }
+
+    func testColorModeKeepsUserColorAndImage() throws {
+        let root = try directory()
+        let persistence = ProfilePersistence(fileURL: root.appendingPathComponent("profiles.json"))
+        let store = DockStore(persistence: persistence)
+        var value = DockAppearance()
+        value.background = .color
+        value.color = 0x112233
+        value.image = "/tmp/background.png"
+        value.colorMode = .dark
+        XCTAssertTrue(store.updateAppearance(value))
+        value.colorMode = .light
+        XCTAssertTrue(store.updateAppearance(value))
+        let restored = DockStore(persistence: persistence).appearance
+        XCTAssertEqual(restored.colorMode, .light)
+        XCTAssertEqual(restored.color, 0x112233)
+        XCTAssertEqual(restored.image, "/tmp/background.png")
+    }
+
     func testUnknownAppearanceIsProtectedWithoutBlockingProfiles() throws {
         let root = try directory()
         let file = root.appendingPathComponent("appearance.json")

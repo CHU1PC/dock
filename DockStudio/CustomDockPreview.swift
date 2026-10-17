@@ -85,11 +85,11 @@ struct DockBar: View {
                     layout {
                         if items.isEmpty {
                             Label("プロファイルに項目を追加", systemImage: "plus.circle")
-                                .font(.callout).foregroundStyle(StudioColor.muted).padding(10)
+                                .font(.callout).foregroundStyle(.secondary).padding(10)
                         }
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             if item.kind == .spacer {
-                                Rectangle().fill(.white.opacity(0.55)).shadow(color: .black.opacity(0.75), radius: 1)
+                                Rectangle().fill(.primary.opacity(0.45))
                                     .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
                             } else if item.kind == .clock {
                                 ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
@@ -131,7 +131,7 @@ struct DockBar: View {
                 }
             }.allowsHitTesting(false)
         }
-        .preferredColorScheme(.dark)
+        .modifier(DockColorSchemeOverride(mode: store.appearance.colorMode, isPanel: isPanel))
     }
 
     private func dockItem(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
@@ -202,6 +202,16 @@ private struct DockItemFrames: PreferenceKey {
     }
 }
 
+struct DockColorSchemeOverride: ViewModifier {
+    let mode: DockAppearance.ColorMode
+    let isPanel: Bool
+    @Environment(\.colorScheme) private var systemScheme
+
+    func body(content: Content) -> some View {
+        content.environment(\.colorScheme, isPanel ? systemScheme : mode.colorScheme ?? systemScheme)
+    }
+}
+
 struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
@@ -217,10 +227,10 @@ struct ItemIcon: View {
             } else {
                 Image(systemName: item.kind.symbol)
                     .font(.system(size: size * 0.5, weight: .medium))
-                    .foregroundStyle(style == .original ? StudioColor.accent : .white)
+                    .foregroundStyle(style == .original ? StudioColor.accent : .primary)
                     .opacity(style == .glass ? 0.72 : 1)
                     .frame(width: size, height: size)
-                    .background(style == .original ? StudioColor.elevated : Color.white.opacity(style == .glass ? 0 : 0.2),
+                    .background(style == .original ? StudioColor.elevated : Color.primary.opacity(style == .glass ? 0 : 0.2),
                                 in: RoundedRectangle(cornerRadius: size * 0.23))
             }
         }
@@ -240,10 +250,10 @@ private struct ClockTile: View {
             Button { expanded.toggle() } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(context.date, format: .dateTime.hour().minute()).font(.system(size: 22, weight: .semibold, design: .rounded))
-                    Text(context.date, format: .dateTime.month().day().weekday()).font(.caption2).foregroundStyle(StudioColor.muted)
+                    Text(context.date, format: .dateTime.month().day().weekday()).font(.caption2).foregroundStyle(.secondary)
                 }
                 .frame(width: vertical ? 140 : 125, height: 54)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 13))
+                .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 13))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("時計")
@@ -285,7 +295,7 @@ private struct FocusTimerTile: View {
                         .font(.caption2).foregroundStyle(StudioColor.accent)
                 }
                 .frame(width: vertical ? 140 : 110, height: 54)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 13))
+                .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 13))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("集中タイマー \(seconds / 60) 分 \(seconds % 60) 秒")

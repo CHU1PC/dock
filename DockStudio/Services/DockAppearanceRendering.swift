@@ -183,18 +183,24 @@ struct DockIconGlassEffect: ViewModifier {
 
 struct DockSystemMaterial: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
+        let view: NSView
         if #available(macOS 26.0, *) {
             let glass = NSGlassEffectView()
             glass.cornerRadius = CGFloat(DockAppearance.cornerRadius)
-            return glass
+            view = glass
+        } else {
+            let effect = NSVisualEffectView()
+            effect.material = .hudWindow
+            effect.blendingMode = .behindWindow
+            effect.state = .active
+            view = effect
         }
-        let effect = NSVisualEffectView()
-        effect.material = .hudWindow
-        effect.blendingMode = .behindWindow
-        effect.state = .active
-        return effect
+        view.appearance = NSAppearance(named: context.environment.colorScheme == .dark ? .darkAqua : .aqua)
+        return view
     }
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: NSView, context: Context) {
+        nsView.appearance = NSAppearance(named: context.environment.colorScheme == .dark ? .darkAqua : .aqua)
+    }
 }
 
 struct DockBackdrop: View {

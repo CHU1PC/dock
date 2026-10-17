@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import SwiftUI
 
 struct DockAppearance: Codable, Equatable {
     enum Background: String, Codable, CaseIterable, Identifiable {
@@ -27,6 +29,32 @@ struct DockAppearance: Codable, Equatable {
         }
     }
 
+    enum ColorMode: String, Codable, CaseIterable, Identifiable {
+        case system, light, dark
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .system: "システムに合わせる"
+            case .light: "ライト"
+            case .dark: "ダーク"
+            }
+        }
+        var colorScheme: ColorScheme? {
+            switch self {
+            case .system: nil
+            case .light: .light
+            case .dark: .dark
+            }
+        }
+        var nsAppearance: NSAppearance? {
+            switch self {
+            case .system: nil
+            case .light: NSAppearance(named: .aqua)
+            case .dark: NSAppearance(named: .darkAqua)
+            }
+        }
+    }
+
     static let cornerRadius = 22.0
 
     var background: Background = .system
@@ -35,6 +63,7 @@ struct DockAppearance: Codable, Equatable {
     var blur = true
     var image: String?
     var iconStyle: IconStyle = .original
+    var colorMode: ColorMode = .system
     var magnification = true
     var magnificationScale = 1.45
     var runningIndicators = true
@@ -43,7 +72,7 @@ struct DockAppearance: Codable, Equatable {
     init() {}
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
-        case background, color, opacity, blur, image, iconStyle
+        case background, color, opacity, blur, image, iconStyle, colorMode
         case magnification, magnificationScale, runningIndicators, reduceMotion
     }
 
@@ -60,6 +89,7 @@ struct DockAppearance: Codable, Equatable {
         blur = try values.decodeIfPresent(Bool.self, forKey: .blur) ?? true
         image = try values.decodeIfPresent(String.self, forKey: .image)
         iconStyle = try values.decodeIfPresent(IconStyle.self, forKey: .iconStyle) ?? .original
+        colorMode = try values.decodeIfPresent(ColorMode.self, forKey: .colorMode) ?? .system
         magnification = try values.decodeIfPresent(Bool.self, forKey: .magnification) ?? true
         magnificationScale = try values.decodeIfPresent(Double.self, forKey: .magnificationScale) ?? 1.45
         runningIndicators = try values.decodeIfPresent(Bool.self, forKey: .runningIndicators) ?? true
