@@ -436,6 +436,31 @@ final class DockStore {
         editorProfile = profile
     }
 
+    func isPinned(_ item: DockItem) -> Bool {
+        activeProfile.items.contains { $0.id == item.id }
+    }
+
+    func removeFromActiveProfile(_ item: DockItem) {
+        removeSavedItem(item.id, fromProfile: document.activeProfileID)
+    }
+
+    @discardableResult
+    func removeSavedItem(_ id: UUID, fromProfile profileID: UUID) -> Bool {
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == profileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == id }) else { return false }
+        let removed = candidate.profiles[profileIndex].items.remove(at: itemIndex)
+        guard commit(candidate) else { return false }
+        if removedItem?.item.id == id { removedItem = nil }
+        if var draft = drafts[profileID] {
+            draft.items.removeAll { $0.id == id }
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(removed.name) を Dock から取り外しました"
+        return true
+    }
+
     func undoRemoval() {
         guard let removedItem, removedItem.profileID == editingProfileID else { return }
         var profile = editorProfile
