@@ -150,10 +150,18 @@ struct DockBar: View {
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
+            .accessibilityActions {
+                if store.isPinned(item) {
+                    Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
+                }
+            }
             .contextMenu {
                 Button("開く") { store.openItem(item) }
                 if let url = item.targetURL, url.isFileURL {
                     Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                }
+                if store.isPinned(item) {
+                    Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
