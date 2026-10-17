@@ -104,10 +104,11 @@ struct DockBar: View {
             .scrollClipDisabled()
         }
         .coordinateSpace(name: Self.space)
-        .onPreferenceChange(DockItemRects.self) { itemRects = $0 }
+        .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
         .overlay { dropIndicator(items: items) }
         .onDrop(of: [.fileURL], delegate: DockDropDelegate(
-            store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] }, index: $dropIndex))
+            store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] },
+            isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
         .onChange(of: store.document.settings.position) { hovered = nil }
@@ -115,8 +116,7 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
-                    let frame = geometry[anchor]
+                if let labelID = hovered, let frame = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
                     Text(item.name).font(.system(size: 12, weight: .medium))
@@ -148,7 +148,7 @@ struct DockBar: View {
             }
         }
         .background(GeometryReader { proxy in
-            Color.clear.preference(key: DockItemRects.self, value: [item.id: proxy.frame(in: .named(Self.space))])
+            Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
         })
     }
 
@@ -160,13 +160,14 @@ struct DockBar: View {
             let frames = items.compactMap { itemRects[$0.id] }
             let mark = RoundedRectangle(cornerRadius: 1.5).fill(StudioColor.accent)
             GeometryReader { geometry in
-                let edge: CGFloat = frames.isEmpty ? (vertical ? geometry.size.height : geometry.size.width) / 2
-                    : index < frames.count ? (vertical ? frames[index].minY : frames[index].minX)
-                    : (vertical ? frames[frames.count - 1].maxY : frames[frames.count - 1].maxX)
-                mark.frame(width: vertical ? DockMetrics.barThickness(for: store) * 0.6 : 3,
-                           height: vertical ? 3 : store.effectiveIconSize)
-                    .position(x: vertical ? geometry.size.width / 2 : edge,
-                              y: vertical ? edge : geometry.size.height - (store.effectiveIconSize / 2 + 15))
+                if let neighbor = frames.isEmpty ? nil : frames[min(index, frames.count - 1)] {
+                    let edge = index < frames.count ? (vertical ? neighbor.minY : neighbor.minX) : (vertical ? neighbor.maxY : neighbor.maxX)
+                    mark.frame(width: vertical ? neighbor.width : 3, height: vertical ? 3 : neighbor.height)
+                        .position(x: vertical ? neighbor.midX : edge, y: vertical ? edge : neighbor.midY)
+                } else {
+                    mark.frame(width: vertical ? store.effectiveIconSize : 3, height: vertical ? 3 : store.effectiveIconSize)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                }
             }
             .allowsHitTesting(false).accessibilityHidden(true)
         }
@@ -216,7 +217,6 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
-        .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
         .onHover { if $0 { hovered = item.id } }
     }
 }
@@ -231,10 +231,11 @@ private struct DockDropDelegate: DropDelegate {
     let store: DockStore
     let vertical: Bool
     let frames: [CGRect]
+    let isMeasured: Bool
     @Binding var index: Int?
 
     func validateDrop(info: DropInfo) -> Bool {
-        !store.storageIsReadOnly && info.hasItemsConforming(to: [.fileURL])
+        !store.storageIsReadOnly && isMeasured && info.hasItemsConforming(to: [.fileURL])
     }
 
     func dropEntered(info: DropInfo) { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
@@ -263,13 +264,6 @@ private struct DockDropDelegate: DropDelegate {
             index = nil
         }
         return true
-    }
-}
-
-private struct DockItemRects: PreferenceKey {
-    static var defaultValue: [UUID: CGRect] { [:] }
-    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
-        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 
@@ -317,8 +311,8 @@ private struct LaunchBounce: ViewModifier {
 }
 
 private struct DockItemFrames: PreferenceKey {
-    static var defaultValue: [UUID: Anchor<CGRect>] { [:] }
-    static func reduce(value: inout [UUID: Anchor<CGRect>], nextValue: () -> [UUID: Anchor<CGRect>]) {
+    static var defaultValue: [UUID: CGRect] { [:] }
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
         value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
