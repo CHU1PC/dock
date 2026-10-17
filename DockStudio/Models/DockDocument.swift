@@ -97,6 +97,8 @@ struct DockSettings: Codable, Equatable {
 }
 
 extension DockSettings {
+    static let iconSizeRange = 16.0...128.0
+
     private enum CodingKeys: String, CodingKey {
         case mode, position, iconSize, autoHide, revealAnimationDuration, showRunningApps, displayID
     }
@@ -125,7 +127,7 @@ struct DockDocument: Codable, Equatable {
               Set(profiles.map(\.id)).count == profiles.count else {
             throw DockDataError.invalidData("Invalid profile identifiers or active profile.")
         }
-        guard (40...76).contains(settings.iconSize), settings.iconSize.isFinite else {
+        guard DockSettings.iconSizeRange.contains(settings.iconSize), settings.iconSize.isFinite else {
             throw DockDataError.invalidData("Invalid icon size.")
         }
         guard settings.revealAnimationDuration.isFinite, (0...1).contains(settings.revealAnimationDuration) else {
