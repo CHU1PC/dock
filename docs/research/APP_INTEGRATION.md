@@ -6,12 +6,12 @@
 
 - 公開 API の実在は、Xcode の SDK ヘッダ（`MacOSX26.5.sdk`、ホスト macOS 26.5.2）で確認した。SDK は `/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk` にある。
 - Apple の公式ページ（`support.apple.com`）は WebFetch で本文を確認した。`developer.apple.com` の API ページは JavaScript で描画されるため取得せず、同じ内容が書かれている SDK ヘッダを一次情報とした。
-- **専用ヘッドレス VM での観察は、今回できなかった。** VM の排他ロック（`/private/tmp/dockstudio-vm.lock`）を別のエージェントが 22:04 から 22:11 以降ずっと保持しており、約35分待っても取得できなかった。依頼の規定（最大30分）に従い、VM が必要な項目は「未確認」として記録した。ロックは取得していないので、解放もしていない。VM の設定には触れていない。
+- 専用ヘッドレス VM（macOS 26.6.2）での観察は、2回目の作業（2026-10-18）で実施した。1回目は VM のロックを取れず、未確認のまま記録した。結果は次の節「VM での観察結果」にまとめた。本文の各 issue の節には、1回目の時点の記述が残る。**食い違う場合は、「VM での観察結果」と更新後の結論の一覧を優先する。**
 - ホスト上では、画面を表示しないコマンドライン検証だけを行った。ホストのデスクトップに検証用アプリや Dock は表示していない。
-- 標準 Dock や他アプリの Dock 上の見た目、バッジ、バウンドの観察は、すべて未確認になる。本文中の「VM で確認する」は、実施していない作業を指す。
-- 画像は撮影していない。`docs/media/research-app-integration/` は作っていない。
+- 画像は保存できなかった。ssh 経由の `screencapture` が `could not create image from display`（および `could not create image from rect`）で失敗した。`docs/media/research-app-integration/` は作っていない。画面の撮影は、既存の VNC 経由の録画ツールで行う必要がある。
+- 実行した作業は、ロックを保持した10分以内に収めた。終了後にゲストのアプリと一時ファイル（`~/probe`、`~/Downloads/probe-progress`、`~/probe-recent.txt`）を削除し、ロックを解放した。VM の設定は変更していない。
 
-### VM で確認する予定だった内容（次の担当者向け）
+### 検証物の内容
 
 検証用のソースは、スクラッチ領域に作成した。リポジトリには含めていない。ここに内容を記す。
 
@@ -19,23 +19,107 @@
 | --- | --- |
 | DockAX | Dock プロセスの Accessibility ツリーを走査し、各 Dock 項目の role、subrole、`AXStatusLabel`、`AXURL`、`AXIsApplicationRunning`、全属性名、アクション名を出力する。`menu <タイトル>` で `AXShowMenu` を送り、現れたメニューを再帰的に出力して `AXCancel` で閉じる |
 | ProbeApp | `PROBE` 環境変数で動作を選ぶ GUI アプリ。`badge`、`draw`（独自の contentView 描画）、`attention`、`recent`、`progress`、`applicationDockMenu` を持つ |
-| ProgSub / ProgPub | `NSProgress` の購読側と公開側のコマンドライン。ホストで実行済み（#43 を参照） |
+| ProgSub / ProgPub | `NSProgress` の購読側と公開側のコマンドライン。ホストと VM で実行済み（#43 を参照） |
 
-VM のゲストでは、`sshd-keygen-wrapper` に Accessibility と Screen Recording が許可されている（`/private/tmp/dockstudio-vm-tools/guest-capture-permissions.sql`）。そのため、ssh 経由で DockAX を実行できる見込みになる。ただし、ssh セッションが GUI セッションの Dock に接続できるかは、実行していないので未確認になる。
+VM のゲストでは、`sshd-keygen-wrapper` に Accessibility と Screen Recording が許可されている（`/private/tmp/dockstudio-vm-tools/guest-capture-permissions.sql`）。ssh 経由で DockAX を実行し、`AXIsProcessTrusted: true` で GUI セッションの Dock の AX を読めることを確認した。
+
+## VM での観察結果（2026-10-18）
+
+ゲストは macOS 26.6.2、1600×1000。ssh 経由で、ホストでビルドした `DockAX` と `Probe.app`（ad-hoc 署名）、`ProgSub` を実行した。
+
+### Dock の AX 項目（#41、#45、#26、#27、#29 の共通基盤）
+
+```
+AXIsProcessTrusted: true
+ITEM 'Probe' role=AXDockItem subrole=AXApplicationDockItem running=1 statusLabel=42 url=file:///Users/admin/probe/Probe.app/
+ATTRS: ["AXRole", "AXRoleDescription", "AXSubrole", "AXTitle", "AXParent", "AXChildren", "AXPosition", "AXSize", "AXFrame",
+ "AXTopLevelUIElement", "AXSelected", "AXShownMenuUIElement", "AXStatusLabel", "AXProgressValue", "AXURL", "AXIsApplicationRunning"]
+ACTIONS: ["AXPress", "AXShowMenu", "AXShowExpose"]
+```
+
+- 標準 Dock の既定のアプリ項目は `AXStatusLabel = nil` だった（バッジなし）。自作アプリが `badgeLabel = "42"` を設定すると `42` になった（#41）。
+- `AXProgressValue` という属性が一覧に存在する。ただし `NSProgress` を公開して購読側に更新が届いている間も、Probe 項目の値は nil のままだった。この属性がいつ値を持つかは未確認。
+- Dock の項目には、`AXShownMenuUIElement`、`AXURL`、`AXIsApplicationRunning` がある。
+
+### Dock メニュー（#26、#27、#29）
+
+`AXShowMenu` の結果は 0（成功）で、メニューが AX の子要素として読めた。`AXCancel` も 0 で、メニューを閉じられた。
+
+```
+=== MENU Probe（自作アプリ。PROBE=recent で最近の書類を登録し、applicationDockMenu を実装）
+  - [AXMenuItem] 'probe-recent.txt'
+  - [AXMenuItem] 'Probe Custom Action'
+  - [AXMenuItem] 'Probe Second Action'
+  - [AXMenuItem] 'Options'
+    - 'Keep in Dock' / 'Open at Login' / 'Show in Finder'
+  - 'Show All Windows' / 'Hide' / 'Hide Others' / 'Quit' / 'Force Quit'
+=== MENU Safari と Calendar（起動していない標準アプリ）
+  - [AXMenuItem] 'Options' -> 'Remove from Dock' / 'Open at Login' / 'Show in Finder'
+  - 'Show Recents' / 'Open' / 'Force Quit'
+```
+
+- アプリ固有のメニュー項目（#27）と最近の書類（#26）は、Dock の AX メニューから文字列として取得できた。
+- Safari と Calendar のメニューには、固有の操作は出なかった。標準アプリで確認できたのは、`Show Recents` と `Open` である。issue 本文にある Safari の New Window などは、アプリが起動していない状態では出ない。起動後の表示は未確認。
+- `Open at Login` はメニュー項目として存在する（#29）。`AXMenuItemMarkChar` は nil で、チェック状態は取得できなかった。ゲストの設定は変更していない。
+- `Show Recents` の下位の書類一覧と、アプリ固有メニューの実行（`AXPress`）は、今回は実施していない。
+
+### 注意要求（#45）
+
+`PROBE=attention`（`NSCriticalRequest`、起動の3秒後、アプリは非表示）で、1秒ごとに Probe 項目の `AXFrame` を取った。
+
+```
+t=1 AXFrame y:1000.00   t=3 y:987.238   t=4 y:1000.00   t=5 y:919.720
+t=6 y:1000.00           t=7 y:908.357   t=8 y:1000.00   t=9 y:927.861   t=10 y:1000.0
+```
+
+- 要求中は、y が 1000（静止位置）と、それより小さい値の間を往復した。バウンドが AX の位置として観測できる。
+- `AXStatusLabel`、`AXProgressValue` に注意要求を示す値は出なかった。注意要求を直接示す属性は、属性一覧に無い。
+- 1秒間隔の標本のため、バウンドの周期と回数は測れていない。`NSInformationalRequest`（1回だけ）と、起動時のバウンドとの区別は、今回は確認していない。
+
+### ファイル進捗（#43）
+
+`PROBE=progress` の GUI アプリ（`Progress` を `publish()`）を `~/Downloads/probe-progress` に対して購読した。
+
+```
+542.82 subscribed to /Users/admin/Downloads/probe-progress
+543.06 PUBLISHED kind=nil url=nil old=false total=100 frac=0.0 desc=Downloading “file.bin”…
+543.55   fraction=0.1 completed=10 cancelled=false
+...
+548.04   fraction=1.0 completed=100 cancelled=false
+548.04 UNPUBLISHED completed=100/100 fraction=1.0 cancelled=false
+```
+
+- GUI アプリからの公開も、別プロセスの購読側に届いた。ホストの CLI の結果と一致する。
+- 購読は、指定した URL の直下の項目だけを対象にする。最初の試行は、`~/Downloads` を購読して `~/Downloads/probe-progress/file.bin` を公開したため、何も届かなかった。監視対象のフォルダの設計に影響する。
+- Finder のコピーと Safari のダウンロードが `Progress` を公開するかは、今回確認していない。
+
+### 動的アイコン（#42）
+
+- Calendar の Dock 項目の AX 属性に画像は無い（`AXRole`、`AXTitle`、`AXFrame`、`AXURL` など）。他アプリの描画内容を取る AX 経路は確認できなかった。
+- `draw`（独自 contentView）の描画の取得は、ssh 経由の `screencapture` が失敗したため、検証できなかった。
+
+### 今回も確認できなかったこと
+
+- 画面の撮影（画像と動画）。
+- Finder、Safari、Mail の `Progress` 公開。
+- `Show Recents` の下位メニューの中身と、メニュー項目の `AXPress` による実行。
+- Open at Login の登録状態の読み取り、System Events の AppleScript、`sfltool dumpbtm` との照合。
+- macOS 15 から 25 の差。
+- `NSInformationalRequest` と Reduce Motion。
 
 ## 結論の一覧
 
-| issue | 項目 | 結論 | 根拠の要点 |
+| issue | 項目 | 結論（2回目の更新後） | 根拠の要点 |
 | --- | --- | --- | --- |
-| #26 | 最近使った書類 | 条件付きで可能（公開 API では不可、`.sfl4` の直接読みは非公開形式） | `recentDocumentURLs` は自アプリ分だけ。他アプリ分は `~/Library/Application Support/com.apple.sharedfilelist/` の `.sfl4` に保存されており、ホストの shell から読めた。形式は非公開で、サンドボックスでは読めない見込み |
-| #27 | アプリ固有の Dock メニュー | 条件付きで可能（Accessibility 権限が必要） | `applicationDockMenu(_:)` は自アプリのためのデリゲート。他アプリからは Dock の AX ツリーに `AXShowMenu` を送る経路だけが現実的。未実測 |
-| #29 | Open at Login | 条件付きで可能（状態の読み取りと変更で経路が違う） | `SMAppService.mainApp` は自アプリ専用。別アプリの登録 API は SDK に無い。設定画面を開く `openSystemSettingsLoginItems()` は公開 |
-| #41 | 通知バッジ | 条件付きで可能（Accessibility 権限が必要、未実測） | `NSDockTile.badgeLabel` は自アプリ専用。他アプリ分は Dock の AX 項目の `AXStatusLabel` を読む経路になる。この属性名は SDK ヘッダに無い |
-| #42 | 動的アイコン | 公開 API では不可（画面キャプチャで近似できる可能性あり） | `NSDockTile.contentView` は自アプリ専用。Calendar は `Calendar.docktileplugin` を使い、Dock 側のプロセスが描画する |
-| #43 | ファイル進捗 | 実装可能（公開された進捗に限る） | `Progress.addSubscriber(forFileURL:)` が SDK に実在し、ホストで別プロセスの更新、完了、キャンセルを受信できた |
-| #45 | 注意要求のバウンド | 未確認（公開 API では取得経路を確認できていない） | `requestUserAttention` は送信側だけ。取得側の API は SDK に無い。Dock の AX 属性に出るかは未実測 |
+| #26 | 最近使った書類 | 条件付きで可能（Accessibility で Dock メニューを読む。`.sfl4` の直接読みは非公開形式） | VM で、Dock の `AXShowMenu` から開いたメニューに自作アプリの最近の書類（`probe-recent.txt`）が現れた。公開の `recentDocumentURLs` は自アプリ分だけ（実測）。Safari と Calendar は「Show Recents」というサブメニュー相当の項目で、中身の取得は未確認 |
+| #27 | アプリ固有の Dock メニュー | 条件付きで可能（Accessibility が必要） | VM で、自作アプリの `applicationDockMenu` の項目（Probe Custom Action、Probe Second Action）が、Dock の AX メニューに読めた。`AXCancel` で閉じられた |
+| #29 | Open at Login | 条件付きで可能（状態の読み取りは未確認、変更は設定への案内が公開） | VM で Dock の Options に `Open at Login` があることを AX で確認（Safari、Calendar、自作アプリ）。チェック状態を示す属性は取れず、登録状態の読み取りは未確認。別アプリを登録する公開 API は SDK に無い |
+| #41 | 通知バッジ | 条件付きで可能（Accessibility が必要） | VM で、自作アプリが `badgeLabel = "42"` を設定すると、Dock の AX 項目の `AXStatusLabel` が `42` になった（`AXStatusLabel` は SDK ヘッダに無い属性名。Dock の属性一覧には存在する） |
+| #42 | 動的アイコン | 公開 API では不可（未検証の近似手段のみ） | 他アプリの描画を取る公開 API は無い。Dock の AX 属性にも画像は無い。画面キャプチャは ssh 経由で失敗し、検証できなかった |
+| #43 | ファイル進捗 | 実装可能（公開された進捗に限る） | `Progress.addSubscriber(forFileURL:)` で、ホストと VM の GUI アプリから別プロセスへ更新、完了、キャンセルが届いた。Finder と Safari の公開は未確認 |
+| #45 | 注意要求のバウンド | 条件付きで可能（Accessibility で Dock 項目の `AXFrame` を観察。属性としての注意状態は無い） | VM で、`NSCriticalRequest` 中の Dock 項目の `AXFrame` の y が 1000 と 987〜908 の間を往復した。バウンドは AX の位置変化として観測できる。専用の属性は一覧に無い |
 
-実装可能と分かった項目は #43 だけになる（公開された進捗に限る）。#26、#27、#29、#41 は、Accessibility などの追加許可を前提に条件付きで可能になる。
+実装可能と分かった項目は #43（公開された進捗に限る）。Accessibility を許可した利用者には、#26、#27、#41、#45 を Dock の AX から取得できる見込みが VM で確認できた。#29 は状態の読み取りが残る。
 
 ## 共通の前提
 
