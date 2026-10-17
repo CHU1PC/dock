@@ -204,6 +204,27 @@ final class DockAppearanceTests: XCTestCase {
         XCTAssertEqual(detail.2, detail.3)
     }
 
+    func testGlassDarkGlyphsKeepAlphaAndDrawBlack() throws {
+        let image = NSImage(size: NSSize(width: 32, height: 32), flipped: false) { rect in
+            NSColor.black.setFill()
+            rect.fill()
+            NSColor.white.setFill()
+            NSRect(x: 8, y: 8, width: 16, height: 16).fill()
+            return true
+        }
+        func detail(darkGlyphs: Bool) throws -> NSColor {
+            let converted = DockIconRenderer.render(image, style: .glass, pixels: 32, darkGlyphs: darkGlyphs)
+            let bitmap = try XCTUnwrap(NSBitmapImageRep(data: XCTUnwrap(converted.tiffRepresentation)))
+            return try XCTUnwrap(bitmap.colorAt(x: 16, y: 16)?.usingColorSpace(.deviceRGB))
+        }
+        let light = try detail(darkGlyphs: false)
+        let dark = try detail(darkGlyphs: true)
+        XCTAssertGreaterThan(light.redComponent, 0.9)
+        XCTAssertLessThan(dark.redComponent, 0.05)
+        XCTAssertEqual(light.alphaComponent, dark.alphaComponent, accuracy: 0.02)
+        XCTAssertGreaterThan(dark.alphaComponent, 0.5)
+    }
+
     func testGlassKeepsDetailsVisibleOnBothLightAndDarkIconBases() throws {
         for lightBackground in [true, false] {
             let image = NSImage(size: NSSize(width: 32, height: 32), flipped: false) { rect in

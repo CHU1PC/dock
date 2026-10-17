@@ -12,8 +12,8 @@ enum DockIconRenderer {
         return cache
     }()
 
-    static func image(url: URL, style: DockAppearance.IconStyle) -> NSImage {
-        let key = "\(url.path)|\(style.rawValue)" as NSString
+    static func image(url: URL, style: DockAppearance.IconStyle, scheme: ColorScheme = .dark) -> NSImage {
+        let key = "\(url.path)|\(style.rawValue)|\(style == .glass ? scheme == .light : false)" as NSString
         if let image = cache.object(forKey: key) { return image }
         let original = NSWorkspace.shared.icon(forFile: url.path)
         if style == .original {
@@ -21,18 +21,20 @@ enum DockIconRenderer {
             return original
         }
         let pixels = Int(ceil(76 * 2 * max(2, NSScreen.screens.map(\.backingScaleFactor).max() ?? 2)))
-        let image = render(original, style: style, pixels: pixels)
+        let image = render(original, style: style, pixels: pixels, darkGlyphs: style == .glass && scheme == .light)
         cache.setObject(image, forKey: key, cost: pixels * pixels * 4)
         return image
     }
 
     static func invalidate(url: URL) {
         for style in DockAppearance.IconStyle.allCases {
-            cache.removeObject(forKey: "\(url.path)|\(style.rawValue)" as NSString)
+            for darkGlyphs in [false, true] {
+                cache.removeObject(forKey: "\(url.path)|\(style.rawValue)|\(darkGlyphs)" as NSString)
+            }
         }
     }
 
-    static func render(_ original: NSImage, style: DockAppearance.IconStyle, pixels: Int) -> NSImage {
+    static func render(_ original: NSImage, style: DockAppearance.IconStyle, pixels: Int, darkGlyphs: Bool = false) -> NSImage {
         guard pixels > 0, let space = CGColorSpace(name: CGColorSpace.sRGB),
               let context = CGContext(data: nil, width: pixels, height: pixels, bitsPerComponent: 8,
                                       bytesPerRow: pixels * 4, space: space,
@@ -53,8 +55,9 @@ enum DockIconRenderer {
                 let alpha = Double(bytes[i + 3])
                 let brightness = alpha == 0 ? 0 : min(255, Int(luminance(bytes[i], bytes[i + 1], bytes[i + 2]) / alpha * 255))
                 let value = UInt8(alpha * opacity[brightness])
-                bytes[i] = value; bytes[i + 1] = value
-                bytes[i + 2] = value; bytes[i + 3] = value
+                let color = darkGlyphs ? 0 : value
+                bytes[i] = color; bytes[i + 1] = color
+                bytes[i + 2] = color; bytes[i + 3] = value
             }
         } else if style == .monochrome {
             for i in stride(from: 0, to: pixels * pixels * 4, by: 4) {

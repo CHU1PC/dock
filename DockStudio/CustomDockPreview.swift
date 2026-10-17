@@ -218,11 +218,12 @@ struct ItemIcon: View {
     var style: DockAppearance.IconStyle = .original
     var glassNeedsContrast = false
     var glassInteractive = true
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Group {
             if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: DockIconRenderer.image(url: url, style: style))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: item.kind.symbol)
