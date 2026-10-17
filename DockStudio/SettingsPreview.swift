@@ -79,7 +79,7 @@ struct SettingsPreview: View {
                 Divider()
                 HStack(spacing: 20) {
                     Text("アイコンの大きさ")
-                    Slider(value: Binding(get: { store.effectiveIconSize }, set: { store.stageIconSize($0) }), in: 40...76, step: 2, onEditingChanged: { if !$0 { store.finishIconSizeEditing() } })
+                    Slider(value: Binding(get: { store.effectiveIconSize }, set: { store.stageIconSize($0) }), in: DockSettings.iconSizeRange, step: 2, onEditingChanged: { if !$0 { store.finishIconSizeEditing() } })
                         .accessibilityLabel("アイコンの大きさ")
                     Text("\(Int(store.effectiveIconSize)) px").monospacedDigit()
                         .foregroundStyle(StudioColor.muted).frame(width: 52, alignment: .trailing)
