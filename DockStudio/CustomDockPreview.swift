@@ -64,7 +64,6 @@ struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var hovered: UUID?
-    @FocusState private var focused: UUID?
     let vertical: Bool
     var isPanel = false
     private var motion: Animation? {
@@ -119,7 +118,7 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered ?? focused, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
+                if let labelID = hovered, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
                     let frame = geometry[anchor]
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
@@ -149,7 +148,6 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
-            .focused($focused, equals: item.id)
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
