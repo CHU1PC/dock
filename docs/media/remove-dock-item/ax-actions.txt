@@ -1,0 +1,21 @@
+# ゲスト (macOS 26.6.2) で /tmp/rm66/ax/axtool (AXUIElementCopyActionNames / AXUIElementPerformAction) を実行した出力
+# 実行ファイル SHA-256: 21c02162fb7d915c8fa1942d066a43b9ef991645b6b24cf1c003bf5e5c1a655d (Release)
+
+$ axtool <pid> list   (Dock の項目だけ抜粋。Calculator と Install Command Line Developer Tools は実行中の一時表示)
+AXButton | Finder、起動中 | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Safari | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Mail | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Terminal | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Calendar | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Downloads | ["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton | Install Command Line Developer Tools、起動中 | ["AXShowMenu", "AXPress"]
+AXButton | Calculator、起動中 | ["AXShowMenu", "AXPress"]
+
+$ axtool <pid> perform Mail 取り外す
+before: "Finder" "Safari" "Mail" "Terminal" "Calendar" "Downloads" "Glass 検証"
+perform Mail Name:Dock から取り外す ... result 0
+after:  "Finder" "Safari" "Terminal" "Calendar" "Downloads" "Glass 検証"
+/System/Applications/Mail.app  (残っている)
+
+$ axtool <pid> perform "Calculator、起動中" 取り外す
+not found   (終了コード 3)
