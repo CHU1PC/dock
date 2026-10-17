@@ -92,6 +92,7 @@ struct DockSettings: Codable, Equatable {
     var iconSize = 52.0
     var autoHide = false
     var revealAnimationDuration = 0.22
+    var launchBounce = true
     var showRunningApps = false
     var displayID: UInt32?
 }
@@ -100,7 +101,7 @@ extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, iconSize, autoHide, revealAnimationDuration, showRunningApps, displayID
+        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, displayID
     }
 
     init(from decoder: Decoder) throws {
@@ -110,6 +111,7 @@ extension DockSettings {
         iconSize = try values.decode(Double.self, forKey: .iconSize)
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
         revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
+        launchBounce = try values.decodeIfPresent(Bool.self, forKey: .launchBounce) ?? true
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
         displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
     }

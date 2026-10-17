@@ -15,6 +15,8 @@ final class DockStore {
     var status = ""
     var isDockVisible = false
     var runningItems: [DockItem] = []
+    private(set) var launchingItemIDs: Set<UUID> = []
+    @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
     var focusSessions: [UUID: FocusSession] = [:]
     var activePopoverTokens: Set<UUID> = []
@@ -513,13 +515,49 @@ final class DockStore {
             guard alert.runModal() == .alertFirstButtonReturn else { return }
         }
         if item.kind == .application {
-            NSWorkspace.shared.openApplication(at: url, configuration: .init()) { [weak self] _, error in
-                if let error {
-                    Task { @MainActor in self?.errorMessage = "アプリを開けませんでした。\n\(error.localizedDescription)" }
+            let alreadyRunning = Bundle(url: url)?.bundleIdentifier.map {
+                !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty
+            } ?? false
+            if !alreadyRunning { beginLaunch(item.id) }
+            NSWorkspace.shared.openApplication(at: url, configuration: .init()) { [weak self] app, error in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if let error {
+                        self.endLaunch(item.id)
+                        self.errorMessage = "アプリを開けませんでした。\n\(error.localizedDescription)"
+                    } else if let app, self.launchingItemIDs.contains(item.id) {
+                        self.finishLaunch(item.id, when: { app.isFinishedLaunching || app.isTerminated })
+                    } else {
+                        self.endLaunch(item.id)
+                    }
                 }
             }
         } else if !NSWorkspace.shared.open(url) {
             errorMessage = "\(item.name) を開けませんでした。"
+        }
+    }
+
+    func beginLaunch(_ id: UUID) {
+        launchTasks[id]?.cancel()
+        launchTasks[id] = nil
+        launchingItemIDs.insert(id)
+    }
+
+    func endLaunch(_ id: UUID) {
+        launchTasks[id]?.cancel()
+        launchTasks[id] = nil
+        launchingItemIDs.remove(id)
+    }
+
+    func finishLaunch(_ id: UUID, timeout: Duration = .seconds(30), when isDone: @escaping @MainActor () -> Bool) {
+        launchTasks[id]?.cancel()
+        launchTasks[id] = Task { [weak self] in
+            let deadline = ContinuousClock.now + timeout
+            while !isDone(), ContinuousClock.now < deadline {
+                do { try await Task.sleep(for: .milliseconds(100)) }
+                catch { return }
+            }
+            self?.endLaunch(id)
         }
     }
 

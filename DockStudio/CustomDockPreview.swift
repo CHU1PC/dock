@@ -138,15 +138,20 @@ struct DockBar: View {
         let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
         let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
+        let launching = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
+        let reduceMotion = store.appearance.reduceMotion || systemReduceMotion
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
                 ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                          glassNeedsContrast: store.appearance.background == .transparent,
                          glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+                    .opacity(launching && reduceMotion ? 0.55 : 1)
+                    .modifier(LaunchBounce(active: launching && !reduceMotion, position: store.document.settings.position,
+                                           height: min(store.effectiveIconSize * 0.5, 28)))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
+            .accessibilityLabel(launching ? "\(item.name)、開いています" : running ? "\(item.name)、起動中" : item.name)
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
@@ -191,6 +196,30 @@ enum DockLabelPlacement {
         case .left, .right:
             let y = max(16, min(bounds.height - 16, itemFrame.midY))
             return CGPoint(x: position == .left ? bounds.width + gap + width / 2 : -gap - width / 2, y: y)
+        }
+    }
+}
+
+private struct LaunchBounce: ViewModifier {
+    let active: Bool
+    let position: DockPosition
+    let height: CGFloat
+
+    func body(content: Content) -> some View {
+        content.keyframeAnimator(initialValue: 0.0, repeating: active) { view, lift in
+            switch position {
+            case .bottom: view.offset(y: -lift * height)
+            case .left: view.offset(x: lift * height)
+            case .right: view.offset(x: -lift * height)
+            }
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(1, duration: 0.28)
+                CubicKeyframe(0, duration: 0.28)
+                CubicKeyframe(0.4, duration: 0.18)
+                CubicKeyframe(0, duration: 0.18)
+                LinearKeyframe(0, duration: 0.2)
+            }
         }
     }
 }
