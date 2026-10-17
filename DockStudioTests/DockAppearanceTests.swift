@@ -195,6 +195,22 @@ final class DockAppearanceTests: XCTestCase {
             .contains(NSPoint(x: -0.1, y: -500)))
     }
 
+    func testBottomDockKeepsFivePointGapWhenSystemDockReservesSpace() {
+        let size = NSSize(width: 480, height: 160)
+        for screen in [NSRect(x: 0, y: 0, width: 1600, height: 1000),
+                       NSRect(x: -1920, y: -1080, width: 1920, height: 1080)] {
+            for reservedHeight in [0.0, 85.0] {
+                let available = NSRect(x: screen.minX, y: screen.minY + reservedHeight,
+                                       width: screen.width, height: screen.height - reservedHeight - 30)
+                    .insetBy(dx: 10, dy: 10)
+                let origin = DockInteractionGeometry.panelOrigin(screen: screen, available: available,
+                                                                 size: size, position: .bottom)
+                XCTAssertEqual(origin.y + DockInteractionGeometry.panelPadding, screen.minY + 5)
+                XCTAssertEqual(origin.x + size.width / 2, screen.midX)
+            }
+        }
+    }
+
     func testMaximumVerticalMagnificationFitsWithinPanel() {
         let store = DockStore.preview()
         var settings = store.document.settings

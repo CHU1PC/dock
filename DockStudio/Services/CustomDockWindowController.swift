@@ -21,6 +21,18 @@ struct DisplayOption: Identifiable {
 }
 
 enum DockInteractionGeometry {
+    static let panelPadding: CGFloat = 8
+    static let bottomGap: CGFloat = 5
+
+    static func panelOrigin(screen: NSRect, available: NSRect, size: NSSize, position: DockPosition) -> NSPoint {
+        switch position {
+        case .bottom:
+            return NSPoint(x: screen.midX - size.width / 2, y: screen.minY + bottomGap - panelPadding)
+        case .left: return NSPoint(x: available.minX, y: available.midY - size.height / 2)
+        case .right: return NSPoint(x: available.maxX - size.width, y: available.midY - size.height / 2)
+        }
+    }
+
     static func reveal(screen: NSRect, panel: NSRect, position: DockPosition) -> NSRect {
         switch position {
         case .bottom:
@@ -165,7 +177,7 @@ final class CustomDockWindowController {
     }
 
     private var interactionFrame: NSRect {
-        let frame = panel.frame.insetBy(dx: 8, dy: 8)
+        let frame = panel.frame.insetBy(dx: DockInteractionGeometry.panelPadding, dy: DockInteractionGeometry.panelPadding)
         if store.document.settings.position == .bottom {
             let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
             return NSRect(x: frame.minX, y: frame.minY, width: frame.width,
@@ -193,14 +205,13 @@ final class CustomDockWindowController {
         }
         let visible = screen.visibleFrame.insetBy(dx: 10, dy: 10)
         let vertical = store.document.settings.position != .bottom
-        let length = min(DockMetrics.length(for: store) + 16, vertical ? visible.height : visible.width)
-        let thickness = DockMetrics.thickness(for: store) + 16
+        let padding = DockInteractionGeometry.panelPadding * 2
+        let maximumLength = vertical ? visible.height : screen.frame.insetBy(dx: 10, dy: 10).width
+        let length = min(DockMetrics.length(for: store) + padding, maximumLength)
+        let thickness = DockMetrics.thickness(for: store) + padding
         var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
-        switch store.document.settings.position {
-        case .bottom: frame.origin = NSPoint(x: visible.midX - frame.width / 2, y: visible.minY)
-        case .left: frame.origin = NSPoint(x: visible.minX, y: visible.midY - frame.height / 2)
-        case .right: frame.origin = NSPoint(x: visible.maxX - frame.width, y: visible.midY - frame.height / 2)
-        }
+        frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
+                                                           size: frame.size, position: store.document.settings.position)
         layout.position = store.document.settings.position
         layout.reduceMotion = store.appearance.reduceMotion || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         layout.vertical = vertical
@@ -257,7 +268,7 @@ private struct PanelDockContent: View {
     var body: some View {
         ZStack {
             DockBar(vertical: layout.vertical, isPanel: true)
-                .padding(8)
+                .padding(DockInteractionGeometry.panelPadding)
                 .offset(x: layout.collapsed ? (layout.position == .left ? -layout.size.width : layout.position == .right ? layout.size.width : 0) : 0,
                         y: layout.collapsed && layout.position == .bottom ? layout.size.height : 0)
                 .opacity(layout.collapsed ? 0 : 1)
