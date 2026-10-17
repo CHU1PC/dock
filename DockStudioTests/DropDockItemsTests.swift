@@ -144,6 +144,27 @@ final class DropDockItemsTests: XCTestCase {
         XCTAssertEqual(store.activeProfile.items.first?.name, "a.txt")
     }
 
+    func testDropIntoDraftWithDeletedItemsFollowsThePrecedingSavedItem() throws {
+        let store = DockStore(persistence: persistence)
+        let items = ["a", "b", "c", "d"].map { DockItem(name: $0, kind: .spacer) }
+        store.editorProfile.items = items
+        XCTAssertTrue(store.saveProfile())
+        store.editorProfile.items.removeFirst(2)
+
+        store.addDroppedItems([try makeFile("x.txt")], at: 3)
+
+        XCTAssertEqual(store.activeProfile.items.map(\.name), ["a", "b", "c", "x.txt", "d"])
+        XCTAssertEqual(store.editorProfile.items.map(\.name), ["c", "x.txt", "d"])
+
+        store.addDroppedItems([try makeFile("y.txt")], at: 0)
+        XCTAssertEqual(store.editorProfile.items.map(\.name), ["y.txt", "c", "x.txt", "d"])
+
+        store.editorProfile.items.removeAll { $0.name == "c" }
+        store.addDroppedItems([try makeFile("z.txt")], at: 4)
+        XCTAssertEqual(store.activeProfile.items.map(\.name), ["y.txt", "a", "b", "c", "z.txt", "x.txt", "d"])
+        XCTAssertEqual(store.editorProfile.items.map(\.name), ["y.txt", "x.txt", "d", "z.txt"])
+    }
+
     func testInsertionIndexFollowsPointerAgainstItemMidpoints() {
         let rects = [CGRect(x: 0, y: 0, width: 50, height: 50), CGRect(x: 50, y: 0, width: 50, height: 50),
                      CGRect(x: 100, y: 0, width: 50, height: 50)]

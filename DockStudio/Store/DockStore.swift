@@ -480,7 +480,9 @@ final class DockStore {
         guard commit(candidate) else { return (0, rejected) }
         let profileID = candidate.profiles[profileIndex].id
         if var draft = drafts[profileID] {
-            draft.items.insert(contentsOf: items, at: min(position, draft.items.count))
+            let anchor = position > 0 ? candidate.profiles[profileIndex].items[position - 1].id : nil
+            let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
+            draft.items.insert(contentsOf: items, at: draftPosition)
             drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
             persistDrafts()
         }
