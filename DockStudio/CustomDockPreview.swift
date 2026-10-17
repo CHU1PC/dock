@@ -63,7 +63,12 @@ struct CustomDockPreview: View {
 struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.controlActiveState) private var controlActiveState
     @State private var hovered: UUID?
+    @FocusState private var focused: UUID?
+    @State private var lastFocused: UUID?
+    @State private var menuRequest: UUID?
+    @State private var typeAhead = DockTypeAheadBuffer()
     let vertical: Bool
     var isPanel = false
     private var motion: Animation? {
@@ -112,13 +117,31 @@ struct DockBar: View {
             .scrollClipDisabled()
         }
         .animation(motion, value: hovered)
-        .onChange(of: items.map(\.id)) { hovered = nil }
+        .onChange(of: items.map(\.id)) { old, new in
+            hovered = nil
+            guard let id = lastFocused, controlActiveState == .key, !new.contains(id),
+                  let removedIndex = old.firstIndex(of: id) else { return }
+            focus(DockKeyboardNavigation.indexAfterRemoval(at: removedIndex, entries: Self.entries(of: items)), in: items)
+        }
+        .onChange(of: focused) { if let focused { lastFocused = focused } }
+        .onChange(of: hovered) { if hovered != nil { lastFocused = nil } }
+        .onChange(of: controlActiveState) { if controlActiveState != .key { focused = nil; lastFocused = nil } }
+        .onChange(of: store.dockKeyboardFocusGeneration) {
+            if isPanel { focus(DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: items), current: nil), in: items) }
+        }
         .onChange(of: store.document.settings.position) { hovered = nil }
         .onHover { if !$0 { hovered = nil } }
         .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
+                Color.clear.onChange(of: menuRequest) {
+                    guard let id = menuRequest else { return }
+                    menuRequest = nil
+                    if let anchor = frames[id], let item = items.first(where: { $0.id == id }) {
+                        presentMenu(for: item, itemFrame: geometry[anchor], origin: geometry.frame(in: .global).origin)
+                    }
+                }
+                if let labelID = hovered ?? (controlActiveState == .key ? focused : nil), let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
                     let frame = geometry[anchor]
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
@@ -154,8 +177,15 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .focusable(false)
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
+            .focused($focused, equals: item.id)
+            .onKeyPress(phases: [.down, .repeat]) { press in
+                guard let key = DockKeyboardNavigation.Key(press) else { return .ignored }
+                handleKey(key, items: store.displayedItems)
+                return .handled
+            }
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
@@ -164,12 +194,8 @@ struct DockBar: View {
                 }
             }
             .contextMenu {
-                Button("開く") { store.openItem(item) }
-                if let url = item.targetURL, url.isFileURL {
-                    Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-                }
-                if store.isPinned(item) {
-                    Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
+                ForEach(actions(for: item)) { action in
+                    Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
@@ -181,6 +207,92 @@ struct DockBar: View {
         .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
         .onHover { if $0 { hovered = item.id } }
     }
+}
+
+private struct DockItemAction: Identifiable {
+    let title: String
+    var isDestructive = false
+    let perform: () -> Void
+    var id: String { title }
+}
+
+extension DockBar {
+    fileprivate static func entries(of items: [DockItem]) -> [DockKeyboardNavigation.Entry] {
+        items.map { .init(name: $0.name, isFocusable: ![.spacer, .clock, .focusTimer].contains($0.kind)) }
+    }
+
+    fileprivate func actions(for item: DockItem) -> [DockItemAction] {
+        var result = [DockItemAction(title: "開く") { store.openItem(item) }]
+        if let url = item.targetURL, url.isFileURL {
+            result.append(DockItemAction(title: "Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) })
+        }
+        if store.isPinned(item) {
+            result.append(DockItemAction(title: "Dock から取り外す", isDestructive: true) { store.removeFromActiveProfile(item) })
+        }
+        return result
+    }
+
+    fileprivate func focus(_ index: Int?, in items: [DockItem]) {
+        focus(index.map(DockKeyboardNavigation.Outcome.focus) ?? .leave, in: items)
+    }
+
+    fileprivate func focus(_ outcome: DockKeyboardNavigation.Outcome, in items: [DockItem]) {
+        switch outcome {
+        case .focus(let index): focused = items[index].id
+        case .leave:
+            focused = nil
+            if isPanel { store.dockKeyboardExitRequested = true }
+        case .ignore: break
+        }
+    }
+
+    fileprivate func handleKey(_ key: DockKeyboardNavigation.Key, items: [DockItem]) {
+        let entries = Self.entries(of: items)
+        let current = focused.flatMap { id in items.firstIndex { $0.id == id } }
+        let command: DockKeyboardNavigation.Command? = switch key {
+        case .home: .first
+        case .end: .last
+        case .arrow(let arrow): DockKeyboardNavigation.command(for: arrow, position: store.document.settings.position)
+        case .character: nil
+        }
+        if let command {
+            if command == .openMenu {
+                if let current, !actions(for: items[current]).isEmpty { menuRequest = items[current].id }
+            } else {
+                focus(DockKeyboardNavigation.outcome(command, entries: entries, current: current), in: items)
+            }
+        } else if case .character(let characters) = key {
+            let prefix = typeAhead.append(characters, at: .now)
+            if let index = DockKeyboardNavigation.typeAheadIndex(prefix: prefix, entries: entries, current: current) {
+                focused = items[index].id
+            }
+        }
+    }
+
+    fileprivate func presentMenu(for item: DockItem, itemFrame: CGRect, origin: CGPoint) {
+        guard let window = NSApp.keyWindow else { return }
+        let menu = NSMenu()
+        for action in actions(for: item) {
+            let entry = NSMenuItem(title: action.title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+            entry.target = DockMenuHandler.shared
+            entry.representedObject = action.perform
+            menu.addItem(entry)
+        }
+        let left = window.frame.minX + origin.x + itemFrame.minX
+        let top = window.frame.maxY - (origin.y + itemFrame.minY)
+        let point: NSPoint = switch store.document.settings.position {
+        case .bottom: NSPoint(x: left, y: top + menu.size.height)
+        case .left: NSPoint(x: left + itemFrame.width, y: top)
+        case .right: NSPoint(x: left - menu.size.width, y: top)
+        }
+        Task { @MainActor in menu.popUp(positioning: nil, at: point, in: nil) }
+    }
+}
+
+@MainActor
+private final class DockMenuHandler: NSObject {
+    static let shared = DockMenuHandler()
+    @objc func run(_ sender: NSMenuItem) { (sender.representedObject as? () -> Void)?() }
 }
 
 enum DockLabelPlacement {
