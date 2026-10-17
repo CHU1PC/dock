@@ -91,8 +91,26 @@ struct DockSettings: Codable, Equatable {
     var position: DockPosition = .bottom
     var iconSize = 52.0
     var autoHide = false
+    var revealAnimationDuration = 0.22
     var showRunningApps = false
     var displayID: UInt32?
+}
+
+extension DockSettings {
+    private enum CodingKeys: String, CodingKey {
+        case mode, position, iconSize, autoHide, revealAnimationDuration, showRunningApps, displayID
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        mode = try values.decode(DockMode.self, forKey: .mode)
+        position = try values.decode(DockPosition.self, forKey: .position)
+        iconSize = try values.decode(Double.self, forKey: .iconSize)
+        autoHide = try values.decode(Bool.self, forKey: .autoHide)
+        revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
+        showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
+        displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
+    }
 }
 
 struct DockDocument: Codable, Equatable {
@@ -109,6 +127,9 @@ struct DockDocument: Codable, Equatable {
         }
         guard (40...76).contains(settings.iconSize), settings.iconSize.isFinite else {
             throw DockDataError.invalidData("Invalid icon size.")
+        }
+        guard settings.revealAnimationDuration.isFinite, (0...1).contains(settings.revealAnimationDuration) else {
+            throw DockDataError.invalidData("Reveal animation duration must be between zero and one second.")
         }
         for profile in profiles {
             guard !profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
