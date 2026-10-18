@@ -18,7 +18,7 @@ macOS 15 と 26 の項目名は、それぞれの Apple サポートガイドに
 
 | 項目 | 結果 |
 | --- | --- |
-| `swift test` | 337 件成功、失敗 0 件。追加分 `MinimizeEffectSettingsGuideTests` は1件 |
+| `swift test` | 359 件成功、失敗 0 件。追加分 `MinimizeEffectSettingsGuideTests` は1件 |
 | Release ビルド | `BUILD SUCCEEDED` |
 | `build-for-testing` | `TEST BUILD SUCCEEDED` |
 
