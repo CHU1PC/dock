@@ -108,15 +108,16 @@ extension DockKeyboardNavigation.Key {
 
 enum DockItemMenu {
     enum Kind {
-        case open, reveal, showAllWindows, hide, show, hideOthers, quit, forceQuit, remove, keep
+        case open, reveal, showAllWindows, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep
         case finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon
     }
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
-                      folderDisplayStyle: FolderDisplayStyle? = nil) -> [Kind] {
+                      folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {
+        let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings] : []
         if isFinder {
-            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows]
+            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds
             guard !finderEntryEnabled else { return actions }
             return actions + (hasFileURL ? [.reveal] : []) + [isPinned ? .remove : .keep]
         }
@@ -126,7 +127,7 @@ enum DockItemMenu {
         case .stack: [.setFolderIcon]
         case nil: []
         }
-        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + folderKinds
+        return [.open] + (hasFileURL ? [.reveal] : []) + applicationKinds + visibilityKinds + folderKinds
             + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
 }
@@ -137,6 +138,7 @@ extension DockItemMenu.Kind {
         case .open: "開く"
         case .reveal: "Finder で表示"
         case .showAllWindows: "全ウィンドウを表示"
+        case .openLoginItemsSettings: "システム設定のログイン項目を開く"
         case .hide: "隠す"
         case .show: "表示"
         case .hideOthers: "ほかを隠す"
@@ -151,7 +153,7 @@ extension DockItemMenu.Kind {
         }
     }
 
-    var isAccessibilityAction: Bool { self != .open && self != .reveal }
+    var isAccessibilityAction: Bool { self != .open && self != .reveal && self != .openLoginItemsSettings }
 }
 
 struct DockTypeAheadBuffer {
