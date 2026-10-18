@@ -127,3 +127,40 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-63 /path/to/DockStudio.app/Contents
 - 修正: `KeyPress.modifiers` から Command、Option、Control、Shift だけを取り出して判定する。NumericPad、Function、CapsLock は無視し、Option とほかの意味のある修飾キーが同時にある場合は引き続き拒否する。新しい自動テストは通過したが、修正後の VM 操作と保存は未確認になる。
 - 確認していない: 端での無視、移動後のフォーカス維持、左・右配置、VoiceOver の通知（AX の通知は読んでいない）、再起動後の順序。順序が変わらなかったため、これらは確認の対象にならなかった。
 - 注意: この確認の途中で、キーの送信ツールの不具合（「none」という文字列に Option の文字が含まれていた）により、最初の試行は通常の矢印を Option 付きで送ってしまい、無効だった。結果は、修正後の試行だけを書いた。
+
+### 修正後の再撮影（コミット `bedffce`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `b427e3a1693500de55f153b7503e88fe8c4e5773ab3022e6a4a34c4bb76a47b0` と一致した。同じ `profiles.json`（Finder、Calculator、Safari）、パネルは「設定」タブ。Option、Shift、Control は、本物のキーダウンを先に送り、押したまま矢印（NumericPad と Function のフラグ付き）を送った。「ui」は、AX のボタンの位置順（並び順）である。ログは[下配置](media/option-arrow-reorder/after-fix-bottom-log.txt)、[左配置](media/option-arrow-reorder/after-fix-left-log.txt)にある。
+
+**修正が効いた。** 下配置:
+
+```
+start: ui=Finder Calculator Safari
+right (focus Calculator): ui=Finder Calculator Safari
+Option+Left: ui=Calculator Finder Safari          ← Calculator が Finder の前へ移った（前回は変わらなかった）
+Option+Right (back): ui=Finder Calculator Safari
+Left to first item (Finder); Option+Left at start edge: ui=Finder Calculator Safari   ← 端で無視
+End to last item (Safari); Option+Right at end edge:    ui=Finder Calculator Safari   ← 端で無視
+Shift+Option+Left (should NOT move): ui=Finder Calculator Safari
+Control+Option+Left (should NOT move): ui=Finder Calculator Safari
+```
+- 「Home、右」の操作は Home が効かず、フォーカスは Safari のままだった。そのため、最後の Shift+Option+Left、Control+Option+Left の確認は、Safari にフォーカスがある状態で行われ（Safari は動かなかった）、続く Option+Left で Safari が Calculator の前へ移った（`ui=Finder Safari Calculator`）。Shift と Control の併用で動かないことは、確認できた。
+- 移動後も、フォーカスは移動した項目に残った（動画とコマで、移動した Calculator にフォーカス枠が付き、名前が出たままだった。[コマ](media/option-arrow-reorder/bottom-after-fix-frames.png)、[動画](media/option-arrow-reorder/bottom-option-arrow.mp4)）。
+
+左配置（`ui` は y の順）:
+
+```
+Down (focus Calculator): ui=Finder Calculator Safari
+Option+Up:   ui=Calculator Finder Safari   file=Calculator,Finder,Safari
+Option+Down: ui=Finder Calculator Safari   file=Finder,Calculator,Safari
+Option+Down: ui=Finder Safari Calculator   file=Finder,Safari,Calculator
+Option+Down at end edge:  ui=Finder Safari Calculator   ← 端で無視
+Option+Left (直交、左配置):  ui=Finder Safari Calculator   ← 無視
+Shift+Option+Up:            ui=Finder Safari Calculator   ← 無視
+focus after moves: AXButton Calculator
+```
+- 保存した `profiles.json` の項目順も、移動のたびに変わった（左配置のログの `file=`）。
+- 下配置のログの `file=` の列は、読み取りのスクリプトの誤りで、並びを正しく表していない（`ui` の列と左配置の `file=` を、根拠にする）。
+- 確認できなかったこと: VoiceOver の通知の内容（AX の通知は読んでいない）、右配置、再起動後の順序。
+
+media: [左配置の動画](media/option-arrow-reorder/left-option-arrow.mp4)、[画像](media/option-arrow-reorder/left-after-fix-full.jpg)。
