@@ -1,0 +1,9 @@
+# 撮影ログ（ゲスト macOS 26.6.2。DOCKSTUDIO_DATA_DIR=/Users/admin/dock61-data、アプリは /Applications/DockStudio.app、署名なしビルド）
+スイッチを入れる: register() 成功（メッセージなし。システムに「Login Item Added "DockStudio" will open automatically when you log in.」の通知が出た）
+システム設定「ログイン項目と機能拡張」の「ログイン時に開く」に DockStudio（Application）が現れた
+Dock を表示: launch-state.json = {"dockVisible":true}
+アプリを終了して起動し直す: 表示のまま復元（ボタンが「デスクトップの Dock を隠す」、パネルに Dock が出た）
+Dock を隠す: launch-state.json = {"dockVisible":false}
+アプリを終了して起動し直す: 隠れたまま。launch-state.json = {"dockVisible":false}
+壊れたファイル（not json）で起動: 非表示で起動し、設定の「一般」に「前回の Dock の表示状態を読み込めなかったため、非表示で起動しました。」を表示
+スイッチを切る: unregister() 成功（スイッチが切れた）

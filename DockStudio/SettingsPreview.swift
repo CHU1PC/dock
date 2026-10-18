@@ -243,6 +243,21 @@ struct SettingsPreview: View {
                     Button("読み込む…") { store.importProfiles() }.disabled(store.storageIsReadOnly)
                 }
             }
+            settingsGroup("ログイン時の起動") {
+                Toggle("ログイン時に Dock Studio を開く", isOn: Binding(
+                    get: { store.loginItem.isOn }, set: { store.loginItem.setEnabled($0) }))
+                Text("次回のログインと再起動後に Dock Studio を起動し、前回の Dock の表示状態を復元します。「Dock を隠す」で隠した場合は、隠したままにします。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                if let message = store.loginItem.message {
+                    Label(message, systemImage: "exclamationmark.triangle").font(.callout)
+                }
+                if store.loginItem.state == .requiresApproval {
+                    Button("システム設定を開く") { store.loginItem.openSystemSettings() }
+                }
+                if let notice = store.launchStateNotice {
+                    Label(notice, systemImage: "exclamationmark.triangle").font(.callout)
+                }
+            }
             settingsGroup("Apple Dock") {
                 Text("現在ピン留めされているアプリとスペーサーから、Custom Dock のプロファイルを作成します。")
                     .font(.callout).foregroundStyle(StudioColor.muted)
@@ -250,6 +265,7 @@ struct SettingsPreview: View {
             }
             if !store.status.isEmpty { Text(store.status).foregroundStyle(StudioColor.muted).font(.callout) }
         }
+        .onAppear { store.loginItem.refresh() }
     }
 
     private func setting<Value>(_ path: WritableKeyPath<DockSettings, Value>) -> Binding<Value> {

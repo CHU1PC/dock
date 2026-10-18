@@ -1,63 +1,61 @@
 import AppKit
 
-enum DockClickAction: Equatable {
-    case open
-    case hideOthers
-
-    static func resolve(modifiers: NSEvent.ModifierFlags) -> DockClickAction {
-        let relevant = modifiers.intersection([.command, .option, .shift, .control])
-        return relevant == [.command, .option] ? .hideOthers : .open
-    }
-}
-
 protocol HideableApplication {
     var bundleIdentifier: String? { get }
-    var processIdentifier: pid_t { get }
-    var isRegularApplication: Bool { get }
     var isTerminated: Bool { get }
     var isHidden: Bool { get }
-    func activateApplication() -> Bool
-    func hideApplication() -> Bool
+    @discardableResult func hide() -> Bool
+    @discardableResult func unhide() -> Bool
 }
 
-extension NSRunningApplication: HideableApplication {
-    var isRegularApplication: Bool { activationPolicy == .regular }
-    func activateApplication() -> Bool { activate() }
-    func hideApplication() -> Bool { hide() }
+extension NSRunningApplication: HideableApplication {}
+
+enum ApplicationVisibility: Equatable {
+    case visible
+    case hidden
 }
 
 enum ApplicationHideOutcome: Equatable {
-    case hidOthers(Int)
+    case hidden
+    case shown
     case notRunning
     case notHideable
-    case rejected
 }
 
 struct ApplicationHider {
-    var runningApplications: () -> [any HideableApplication]
-    var ownProcessIdentifier: pid_t
+    var runningApplications: (String) -> [any HideableApplication]
+    var excludedBundleIdentifiers: Set<String>
 
     static let live = ApplicationHider(
-        runningApplications: { NSWorkspace.shared.runningApplications },
-        ownProcessIdentifier: ProcessInfo.processInfo.processIdentifier)
+        runningApplications: { NSRunningApplication.runningApplications(withBundleIdentifier: $0) },
+        excludedBundleIdentifiers: Set([Bundle.main.bundleIdentifier].compactMap { $0 }))
 
-    func targetBundleIdentifier(for item: DockItem) -> String? {
+    func hideableBundleIdentifier(for item: DockItem) -> String? {
         guard item.kind == .application, let identity = item.applicationIdentity,
               identity.hasPrefix("bundle:") else { return nil }
-        return String(identity.dropFirst("bundle:".count))
+        let identifier = String(identity.dropFirst("bundle:".count))
+        return excludedBundleIdentifiers.contains(identifier) ? nil : identifier
     }
 
-    func hideOthers(of item: DockItem) -> ApplicationHideOutcome {
-        guard let identifier = targetBundleIdentifier(for: item) else { return .notHideable }
-        let all = runningApplications().filter { !$0.isTerminated }
-        let targets = all.filter { $0.bundleIdentifier == identifier }
-        guard !targets.isEmpty else { return .notRunning }
-        guard targets.map({ $0.activateApplication() }).contains(true) else { return .rejected }
-        let others = all.filter {
-            $0.isRegularApplication && $0.bundleIdentifier != identifier
-                && $0.processIdentifier != ownProcessIdentifier && !$0.isHidden
+    func visibility(of item: DockItem) -> ApplicationVisibility? {
+        guard let identifier = hideableBundleIdentifier(for: item) else { return nil }
+        let running = runningApplications(identifier).filter { !$0.isTerminated }
+        guard !running.isEmpty else { return nil }
+        return running.allSatisfy { $0.isHidden } ? .hidden : .visible
+    }
+
+    func toggle(_ item: DockItem) -> ApplicationHideOutcome {
+        guard hideableBundleIdentifier(for: item) != nil else { return .notHideable }
+        guard let current = visibility(of: item), let identifier = hideableBundleIdentifier(for: item) else { return .notRunning }
+        let running = runningApplications(identifier).filter { !$0.isTerminated }
+        // hide() と unhide() の戻り値は、実際に隠れていても false になることがあるので見ない。
+        switch current {
+        case .visible:
+            running.filter { !$0.isHidden }.forEach { $0.hide() }
+            return .hidden
+        case .hidden:
+            running.forEach { $0.unhide() }
+            return .shown
         }
-        for app in others { _ = app.hideApplication() }
-        return .hidOthers(others.count)
     }
 }

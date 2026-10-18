@@ -1,0 +1,9 @@
+Press 隠す result 0
+Calculator visible=false
+TextEdit visible=true
+Calculator visible=false
+Press 隠す result 0
+Calculator visible=false
+TextEdit visible=true
+Calculator visible=false
+TextEdit visible=true

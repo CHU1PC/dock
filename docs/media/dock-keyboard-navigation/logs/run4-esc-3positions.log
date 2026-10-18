@@ -1,0 +1,64 @@
+locked
+guest DockStudio processes at start:
+== bottom other DockStudio processes:        0
+Press Dock をキーボードで操作 result 0
+first-entry launch#1: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+first-entry launch#2: focus role=AXScrollArea label=
+-- Tab
+tab#1: focus role=AXScrollArea label=
+tab#2: focus role=AXScrollArea label=
+tab#3: focus role=AXScrollArea label=
+-- Escape x5
+Press Dock をキーボードで操作 result 0
+esc#1: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#2: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#3: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#4: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#5: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+== left other DockStudio processes:        0
+Press Dock をキーボードで操作 result 0
+first-entry launch#1: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+first-entry launch#2: focus role=AXScrollArea label=
+-- Tab
+tab#1: focus role=AXScrollArea label=
+tab#2: focus role=AXScrollArea label=
+tab#3: focus role=AXScrollArea label=
+-- Escape x5
+Press Dock をキーボードで操作 result 0
+esc#1: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#2: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#3: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#4: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#5: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+== right other DockStudio processes:        0
+Press Dock をキーボードで操作 result 0
+first-entry launch#1: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+first-entry launch#2: focus role=AXScrollArea label=
+-- Tab
+tab#1: focus role=AXScrollArea label=
+tab#2: focus role=AXScrollArea label=
+tab#3: focus role=AXScrollArea label=
+-- Escape x5
+Press Dock をキーボードで操作 result 0
+esc#1: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#2: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#3: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#4: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+Press Dock をキーボードで操作 result 0
+esc#5: before=Safari entered=[DockStudio focus role=AXButton label=Finder、起動中] after=[Safari focus role=AXWindow label=Dock Studio — Custom Dock]
+done
+released

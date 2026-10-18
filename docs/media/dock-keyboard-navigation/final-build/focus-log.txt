@@ -1,0 +1,21 @@
+Press Dock をキーボードで操作 result 0
+first-entry
+focused: role=AXButton title= desc=Finder、起動中
+tab#1
+focused: role=AXButton title= desc=Safari
+tab#2
+focused: role=AXButton title= desc=Mail
+tab#3
+focused: role=AXButton title= desc=Terminal
+tab#4
+focused: role=AXButton title= desc=Calendar
+up-menu
+focused: role=AXButton title= desc=Calendar
+esc1-menu-closed
+focused: role=AXButton title= desc=Calendar
+esc2-leave
+focused: role=AXButton title= desc=Calendar
+DockStudio
+focused: role=AXButton title= desc=Finder、起動中
+focused: role=AXWindow title=Dock Studio — Custom Dock desc=
+Calculator

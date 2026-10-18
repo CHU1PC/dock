@@ -1,0 +1,14 @@
+下配置、フォーカスの確認は guest 内の focusprobe（AXFocusedUIElement）。キーは guest 内の CGEvent（keysend）。
+key=124(right) -> Safari
+key=124(right) -> Mail
+key=119(end)   -> Downloads
+key=123(left)  -> Calendar      (スペーサーを飛ばさず、並びの前の項目)
+key=115(home)  -> Finder
+key=123(left)  -> AXWindow（先頭で左キー。フォーカスが外れた。折り返さない）
+キーボード操作に入り直した後:
+m   -> Mail
+s   -> Safari
+up  -> Safari の項目メニュー（開く / Finder で表示 / Dock から取り外す）が項目の上に表示された
+esc -> メニューだけが閉じ、Safari にフォーカスが残った
+up, down, down, down, return -> Safari が取り外され、フォーカスが次の Mail へ移った
+space -> Mail が開き、前面アプリが Mail になった

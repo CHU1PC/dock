@@ -1,0 +1,7 @@
+cmd-calculator: calc=not-running front=TextEdit
+front-reset=TextEdit
+cmd-demofile: calc=not-running front=TextEdit finder-windows=9
+front-before=DockStudio
+studio-front-cmd-calc: calc=not-running front=Finder
+studio-front-cmd-demofile: front=Finder
+plain-click-calculator: calc=30506 front=Calculator

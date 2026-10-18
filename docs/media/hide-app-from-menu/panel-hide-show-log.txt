@@ -1,0 +1,34 @@
+1. menu while visible:
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem 隠す value nil pos Opt
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem Dock に保持 value nil
+     AXMenuItem 終了 value nil pos Opt
+2. press 隠す:
+Press 隠す result 0
+  Calculator visible=false
+  TextEdit visible=true
+alert-window-count= 0
+3. menu while hidden:
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem 表示 value nil pos Opt
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem Dock に保持 value nil
+     AXMenuItem 終了 value nil pos Opt
+4. press 表示:
+Press 表示 result 0
+  Calculator visible=true
+  TextEdit visible=true
+alert-window-count= 0
+5. TextEdit hide with 2 windows
+windows-before=2
+Press 隠す result 0
+  Calculator visible=true
+  TextEdit visible=false
+6. not-running Safari menu:
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem Dock から取り外す 
+     AXMenuItem 終了 value nil pos Opt

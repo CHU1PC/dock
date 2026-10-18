@@ -1,0 +1,38 @@
+locked
+Press Dock をキーボードで操作 result 0
+first-entry: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+second-entry: focus role=AXButton label=Finder、起動中
+01 right attempt=1 focus role=AXButton label=Safari
+02 right attempt=1 focus role=AXButton label=Mail
+03 end attempt=1 focus role=AXButton label=Downloads
+04 left attempt=1 focus role=AXButton label=Downloads
+04 left attempt=2 focus role=AXButton label=Downloads
+04 left attempt=3 focus role=AXButton label=Downloads
+05 home attempt=1 focus role=AXButton label=Downloads
+05 home attempt=2 focus role=AXButton label=Downloads
+05 home attempt=3 focus role=AXButton label=Downloads
+06 m attempt=1 focus role=AXButton label=Mail
+07 s attempt=1 focus role=AXButton label=Mail
+07 s attempt=2 focus role=AXButton label=Mail
+07 s attempt=3 focus role=AXButton label=Mail
+08 up attempt=1 focus role=AXButton label=Mail
+09 esc attempt=1 focus role=AXButton label=Mail
+10 up attempt=1 focus role=AXButton label=Mail
+11 down attempt=1 focus role=AXButton label=Mail
+12 down attempt=1 focus role=AXButton label=Mail
+13 down attempt=1 focus role=AXButton label=Mail
+14 return attempt=1 focus role=AXButton label=Mail
+15 end attempt=1 focus role=AXButton label=Mail
+15 end attempt=2 focus role=AXButton label=Mail
+15 end attempt=3 focus role=AXButton label=Mail
+front=Safari
+Press Dock をキーボードで操作 result 0
+entered: front=DockStudio focus role=AXButton label=Finder、起動中
+esc(53): front=DockStudio focus role=AXButton label=Finder、起動中
+front=Safari
+Press Dock をキーボードで操作 result 0
+entered: front=DockStudio focus role=AXButton label=Finder、起動中
+edge(123): front=DockStudio focus role=AXButton label=Finder、起動中
+done
+released
