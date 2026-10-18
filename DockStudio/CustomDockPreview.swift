@@ -59,7 +59,8 @@ struct CustomDockPreview: View {
             length: DockMetrics.length(for: store),
             thickness: DockMetrics.thickness(for: store)
         )
-        return DockBar(vertical: vertical)
+        return DockBar(vertical: vertical,
+                       availableLength: position == .bottom ? max(0, size.width - 50) : max(0, size.height - 188))
             .environment(store)
             .frame(width: previewSize.width, height: previewSize.height)
             .clipShape(Rectangle())
@@ -90,6 +91,15 @@ struct DockBar: View {
     let vertical: Bool
     var isPanel = false
     var temporaryMagnificationEnabled: Bool?
+    var availableLength: CGFloat?
+    private var displayIconSize: Double {
+        DockMetrics.effectiveIconSize(for: store, availableLength: availableLength,
+                                      magnificationEnabled: temporaryMagnificationEnabled)
+    }
+    private var itemAxisPadding: CGFloat {
+        guard store.appearance.background == .appleDock, store.effectiveIconSize > 0 else { return 5 }
+        return CGFloat(5 * min(1, displayIconSize / store.effectiveIconSize))
+    }
     private func refreshAvailability() {
         Task { await store.itemAvailability.refreshAll(minInterval: 1) }
     }
@@ -138,7 +148,7 @@ struct DockBar: View {
                             .buttonStyle(.plain)
                             .help("システム設定の「プライバシーとセキュリティ」で Dock Studio を許可してください")
                         }
-                        MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
+                        MinimizedWindowsDockSection(vertical: vertical, iconSize: displayIconSize,
                                                     iconStyle: store.appearance.iconStyle,
                                                     controller: store.minimizedWindowController,
                                                     groupedByApplication: store.document.settings.minimizeWindowsIntoAppIcon,
@@ -247,7 +257,7 @@ struct DockBar: View {
                     mark.frame(width: vertical ? neighbor.width : 3, height: vertical ? 3 : neighbor.height)
                         .position(x: vertical ? neighbor.midX : edge, y: vertical ? edge : neighbor.midY)
                 } else {
-                    mark.frame(width: vertical ? store.effectiveIconSize : 3, height: vertical ? 3 : store.effectiveIconSize)
+                    mark.frame(width: vertical ? displayIconSize : 3, height: vertical ? 3 : displayIconSize)
                         .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
             }
@@ -267,7 +277,7 @@ struct DockBar: View {
                 clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
                                                                                 current: NSEvent.modifierFlags))
             } label: {
-                let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                let icon = ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
@@ -286,7 +296,7 @@ struct DockBar: View {
                     }
                 if bouncing {
                     icon.modifier(LaunchBounce(position: store.document.settings.position,
-                                               height: min(store.effectiveIconSize * 0.5, 28)))
+                                               height: min(displayIconSize * 0.5, 28)))
                 } else {
                     icon
                 }
@@ -345,7 +355,7 @@ struct DockBar: View {
                 .frame(width: 4, height: 4).opacity(running ? 1 : 0)
                 .accessibilityHidden(true)
         }
-        .padding(vertical ? .vertical : .horizontal, 5)
+        .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
         .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly &&
                                   !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)), vertical: vertical,
@@ -415,7 +425,7 @@ extension DockBar {
             .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {
-                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                          glassNeedsContrast: store.appearance.background == .transparent,
                          glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion, symbol: symbol)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
@@ -443,7 +453,7 @@ extension DockBar {
             }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
-        .padding(vertical ? .vertical : .horizontal, 5)
+        .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
         .contentShape(Rectangle())
         .background(GeometryReader { proxy in
             Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
@@ -974,6 +984,37 @@ private struct FocusTimerTile: View {
 
 @MainActor
 enum DockMetrics {
+    static func effectiveIconSize(for store: DockStore, availableLength: CGFloat?,
+                                  magnificationEnabled: Bool? = nil) -> Double {
+        let maximumSize = store.effectiveIconSize
+        guard store.appearance.background == .appleDock, let availableLength else { return maximumSize }
+
+        let vertical = store.document.settings.position != .bottom
+        let fixedItemsLength = store.displayedItems.reduce(24.0) { sum, item in
+            sum + ([.spacer, .clock, .focusTimer].contains(item.kind) ? 10 : 0)
+                + (item.kind == .spacer ? 11 :
+                    [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : 0)
+        }
+        let scalableItems = store.displayedItems.filter {
+            ![.spacer, .clock, .focusTimer].contains($0.kind)
+        }.count
+        let minimizedWindowCount = store.minimizedWindowController.windows.count
+        let fixedLength = fixedItemsLength + 21
+        let enabled = magnificationEnabled ?? store.appearance.magnification
+        let magnificationReserve = enabled
+            ? max(0, store.appearance.magnificationScale - 1) * 3
+            : 0
+        let paddedItemCount = Double(scalableItems + 1)
+        let scalableLength = paddedItemCount * (1 + 10 / maximumSize)
+            + Double(minimizedWindowCount) + magnificationReserve
+
+        return DockIconAutoShrink.size(maximumSize: maximumSize,
+                                       minimumSize: DockSettings.iconSizeRange.lowerBound,
+                                       availableLength: Double(availableLength),
+                                       fixedLength: fixedLength,
+                                       scalableLength: scalableLength)
+    }
+
     static func length(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
