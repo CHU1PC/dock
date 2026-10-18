@@ -10,6 +10,12 @@ struct ProfileEditorPreview: View {
         store.editorProfile.items.firstIndex { $0.id == selectedItemID }
     }
 
+    private var visibleEditorItems: [DockItem] {
+        store.editorProfile.items.compactMap { item in
+            item.kind == .applicationList ? ApplicationListEntry.currentItem(for: item) : item
+        }
+    }
+
     private var selectedItemLocked: Bool {
         guard store.document.settings.finderEntryEnabled,
               let selectedItemID,
@@ -90,7 +96,7 @@ struct ProfileEditorPreview: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(Array(store.editorProfile.items.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(visibleEditorItems.enumerated()), id: \.element.id) { index, item in
                             Button { selectedItemID = item.id } label: {
                                 HStack(spacing: 15) {
                                     ItemIcon(item: item, size: 32, availability: store.itemAvailability.status(of: item))
@@ -108,9 +114,9 @@ struct ProfileEditorPreview: View {
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel("\(item.name)、\(item.kind.title)")
-                            if index < store.editorProfile.items.count - 1 { Divider().padding(.leading, 60) }
+                            if index < visibleEditorItems.count - 1 { Divider().padding(.leading, 60) }
                         }
-                        if store.editorProfile.items.isEmpty {
+                        if visibleEditorItems.isEmpty {
                             ContentUnavailableView("項目を追加", systemImage: "plus.circle",
                                                    description: Text("アプリ、フォルダ、ウィジェットを追加できます。"))
                                 .frame(minHeight: 160)
@@ -122,6 +128,9 @@ struct ProfileEditorPreview: View {
                 HStack {
                     Menu {
                         Button("アプリ…") { store.chooseItems(kind: .application) }
+                        if let item = ApplicationListEntry.item() {
+                            Button(item.name) { store.addItem(item) }
+                        }
                         Button("フォルダ…") { store.chooseItems(kind: .folder) }
                         Button("ファイル…") { store.chooseItems(kind: .file) }
                         Button("Web リンク…") { showLinkSheet = true }
