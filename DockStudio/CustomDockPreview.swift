@@ -165,6 +165,9 @@ struct DockBar: View {
                 if store.isPinned(item) {
                     Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
                 }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
+                }
             }
             .contextMenu {
                 Button("開く") { store.openItem(item) }
@@ -176,6 +179,9 @@ struct DockBar: View {
                 }
                 if store.isPinned(item) {
                     Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
+                }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))

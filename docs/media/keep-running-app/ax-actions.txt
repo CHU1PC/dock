@@ -1,0 +1,32 @@
+# 1. 一時表示の Calculator（保持前）
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Calculator、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock に保持\nTarget:0x0\nSelector:(null)"]
+
+# 2. Calculator でカスタムアクション「Dock に保持」を AXUIElementPerformAction で実行
+perform Name:Dock に保持
+Target:0x0
+Selector:(null) on Calculator、起動中 result 0
+4
+          "kind" : "application",
+          "name" : "Calculator",
+          "target" : "file:\/\/\/System\/Applications\/Calculator.app\/"
+        }
+      ],
+
+# 3. 実行後
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Calculator、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+
+# 4. メニューの「Dock に保持」で保持した直後（保持済み）
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Calculator、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Install Command Line Developer Tools、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock に保持\nTarget:0x0\nSelector:(null)"]
+
+# 5. メニューの「Dock から取り外す」で取り外した直後（一時表示に戻った）
+3
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Calculator、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock に保持\nTarget:0x0\nSelector:(null)"]
