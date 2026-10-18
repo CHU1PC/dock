@@ -4,8 +4,8 @@ protocol HideableApplication {
     var bundleIdentifier: String? { get }
     var isTerminated: Bool { get }
     var isHidden: Bool { get }
-    func hide() -> Bool
-    func unhide() -> Bool
+    @discardableResult func hide() -> Bool
+    @discardableResult func unhide() -> Bool
 }
 
 extension NSRunningApplication: HideableApplication {}
@@ -20,7 +20,6 @@ enum ApplicationHideOutcome: Equatable {
     case shown
     case notRunning
     case notHideable
-    case rejected
 }
 
 struct ApplicationHider {
@@ -49,13 +48,14 @@ struct ApplicationHider {
         guard hideableBundleIdentifier(for: item) != nil else { return .notHideable }
         guard let current = visibility(of: item), let identifier = hideableBundleIdentifier(for: item) else { return .notRunning }
         let running = runningApplications(identifier).filter { !$0.isTerminated }
+        // hide() と unhide() の戻り値は、実際に隠れていても false になることがあるので見ない。
         switch current {
         case .visible:
-            let results = running.filter { !$0.isHidden }.map { $0.hide() }
-            return results.contains(true) ? .hidden : .rejected
+            running.filter { !$0.isHidden }.forEach { $0.hide() }
+            return .hidden
         case .hidden:
-            let results = running.map { $0.unhide() }
-            return results.contains(true) ? .shown : .rejected
+            running.forEach { $0.unhide() }
+            return .shown
         }
     }
 }

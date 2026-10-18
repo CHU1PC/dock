@@ -11,8 +11,8 @@ GitHub issue #17 の実装になる。
 - 項目が出るのは、種別がアプリで、起動中の一覧にあり、`bundle:` 形式の identity を持つ項目に限る。未起動のアプリ、フォルダ、ファイル、リンク、時計、タイマーには出ない。アプリが終了すると、起動中の一覧から外れるので項目も消える。
 - Dock Studio 自身は対象にしない。隠すと Dock のパネルごと消えるためになる。Finder は対象になる。
 - 同じ bundle identifier のインスタンスが複数ある場合、1つでも表示中なら「表示中」として扱い、「隠す」はまだ表示中のインスタンスすべてに送る。すべて隠れているときだけ「表示」になる。
-- 隠れているかどうかは、メニューを開くときに `isHidden` を読んで決める。状態は保持しない。
-- ステータスは「○○ を隠しました」「○○ を表示しました」になる。要求が受理されなかった場合はエラーメッセージを出す。
+- 隠れているかどうかは、`DockStore.hiddenApplicationIdentities` に持つ。起動と終了の通知に加えて、`didHideApplicationNotification` と `didUnhideApplicationNotification` で更新し、切り替えの直後にも更新する。contextMenu が開くたびに再評価されることには頼らない。
+- ステータスは「○○ を隠しました」「○○ を表示しました」になる。`hide()` と `unhide()` は、実際に隠れていても false を返すことが VM で分かったので、戻り値は見ず、エラーも出さない。
 - 隠した後の再表示（`unhide()`）は、アプリのウィンドウを前面にしない場合がある。前面化は実装していない。
 
 実装は `DockStudio/Services/ApplicationHider.swift` にある。`NSRunningApplication` への依存は `HideableApplication` で差し替えられる。
@@ -23,7 +23,7 @@ GitHub issue #17 の実装になる。
 
 | 項目 | 結果 |
 | --- | --- |
-| `swift test` | 153件すべて成功した（追加分 `ApplicationHideTests` は11件） |
+| `swift test` | 171件すべて成功した（追加分 `ApplicationHideTests` は12件） |
 | Release ビルド | 成功した |
 | `build-for-testing` | 成功した |
 
@@ -33,8 +33,9 @@ GitHub issue #17 の実装になる。
 - 別のアプリには `hide()` も `unhide()` も呼ばれない。
 - 同じ bundle identifier の複数インスタンスのすべてに要求が届く。一部だけ隠れている場合は表示中として扱う。
 - 終了済みのインスタンス、Dock Studio 自身、アプリ以外の項目は対象外になる。
-- 要求が受理されなかった場合はエラーを返す。
+- `hide()` が false を返してもエラーにならない。
 - ストアが、起動中でない項目には状態を返さず、ステータスを切り替えに合わせて更新する。
+- 隠れた状態の変化を `refreshHiddenApplications()` で取り込むと、メニューの状態が「隠す」と「表示」で入れ替わる。
 
 ## 実画面の確認（専用ヘッドレス VM）
 

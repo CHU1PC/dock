@@ -6,12 +6,13 @@ private final class FakeHideable: HideableApplication {
     var isTerminated: Bool
     var isHidden: Bool
     let accepts: Bool
+    var hidesImmediately = true
     private(set) var hideCalls = 0
     private(set) var unhideCalls = 0
     init(_ id: String, isHidden: Bool = false, isTerminated: Bool = false, accepts: Bool = true) {
         bundleIdentifier = id; self.isHidden = isHidden; self.isTerminated = isTerminated; self.accepts = accepts
     }
-    func hide() -> Bool { hideCalls += 1; if accepts { isHidden = true }; return accepts }
+    func hide() -> Bool { hideCalls += 1; if accepts && hidesImmediately { isHidden = true }; return accepts }
     func unhide() -> Bool { unhideCalls += 1; if accepts { isHidden = false }; return accepts }
 }
 
@@ -86,9 +87,10 @@ final class ApplicationHideTests: XCTestCase {
         XCTAssertEqual(own.hideCalls + calc.hideCalls, 0)
     }
 
-    func testRejectedHideIsReported() {
-        let stubborn = FakeHideable("com.example.calc", accepts: false)
-        XCTAssertEqual(hider([stubborn]).toggle(app("com.example.calc")), .rejected)
+    func testFalseReturnValueIsNotTreatedAsFailure() {
+        let calc = FakeHideable("com.example.calc", accepts: false)
+        XCTAssertEqual(hider([calc]).toggle(app("com.example.calc")), .hidden)
+        XCTAssertEqual(calc.hideCalls, 1)
     }
 
     private func makeStore() -> DockStore {
@@ -104,8 +106,6 @@ final class ApplicationHideTests: XCTestCase {
         XCTAssertNil(store.applicationVisibility(item))
         store.runningItems = [item]
         XCTAssertEqual(store.applicationVisibility(item), .visible)
-        calc.isHidden = true
-        XCTAssertEqual(store.applicationVisibility(item), .hidden)
         store.runningItems = []
         XCTAssertNil(store.applicationVisibility(item))
     }
@@ -125,12 +125,31 @@ final class ApplicationHideTests: XCTestCase {
         XCTAssertNil(store.errorMessage)
     }
 
-    func testStoreReportsRejectedToggle() {
+    func testStoreShowsFalseReturnAndLateStateWithoutError() {
         let store = makeStore()
-        store.applicationHider = hider([FakeHideable("com.example.calc", accepts: false)])
+        let calc = FakeHideable("com.example.calc", accepts: false)
+        store.applicationHider = hider([calc])
         let item = app("com.example.calc")
         store.runningItems = [item]
         store.toggleApplicationVisibility(item)
-        XCTAssertNotNil(store.errorMessage)
+        XCTAssertNil(store.errorMessage)
+        XCTAssertTrue(store.status.contains("隠しました"))
+    }
+
+    func testMenuStateFollowsRefreshAfterHiddenStateChanges() {
+        let store = makeStore()
+        let calc = FakeHideable("com.example.calc")
+        store.applicationHider = hider([calc])
+        let item = app("com.example.calc")
+        store.runningItems = [item]
+        store.refreshHiddenApplications()
+        XCTAssertEqual(store.applicationVisibility(item), .visible)
+        calc.isHidden = true
+        XCTAssertEqual(store.applicationVisibility(item), .visible)
+        store.refreshHiddenApplications()
+        XCTAssertEqual(store.applicationVisibility(item), .hidden)
+        calc.isHidden = false
+        store.refreshHiddenApplications()
+        XCTAssertEqual(store.applicationVisibility(item), .visible)
     }
 }
