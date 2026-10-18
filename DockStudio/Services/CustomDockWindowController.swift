@@ -56,6 +56,7 @@ final class DockPanelLayout {
     var position: DockPosition = .bottom
     var reduceMotion = false
     var revealAnimationDuration = DockSettings().revealAnimationDuration
+    var temporaryMagnificationActive = false
 }
 
 @MainActor
@@ -76,6 +77,7 @@ final class CustomDockWindowController {
     private var pointerMonitor: Any?
     private var localMonitor: Any?
     private var previousApp: NSRunningApplication?
+    private var temporaryMagnificationSuppressed = false
 
     init(store: DockStore) {
         self.store = store
@@ -125,6 +127,13 @@ final class CustomDockWindowController {
                 }
             })
         }
+        observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.temporaryMagnificationSuppressed = true
+                self?.resetTemporaryMagnification()
+                self?.update()
+            }
+        })
         for name in [NSMenu.didBeginTrackingNotification, NSMenu.didEndTrackingNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
@@ -134,11 +143,16 @@ final class CustomDockWindowController {
                 }
             })
         }
-        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateAutoHide(); self?.updatePointerPassThrough() }
+        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .flagsChanged]) { [weak self] event in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if event.type == .flagsChanged { self.updateTemporaryMagnification(event.modifierFlags) }
+                else { self.updateAutoHide(); self.updatePointerPassThrough() }
+            }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDown, .keyDown]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDown, .keyDown, .flagsChanged]) { [weak self] event in
             let handled = MainActor.assumeIsolated {
+                if event.type == .flagsChanged { self?.updateTemporaryMagnification(event.modifierFlags) }
                 if event.type == .rightMouseDown, let self, event.window === self.panel {
                     // 非アクティブ時も SwiftUI のメニューにキーボードフォーカスを渡す。
                     NSApplication.shared.activate(ignoringOtherApps: true)
@@ -189,7 +203,8 @@ final class CustomDockWindowController {
     private var interactionFrame: NSRect {
         let frame = panel.frame.insetBy(dx: DockInteractionGeometry.panelPadding, dy: DockInteractionGeometry.panelPadding)
         if store.document.settings.position == .bottom {
-            let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+            let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
+            let maximum = magnificationEnabled ? store.appearance.magnificationScale : 1
             return NSRect(x: frame.minX, y: frame.minY, width: frame.width,
                           height: max(store.effectiveIconSize * maximum, 54) + 30)
         }
@@ -200,6 +215,12 @@ final class CustomDockWindowController {
     }
 
     private var autoHideEnabled: Bool { store.document.settings.autoHide && !NSWorkspace.shared.isVoiceOverEnabled }
+
+    private var temporaryMagnificationEnabled: Bool? {
+        guard layout.temporaryMagnificationActive else { return nil }
+        return DockTemporaryMagnification.isMagnified(configured: store.appearance.magnification,
+                                                       modifiersHeld: true)
+    }
 
     private func updateVisibility() {
         let point = NSEvent.mouseLocation
@@ -217,6 +238,7 @@ final class CustomDockWindowController {
             leaveKeyboard()
         }
         guard store.isDockEffectivelyVisible, let screen = selectedScreen else {
+            resetTemporaryMagnification()
             if previousApp != nil { leaveKeyboard() }
             timer?.invalidate(); timer = nil
             panel.orderOut(nil)
@@ -226,8 +248,10 @@ final class CustomDockWindowController {
         let vertical = store.document.settings.position != .bottom
         let padding = DockInteractionGeometry.panelPadding * 2
         let maximumLength = vertical ? visible.height : screen.frame.insetBy(dx: 10, dy: 10).width
-        let length = min(DockMetrics.length(for: store) + padding, maximumLength)
-        let thickness = DockMetrics.thickness(for: store) + padding + (vertical ? DockMetrics.sideLabelGutter : 0)
+        let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
+        let length = min(DockMetrics.length(for: store, magnificationEnabled: magnificationEnabled) + padding, maximumLength)
+        let thickness = DockMetrics.thickness(for: store, magnificationEnabled: magnificationEnabled)
+            + padding + (vertical ? DockMetrics.sideLabelGutter : 0)
         var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
         frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
                                                            size: frame.size, position: store.document.settings.position)
@@ -266,8 +290,24 @@ final class CustomDockWindowController {
         guard panel.isVisible else { return }
         let inside = !visibility.isCollapsed && interactionFrame.contains(NSEvent.mouseLocation)
         if store.isDockPointerInside != inside { store.isDockPointerInside = inside }
+        updateTemporaryMagnification(NSEvent.modifierFlags)
         panel.ignoresMouseEvents = !(visibility.isCollapsed ? revealFrame.contains(NSEvent.mouseLocation) : inside)
             && trackingMenus == 0 && store.activePopoverTokens.isEmpty
+    }
+
+    private func updateTemporaryMagnification(_ flags: NSEvent.ModifierFlags) {
+        let modifiersHeld = flags.contains([.control, .shift])
+        if !modifiersHeld { temporaryMagnificationSuppressed = false }
+        let pointerInside = !visibility.isCollapsed && interactionFrame.contains(NSEvent.mouseLocation)
+        let active = store.isDockEffectivelyVisible && panel.isVisible && pointerInside && modifiersHeld
+            && !temporaryMagnificationSuppressed
+        guard layout.temporaryMagnificationActive != active else { return }
+        layout.temporaryMagnificationActive = active
+        update()
+    }
+
+    private func resetTemporaryMagnification() {
+        if layout.temporaryMagnificationActive { layout.temporaryMagnificationActive = false }
     }
 
     private func updateAutoHide() {
@@ -295,10 +335,17 @@ final class CustomDockWindowController {
 private struct PanelDockContent: View {
     @Environment(DockStore.self) private var store
     let layout: DockPanelLayout
+    private var temporaryMagnificationEnabled: Bool? {
+        guard layout.temporaryMagnificationActive else { return nil }
+        return DockTemporaryMagnification.isMagnified(configured: store.appearance.magnification,
+                                                       modifiersHeld: true)
+    }
+
     var body: some View {
         ZStack {
-            DockBar(vertical: layout.vertical, isPanel: true)
-                .frame(width: layout.vertical ? DockMetrics.barThickness(for: store) : nil)
+            DockBar(vertical: layout.vertical, isPanel: true,
+                    temporaryMagnificationEnabled: temporaryMagnificationEnabled)
+                .frame(width: layout.vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil)
                 .padding(DockInteractionGeometry.panelPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity,
                        alignment: layout.position == .left ? .leading : layout.position == .right ? .trailing : .center)

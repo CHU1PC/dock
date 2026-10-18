@@ -140,6 +140,13 @@ final class DockAppearanceTests: XCTestCase {
         XCTAssertEqual(DockAppearance.scale(index: 3, hovered: 3, maximum: 1), 1)
     }
 
+    func testControlShiftTemporarilyTogglesMagnificationWithoutChangingPreference() {
+        XCTAssertTrue(DockTemporaryMagnification.isMagnified(configured: true, modifiersHeld: false))
+        XCTAssertFalse(DockTemporaryMagnification.isMagnified(configured: true, modifiersHeld: true))
+        XCTAssertFalse(DockTemporaryMagnification.isMagnified(configured: false, modifiersHeld: false))
+        XCTAssertTrue(DockTemporaryMagnification.isMagnified(configured: false, modifiersHeld: true))
+    }
+
     func testMonochromePreservesAlphaAndGlassRemainsPremultiplied() {
         let mono = DockIconRenderer.transformed(red: 100, green: 30, blue: 10, alpha: 128, style: .monochrome)
         XCTAssertEqual(mono.0, mono.1)
