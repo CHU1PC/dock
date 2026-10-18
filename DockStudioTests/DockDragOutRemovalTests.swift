@@ -27,6 +27,40 @@ final class DockDragOutRemovalTests: XCTestCase {
         XCTAssertFalse(state.isDragging)
     }
 
+    @MainActor
+    func testAutoHideStaysExpandedDuringDragAndResumesAfterward() {
+        let drag = DockDragOutCancellation.shared
+        _ = drag.finish()
+        var visibility = DockVisibilityState()
+        let start = Date(timeIntervalSince1970: 100)
+
+        visibility.update(visible: true, autoHide: true, hovering: false, interacting: false, now: start)
+        drag.begin()
+        visibility.update(visible: true, autoHide: true, hovering: false,
+                          interacting: drag.isDragging, now: start.addingTimeInterval(1.1))
+        XCTAssertFalse(visibility.isCollapsed)
+
+        _ = drag.finish()
+        visibility.update(visible: true, autoHide: true, hovering: false,
+                          interacting: drag.isDragging, now: start.addingTimeInterval(1.5))
+        XCTAssertFalse(visibility.isCollapsed)
+        visibility.update(visible: true, autoHide: true, hovering: false,
+                          interacting: drag.isDragging, now: start.addingTimeInterval(2.2))
+        XCTAssertTrue(visibility.isCollapsed)
+    }
+
+    func testDragKeepsPanelReceivingEventsAndRestoresPassThroughAfterward() {
+        XCTAssertFalse(DockDragOutRemoval.shouldIgnoreMouseEvents(
+            pointerIsInteractive: false, trackingMenus: false,
+            hasActivePopover: false, isDragging: true))
+        XCTAssertTrue(DockDragOutRemoval.shouldIgnoreMouseEvents(
+            pointerIsInteractive: false, trackingMenus: false,
+            hasActivePopover: false, isDragging: false))
+        XCTAssertFalse(DockDragOutRemoval.shouldIgnoreMouseEvents(
+            pointerIsInteractive: false, trackingMenus: true,
+            hasActivePopover: false, isDragging: false))
+    }
+
     func testBottomVisibleBoundsExcludeTransparentLabelArea() {
         // パネルの下配置: DockBar の高さは icon+65、見える背景は icon+30（icon=64）
         let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 400, height: 129), vertical: false, thickness: 94)
