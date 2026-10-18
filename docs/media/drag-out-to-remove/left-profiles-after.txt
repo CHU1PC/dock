@@ -1,0 +1,45 @@
+{
+  "activeProfileID" : "11111111-1111-1111-1111-111111111111",
+  "profiles" : [
+    {
+      "id" : "11111111-1111-1111-1111-111111111111",
+      "items" : [
+        {
+          "id" : "00000000-0000-0000-0000-000000000001",
+          "kind" : "application",
+          "name" : "Finder",
+          "target" : "file:\/\/\/System\/Library\/CoreServices\/Finder.app\/"
+        },
+        {
+          "id" : "00000000-0000-0000-0000-000000000004",
+          "kind" : "application",
+          "name" : "Terminal",
+          "target" : "file:\/\/\/System\/Applications\/Utilities\/Terminal.app\/"
+        },
+        {
+          "id" : "00000000-0000-0000-0000-000000000005",
+          "kind" : "application",
+          "name" : "Calendar",
+          "target" : "file:\/\/\/System\/Applications\/Calendar.app\/"
+        },
+        {
+          "id" : "00000000-0000-0000-0000-000000000006",
+          "kind" : "folder",
+          "name" : "Downloads",
+          "target" : "file:\/\/\/Users\/Shared\/Downloads\/"
+        }
+      ],
+      "name" : "Verify"
+    }
+  ],
+  "schemaVersion" : 1,
+  "settings" : {
+    "autoHide" : false,
+    "iconSize" : 52,
+    "launchBounce" : true,
+    "mode" : "custom",
+    "position" : "left",
+    "revealAnimationDuration" : 0.22,
+    "showRunningApps" : true
+  }
+}
