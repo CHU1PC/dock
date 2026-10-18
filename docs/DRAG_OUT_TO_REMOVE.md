@@ -40,7 +40,7 @@ Debug build-for-testing: ** TEST BUILD SUCCEEDED **
 
 ## 未検証
 
-実際のドラッグ操作は、どれも確認していない。撮影の担当が次の点を確認する。
+実際のドラッグ操作は、下の「実画面の確認」で確認した。確認できなかった項目は、そこに書いた。以下は、撮影前に挙げた確認の観点になる。
 
 - `highPriorityGesture` のドラッグが、`Button` のクリックと競合しないか。ドラッグ後に離した位置が元の項目の上でも、項目が開かないか。
 - デスクトップ用パネルの Dock で、窓の外まで追従し、離した位置が正しく判定されるか。項目の表示は窓の範囲で切れる可能性がある。
@@ -130,3 +130,30 @@ DOCKSTUDIO_DATA_DIR=$HOME/verify-data <app>/Contents/MacOS/DockStudio
 | `panel-deactivate.txt` | 手順7の結果の記録 |
 | `left-outside.png`（プレビュー、パネル） | 手順8。左配置の予告 |
 | `profiles-after.txt` | 取り外し後の `profiles.json` の項目名 |
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `14b7649` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストで `125ff26c54732745a5bcc7a583eab064ffd716a1aaffc3714b2b83ccabcccf7c` で、ゲストの値と一致した。ドラッグは、ゲスト内で CGEvent を使う小さなツールで合成した（ボタン押下、30段階の移動、保持、離す）。検証用データは上の手順の内容で、起動には `DOCKSTUDIO_DATA_DIR` を付けたバイナリの直接実行を使った。確認は、デスクトップ用パネルで行った。管理画面内のプレビューでは、ドラッグ操作を撮影していない。
+
+下配置のパネル:
+
+- Mail を Dock の外へドラッグすると、元の位置に「取り外す」の予告が出て、ドラッグ中の項目は半透明になった（[panel-outside.jpg](media/drag-out-to-remove/panel-outside.jpg)）。予告は、パネルの窓に切られずに見えた。
+- 外で離すと、Mail が Dock から消えて Dock が詰まった。保存ファイルから Mail が消え、Finder、Safari、Terminal、Calendar、Downloads が残った（[panel-after.jpg](media/drag-out-to-remove/panel-after.jpg)、[panel-profiles-after.txt](media/drag-out-to-remove/panel-profiles-after.txt)、[動画](media/drag-out-to-remove/panel-drag-out-remove.mp4)）。
+- Calendar を外までドラッグして1.5秒保持し、Dock の内側の元の項目の上へ戻して離すと、予告が消え、Calendar は残った。Calendar は起動しなかった（`pgrep -x Calendar` が空）。ドラッグ後に元の項目の上で離しても、項目は開かなかった（[panel-returned.jpg](media/drag-out-to-remove/panel-returned.jpg)、[動画](media/drag-out-to-remove/panel-drag-return.mp4)）。`highPriorityGesture` と `Button` の競合は、この確認では起きなかった。
+- 動かさずに Terminal をクリックすると、通常どおり Terminal が起動した（左配置のパネルで確認）。
+- 外までドラッグして保持している途中で、別のアプリ（Calculator）をアクティブにしてから離すと、項目は取り外された（[panel-deactivate.txt](media/drag-out-to-remove/panel-deactivate.txt)、[panel-deactivate-left.jpg](media/drag-out-to-remove/panel-deactivate-left.jpg)）。
+
+左配置のパネル:
+
+- Mail を外までドラッグすると、元の位置に「取り外す」の予告が出た（[left-outside.jpg](media/drag-out-to-remove/left-outside.jpg)）。離すと Mail が消え、保存ファイルから Mail が消えた（[left-after.jpg](media/drag-out-to-remove/left-after.jpg)、[left-profiles-after.txt](media/drag-out-to-remove/left-profiles-after.txt)、[動画](media/drag-out-to-remove/left-drag-out-remove.mp4)）。離した直後の数フレームは、予告が残り、Dock が詰まっていなかった。数秒後の画面では詰まっていた。VNC の取得の遅れか、描画の遅れかは区別できていない。
+
+動画は撮影時刻の間隔を維持して12fps に変換し、倍速にはしていない。画面の一部に切り出している。VNC の取得に依存するため、描画性能の測定ではない。
+
+確認できなかったこと:
+
+- 管理画面内のプレビューでのドラッグ（手順1から3）。
+- 手順4（再起動後に Mail が戻らないこと）、手順5（保持されていない項目の外へのドラッグ）。
+- 「使用していないときに隠す」が有効な場合（#88）、Esc によるキャンセル（#87）。
+- 左配置のパネルで、ドラッグ中の項目が窓の外へ追従するかは、画像では判別できなかった。ドラッグ中の項目は、パネルの窓の端の近くまで見えた。左配置では、管理画面内のプレビューの Mail も同時に半透明に見えるフレームがあった。原因は未確認。
+
+撮影手順との違い: メニュー項目や画面の切り替えは使っていない。デスクトップ用パネルは、`デスクトップに Dock を表示` を AX で押して表示した。ゲストに残っていた Finder の「Documents」ウインドウが、管理画面の上に重なった。
