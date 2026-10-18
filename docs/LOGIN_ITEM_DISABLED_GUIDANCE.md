@@ -26,7 +26,7 @@ Custom Dock の「全ウィンドウを表示」は既に実装されている�
 - `LoginRestoreTests.testSystemDisablementAfterRegistrationIsPersistedAndExplained` が、有効化後の状態保存と再生成後の案内を確認する。
 - `LoginRestoreTests.testIntentionalUnregisterClearsPersistedEnabledPreference` が、アプリ内の解除後に通常の無効状態へ戻ることを確認する。
 - `LoginRestoreTests.testRelaunchKeepsAutoHideAndActiveProfile` が、選択ディスプレイ ID を含む設定の復元を確認する。
-- `/private/tmp/cw/run-check.sh 61 test` は 382 件成功、失敗 0 件。
+- `/private/tmp/cw/run-check.sh 61 test` は 384 件成功、失敗 0 件。
 
 ## 未検証
 
