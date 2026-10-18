@@ -509,6 +509,17 @@ extension DockBar {
             entry.representedObject = action.perform
             menu.addItem(entry)
         }
+        if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
+            let windowMenu = NSMenuItem(title: "ウィンドウを前面に表示", action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+            let controller = DockApplicationWindowMenuController(
+                listing: { store.applicationWindowListing(for: item) },
+                activate: { windowID in store.activateApplicationWindow(windowID, for: item) })
+            submenu.delegate = controller
+            windowMenu.submenu = submenu
+            windowMenu.representedObject = controller
+            menu.addItem(windowMenu)
+        }
         let left = window.frame.minX + origin.x + itemFrame.minX
         let top = window.frame.maxY - (origin.y + itemFrame.minY)
         let point: NSPoint = switch store.document.settings.position {
@@ -524,6 +535,52 @@ extension DockBar {
 private final class DockMenuHandler: NSObject {
     static let shared = DockMenuHandler()
     @objc func run(_ sender: NSMenuItem) { (sender.representedObject as? () -> Void)?() }
+}
+
+@MainActor
+private final class DockApplicationWindowMenuController: NSObject, NSMenuDelegate {
+    private let listing: () -> ApplicationWindowListing
+    private let activate: (String) -> Void
+
+    init(listing: @escaping () -> ApplicationWindowListing, activate: @escaping (String) -> Void) {
+        self.listing = listing
+        self.activate = activate
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        switch listing() {
+        case .windows(let windows) where !windows.isEmpty:
+            var totals: [String: Int] = [:]
+            for window in windows { totals[window.title, default: 0] += 1 }
+            var titleCounts: [String: Int] = [:]
+            for window in windows {
+                titleCounts[window.title, default: 0] += 1
+                let duplicateNumber = titleCounts[window.title, default: 0]
+                let duplicateSuffix = (totals[window.title, default: 0] > 1) ? " (\(duplicateNumber))" : ""
+                let minimizedSuffix = window.isMinimized ? "（最小化）" : ""
+                let entry = NSMenuItem(title: "\(window.title)\(duplicateSuffix)\(minimizedSuffix)",
+                                       action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { [activate] in activate(window.id) }
+                menu.addItem(entry)
+            }
+        case .windows:
+            menu.addItem(disabledItem("開いているウィンドウはありません"))
+        case .applicationNotRunning:
+            menu.addItem(disabledItem("アプリは起動していません"))
+        case .accessibilityPermissionDenied:
+            menu.addItem(disabledItem("アクセシビリティ権限が必要です（システム設定で Dock Studio を許可）"))
+        case .failed:
+            menu.addItem(disabledItem("ウィンドウ一覧を取得できませんでした"))
+        }
+    }
+
+    private func disabledItem(_ title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
+    }
 }
 
 enum DockDropInsertion {
