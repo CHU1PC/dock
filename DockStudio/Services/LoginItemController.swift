@@ -11,13 +11,12 @@ protocol LoginItemService {
 extension SMAppService: LoginItemService {}
 
 enum LoginItemState: Equatable {
-    case enabled, disabled, requiresApproval, unavailable
+    case enabled, disabled, requiresApproval
 
     init(_ status: SMAppService.Status) {
         switch status {
         case .enabled: self = .enabled
         case .requiresApproval: self = .requiresApproval
-        case .notFound: self = .unavailable
         default: self = .disabled
         }
     }
@@ -61,7 +60,6 @@ final class LoginItemController {
     private static func notice(for state: LoginItemState) -> String? {
         switch state {
         case .requiresApproval: "システム設定の「ログイン項目」で Dock Studio を許可してください。許可するまでログイン時には起動しません。"
-        case .unavailable: "このビルドはログイン項目として登録できません。/Applications などに置いたアプリで試してください。"
         default: nil
         }
     }

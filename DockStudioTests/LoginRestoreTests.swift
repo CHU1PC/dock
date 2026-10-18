@@ -70,10 +70,32 @@ final class LoginRestoreTests: XCTestCase {
         controller.refresh()
         XCTAssertFalse(controller.isOn)
         XCTAssertNil(controller.message)
+    }
+
+    func testNotFoundMeansNotRegisteredWithoutWarning() {
+        let service = FakeLoginItemService()
         service.status = .notFound
+        let controller = LoginItemController(service: service)
+        XCTAssertFalse(controller.isOn)
+        XCTAssertEqual(controller.state, .disabled)
+        XCTAssertNil(controller.message)
         controller.refresh()
-        XCTAssertEqual(controller.state, .unavailable)
-        XCTAssertNotNil(controller.message)
+        XCTAssertNil(controller.message)
+        controller.setEnabled(true)
+        XCTAssertEqual(service.registerCalls, 1)
+        XCTAssertTrue(controller.isOn)
+        XCTAssertNil(controller.message)
+    }
+
+    func testFailedRegisterFromNotFoundShowsErrorOnlyThen() {
+        let service = FakeLoginItemService()
+        service.status = .notFound
+        service.failure = NSError(domain: "test", code: 2, userInfo: [NSLocalizedDescriptionKey: "no such app"])
+        let controller = LoginItemController(service: service)
+        XCTAssertNil(controller.message)
+        controller.setEnabled(true)
+        XCTAssertFalse(controller.isOn)
+        XCTAssertTrue(controller.message?.contains("no such app") == true)
     }
 
     func testVisibleStateIsRestoredAfterRelaunch() {
