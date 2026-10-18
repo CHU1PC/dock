@@ -267,9 +267,14 @@ struct DockBar: View {
         .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
-                                                                           thickness: DockMetrics.barThickness(for: store))) {
+                                                                           thickness: DockMetrics.barThickness(for: store)),
+                                  onRemove: {
             store.removeFromActiveProfile(item)
-        })
+        }, isEjectable: {
+            VolumeEjector().isEjectable(item)
+        }, onEject: {
+            store.ejectVolume(item)
+        }))
         .onHover { if $0 { hovered = item.id } }
     }
 }
