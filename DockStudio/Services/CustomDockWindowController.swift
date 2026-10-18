@@ -96,12 +96,21 @@ final class CustomDockWindowController {
         panel.isReleasedWhenClosed = false
         panel.contentView = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
         refreshRunningApps()
-        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification,
+        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didActivateApplicationNotification,
+                     NSWorkspace.didTerminateApplicationNotification,
                      NSWorkspace.didHideApplicationNotification, NSWorkspace.didUnhideApplicationNotification] {
             observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
                     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-                       let url = app.bundleURL { DockIconRenderer.invalidate(url: url) }
+                       let url = app.bundleURL {
+                        DockIconRenderer.invalidate(url: url)
+                        if name == NSWorkspace.didLaunchApplicationNotification || name == NSWorkspace.didActivateApplicationNotification,
+                           app.activationPolicy == .regular, app.bundleIdentifier != Bundle.main.bundleIdentifier {
+                            self?.store.recordRecentApp(DockItem(name: app.localizedName ?? url.deletingPathExtension().lastPathComponent,
+                                                                 kind: .application, target: url.absoluteString,
+                                                                 bundleIdentifier: app.bundleIdentifier))
+                        }
+                    }
                     self?.refreshRunningApps()
                 }
             })
