@@ -1,18 +1,18 @@
 # 入力と補助技術の調査（#32、#64、#69、#48、#49）
 
-調査日は 2026-10-17 と 2026-10-18 になる。1 回目の調査は main の `3341868`（PR #6 のマージ後）、追加の確認は main の `5d761de`（PR #79 のマージ後、#66、#60、#68、#59、#44 を含む）をビルドして行った。macOS 15 以降を対象にしている。GUI の観察は macOS 26.6.2、1600×1000 の専用ヘッドレス VM で行い、ホストには検証画面を出していない。アプリのコードは変更していない。
+調査日は 2026-10-17 と 2026-10-18 になる。1 回目の調査は main の `3341868`（PR #6 のマージ後）、追加の確認は main の `5d761de`（PR #79 のマージ後、#66、#60、#68、#59、#44 を含む）をビルドして行った。macOS 15 以降を対象にしている。GUI の記録は macOS 26.6.2、1600×1000 の専用ヘッドレス VM で取得した既存の調査結果になる。この更新では VM とアプリを使わず、2026-10-18 時点で確認した main `9c9f340` のコードとマージ済み PR を根拠にした。アプリのコードは変更していない。
 
 ## 結論の一覧
 
 | issue | 結論 | 根拠の要点 |
 | --- | --- | --- |
-| #32 spring-loading | 条件付きで可能（現在のパネル構成のままでは動かない） | 標準 Dock はフォルダでは開き、アプリでは開かなかった。試験パネルは、タイトル付きウインドウでは `springLoadingActivated` が約 0.8 秒で呼ばれたが、ボーダーレスの非アクティブ化パネルでは 3 通りの構成のすべてで呼ばれなかった。ドロップ自体は受けられた |
+| #32 spring-loading | 条件付きで可能（現在のパネル構成のままでは動かない） | 標準 Dock と試験パネルでの観察は、過去の VM 記録になる。現行 main `9c9f340` には並べ替え用の `DockDropDelegate` があるが、`NSSpringLoadingDestination` と spring-loading activation は見つからない |
 | #64 Finder の選択を追加 | 条件付きで可能 | Services の登録（`pbs -dump_pboard`）と、`NSPerformService` による複数 URL の受け取りは確認した。Finder のメニューは「No Services Apply」のままで、Finder からの実行は確認できていない |
 | #69 自動縮小 | 実装可能（仕様の決定が必要） | 標準 Dock の縮小を実測した。DockStudio は縮小せず、下配置 33 個は最後の項目が x=2049 で画面外、左配置 24 個も画面外になる。拡大率 2.0 の拡大表示は画面内に収まった |
-| #48 矢印キー | 不足を確認（補完は実装可能） | 標準 Dock は左右、Home、End、文字入力、上キーのメニューを確認した。DockStudio は Tab と Return と Space だけ動き、左配置でも矢印は効かない。メニューは Control+Return、Control+Space、Shift+F10 では開かない |
-| #49 VoiceOver | 一部のみ確認（読み上げは未確認） | アクセシビリティ API 上のラベルと操作（`AXPress`、`AXShowMenu`）は確認した。VoiceOver は起動できたが、初回のウェルカム画面を越えられず、読み上げは取れていない |
+| #48 矢印キー | ナビゲーションは実装済み、受け入れ条件の一部は未確認 | PR #99 で矢印、Home、End、文字入力、メニュー、Escape による復帰を実装し、PR #112 で初回フォーカスを修正した。PR #63 で Option+矢印の並べ替えも追加した。項目追加と非表示切替のフォーカスは未確認 |
+| #49 VoiceOver | 一部のみ確認（実際の読み上げは未実施） | コードと過去のアクセシビリティ API 記録でラベルと操作を確認した。実際の VoiceOver 読み上げ、利用不可とウィジェットの状態は未確認。実機または検証用 Mac で手順に沿った確認が必要になる |
 
-実装可能と分かった項目は #69 と #48 になる。条件付きの項目は #32 と #64 になる。VoiceOver の読み上げは、この調査では確認できていない。
+実装方法を検討できる項目は #32、#64、#69 になる。#48 の主要なキーボード操作は実装済みだが、受け入れ条件の一部が未確認である。VoiceOver の読み上げは未実施になる。
 
 ## 共通の注意
 
@@ -35,7 +35,7 @@
   - 175 行目 `@protocol NSSpringLoadingDestination`（`springLoadingEntered:`、`springLoadingActivated:draggingInfo:`、`springLoadingHighlightChanged:`、`springLoadingExited:`）。
   - 59 行目 `NSSpringLoadingHighlight`（None、Standard、Emphasized）。
 - SwiftUI の swiftinterface に `springLoadingBehavior(_:)` がある（macOS 14 以降）。ただし対象は View の動作の指定であり、任意のタイルで待機とキャンセルを自前で扱う用途には、AppKit のプロトコルが向く。
-- DockStudio には `onDrop`、`dropDestination`、`registerForDraggedTypes` がない（`grep` で確認した）。
+- 当初調査の main にはドロップ処理がなかった。現行 main `9c9f340` には並べ替え用の `.onDrop` と `DockDropDelegate` が追加されている（`DockStudio/CustomDockPreview.swift:139-141,534-554`）。検索したコードには `NSSpringLoadingDestination` と spring-loading の activation がなく、並べ替えのドロップと spring-loading は別の動作として扱う。
 - Apple のドキュメント（<https://developer.apple.com/documentation/appkit/nsspringloadingdestination>）は、ドラッグ先とスプリングロード先を同じビューに実装でき、カーソル下のビューが優先されると説明している。
 
 ### 受け入れ条件ごとの確認結果
@@ -95,6 +95,10 @@ DockBar の項目に AppKit のビューを重ね、`NSSpringLoadingDestination`
 - SDK ヘッダ `NSApplication.h` に `servicesProvider`（544 行目）と `NSUpdateDynamicServices()`（623 行目）がある。
 - 現状の DockStudio には `NSServices` がなく、項目の追加は `NSOpenPanel` の `chooseItems(kind:)` だけになる。`project.yml` は `GENERATE_INFOPLIST_FILE: YES` を使っている。配列の `NSServices` は `INFOPLIST_KEY_` で表せないため、Info.plist のファイルを足す必要がある。
 
+現行 main `9c9f340` のコードと `project.yml` にも `NSServices`、`servicesProvider`、`NSPerformService` の実装は見つからず、Finder 選択の入口は未実装になる。
+
+実装の追跡 issue は #140 になる。
+
 ### 受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
@@ -153,6 +157,10 @@ Info.plist に `NSServices` を追加し、アプリ起動時に `servicesProvid
 
 コードでは、`CustomDockPreview.swift` の `DockMetrics.length` が項目数に比例して長さを決め、パネルの長さは画面幅（縦は可視領域の高さ）に制限される。内容は `ScrollView` に入り、縮小はない。
 
+現行 main `9c9f340` でも、アイコン表示は `store.effectiveIconSize` を使い、`DockMetrics.length` は項目のサイズを足して長さを算出する（`DockStudio/CustomDockPreview.swift:241,746-768`）。項目数に応じてアイコンを縮小する処理は見つからない。
+
+自動縮小の実装を追跡する issue は #141 になる。
+
 専用 VM で、アイコン 52 px、プロファイルの項目 24 個を測定した。
 
 | 配置 | パネルの大きさ | 最後の項目の位置 | 結果 |
@@ -185,7 +193,7 @@ Info.plist に `NSServices` を追加し、アプリ起動時に `servicesProvid
 
 ### 結論
 
-不足を確認した。DockStudio は矢印キーによる移動を実装しておらず、補完は実装可能と判断する。
+当初調査で見つけた不足は、PR #99、#112、#63 で実装された。#48 の確認条件には、項目追加時や非表示切替時のフォーカス、左右配置での標準 Dock との照合など未確認の点が残るため、issue は完了扱いにしない。
 
 ### 標準 Dock の観察
 
@@ -226,7 +234,7 @@ VM で確認した結果は次のとおりになる（下配置、キーボー�
 
 DockStudio のキー操作の撮影は保存していない。キー操作の結果は、アクセシビリティ API の出力から読み取った。
 
-### 受け入れ条件ごとの確認結果
+### 当初調査時の受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
 | --- | --- |
@@ -236,7 +244,7 @@ DockStudio のキー操作の撮影は保存していない。キー操作の結
 
 ### DockStudio の追加観察（2026-10-18、最新の main）
 
-| 操作 | 結果 |
+| 操作 | 当時の結果 |
 | --- | --- |
 | 左配置で Tab、下、上、右、左、End、Home | Tab で先頭の Finder に当たる。それ以外のキーではフォーカスは変わらない。Tab を続けると、項目とグループが交互になる（Finder、グループ、Safari、グループ）。下配置と同じ |
 | Control+Return、Control+Space、Shift+F10 | 項目のメニューは開かなかった（メニュー項目の一覧は変わらない） |
@@ -245,18 +253,23 @@ DockStudio のキー操作の撮影は保存していない。キー操作の結
 | 上のメニューの「Dock から取り外す」を押す | Safari が取り外された（ボタンは 12 個から 11 個になり、保存された `profiles.json` の項目名からも消えた）。管理画面に「Safari を Dock から取り外しました」と表示された |
 | 取り外し直後のフォーカス | アクセシビリティ API が返すフォーカス要素はグループだったが、画面上では、取り外した項目の次の項目（Mail）に枠が表示された |
 
-キーボードだけで項目メニューを開く手段は、今回試した 4 つの組合せでは見つからなかった。
+### マージ後の実装状況（2026-10-18、main `9c9f340`）
 
-### 不足と再現手順
+調査後、PR #99 で項目間の矢印移動、Home、End、名前による移動、上キーの項目メニュー、Escape によるフォーカス解除と前面アプリへの復帰を実装した。PR #112 は Dock に初めてキーボードフォーカスを移したときの先頭項目へのフォーカスを修正した。さらに PR #63 で Option+矢印によるピン留め項目の並べ替えと位置の読み上げを実装した。
 
-1. 矢印キーなどで項目を移動できない（下配置、左配置で確認）。再現手順は、メニューバーの「Dock をキーボードで操作」を実行して Tab を押し、右キーを押す。
-2. Tab が項目ごとに 2 回必要になる。再現手順は、同じ状態で Tab を続けて押す。
-3. Escape で元のアプリへ戻らない。再現手順は、別のアプリを前面にして「Dock をキーボードで操作」を実行し、Escape を押す。
-4. 項目メニューをキーボードだけで開けない（Control+Return、Control+Space、Shift+F10 で開かず、メニューキーはパネルのメニューを開く）。標準 Dock は上キーで開く。
+現在のコードでは、配置に応じて移動方向とメニュー方向を分け（`DockStudio/Models/DockKeyboardNavigation.swift:20-27`）、項目の矢印、Home、End、文字入力を処理する（`DockStudio/CustomDockPreview.swift:467-499`）。初回フォーカスはパネルがキーになった後に項目へ設定し（同 `:432-450`、`DockStudio/Services/CustomDockWindowController.swift:157-172`）、Option+矢印では項目を並べ替えて位置を通知する（`DockStudio/CustomDockPreview.swift:470-477`）。PR #99 と #112 の記録では矢印移動を下・左・右配置で確認しているが、今回この更新では画面を再観察していない。
 
-### 直す方針と工数
+残る確認は、項目追加時と非表示からの復帰時にフォーカスを失わないこと、Home・End・名前による移動と標準 Dock の比較を左右配置でも行うことになる。削除時の次項目へのフォーカスは既存調査とコード（`DockStudio/CustomDockPreview.swift:143-148`）に根拠がある。Tab の一回停止、メニュー、Escape の復帰は PR #99 の最終ビルド記録で確認されているが、PR #112 の記録では Tab の左右配置が未確認とされているため、配置別の確認は完了扱いにしない。
 
-`DockBar` に `onMoveCommand`（`CustomDockPreview.swift` の SwiftUI 側、macOS 向けに実在する。swiftinterface の `onMoveCommand(perform:)`）か、フォーカス用の状態を持つ `@FocusState` を足し、左右（縦配置では上下）、Home、End、文字入力で移動する。標準 Dock の観察どおり、端では折り返さずフォーカスを外す。2 回の Tab の原因は、`Button` の外側の `.focusable()` が別の停止位置を作っている可能性が高く、外すかボタン側へ寄せることで直る見込みになる。元のアプリへの復帰は、`focusDock` の前に `NSWorkspace.shared.frontmostApplication` を保存し、Escape で再度前面にする。工数は 1 日前後と見ている。
+キーボードだけで項目メニューを開く手段は、実装前の調査で試した 4 つの組合せでは見つからなかった。PR #99 で上キーからメニューを開く動作が実装された。
+
+### 当初調査で確認した不足
+
+上記は PR #99 より前の実装に対する不足になる。矢印移動、Tab の一回停止、項目メニュー、Escape による元のアプリへの復帰は PR #99 で実装され、初回フォーカスは PR #112 で修正された。現在残る確認は、項目追加時と非表示からの復帰時のフォーカス、標準 Dock との左右配置での照合になる。
+
+### 実装案の更新
+
+この節は PR #99 より前の実装案になる。矢印、Home、End、名前による移動、メニュー、Escape と Tab の停止回数は PR #99 で実装済みであり、初回フォーカスは #93 の PR #112 で修正された。追加時と非表示切替時のフォーカス維持は、必要性と挙動を改めて確認する。
 
 ## #49 VoiceOver の Dock 操作
 
@@ -272,7 +285,7 @@ VM で、アクセシビリティ API から DockStudio のパネルを読み取
 
 - 各項目は `AXButton` で、ラベルは項目名になる（Finder、Safari、Mail、Terminal、Calendar、Notes、Maps、Photos、Music、Messages、Preview、Downloads）。
 - 起動中の項目は「Finder、起動中」のように読まれる。
-- 各ボタンは `AXPress` と `AXShowMenu` を持つ。`AXShowMenu` は項目のコンテキストメニュー（開く、Finder で表示）に当たる。
+- 各ボタンは `AXPress` と `AXShowMenu` を持つ。コードでは、項目ラベルとアクセシビリティアクションを設定している（`DockStudio/CustomDockPreview.swift:267-284`）。過去の API 読み取りでは `AXShowMenu` が項目のコンテキストメニュー（開く、Finder で表示）に対応した。
 - Dock が隠れているときは、コードに「Custom Dock を表示」というボタン相当の要素と `accessibilityAction` がある（`CustomDockWindowController.swift`）。この状態の読み取りは、VM では行っていない。
 - 時計と集中タイマーは、コードでラベルと値を持つ（`accessibilityLabel`、`accessibilityValue`）。読み取りは行っていない。
 - VoiceOver が有効なときは、自動で隠す設定が無効になる（`autoHideEnabled` の `isVoiceOverEnabled` 判定）。
@@ -281,22 +294,33 @@ VM で、アクセシビリティ API から DockStudio のパネルを読み取
 
 | 条件 | 結果 |
 | --- | --- |
-| 起動中、利用不可、ウィジェット等を正しく読み上げる | 起動中のラベルは API 上で確認した。利用不可の項目とウィジェットは未確認。読み上げ自体は VoiceOver を起動しておらず未確認 |
-| 表示、項目選択、メニュー、起動、取り外しをキーボードだけで確認する | 表示（メニューバー経由）、項目選択（Tab）、起動（Return、Space）は確認した。メニューは `AXShowMenu` で開き、取り外しは項目メニューの「Dock から取り外す」で行えた（アクセシビリティ API 経由）。キーボードだけでメニューを開く手段は見つかっていない |
-| VO-D は OS の Dock を指すため、約束せず、利用可能な入口を案内する | 利用可能な入口として、メニューバーの「Dock をキーボードで操作」があり、アクセシビリティ API から実行できることを確認した。案内の文言は未作成 |
+| 起動中、利用不可、ウィジェット等を正しく読み上げる | 起動中のラベルは API 上で確認した。利用不可とウィジェットは未確認。実際の VoiceOver 読み上げは未実施で、後述の手順が残る |
+| 表示、項目選択、メニュー、起動、取り外しをキーボードだけで確認する | 表示（メニューバー経由）、項目選択（Tab）、起動（Return、Space）、メニュー（上キー）、Escape による復帰は、PR #99 と既存調査で確認されている。取り外しは過去にアクセシビリティ API で確認したが、VoiceOver のみでの一連の操作は未実施 |
+| VO-D は OS の Dock を指すため、約束せず、利用可能な入口を案内する | VO-D は OS の Dock を指すと明記し、DockStudio にはメニューバーの「Dock をキーボードで操作」または設定済みの Dock フォーカス用ショートカットを案内する。コードにはメニュー項目（`DockStudio/WorkspaceView.swift:81`）とアクセシビリティアクション付きの表示ボタン（`DockStudio/Services/CustomDockWindowController.swift:431-435`）がある |
 
-### VoiceOver の起動の試行（2026-10-18、VM）
+### VoiceOver の起動の試行（2026-10-18、VM の過去記録）
 
 Command-F5 で VoiceOver を起動した。Quickstart が起動した後、VoiceOver のプロセスが動いたが、初回の「Welcome to VoiceOver」画面（Learn More、Use VoiceOver、Turn Off VoiceOver）が前面に残り、操作を進められなかった（`voiceover-enabled-dockstudio.png`）。アクセシビリティ API でボタンを押す操作（Quickstart のプロセス向け）は効かなかった。VoiceOver の AppleScript 経由の読み上げ取得は、問い合わせが返らず中断した。読み上げ文は取得できていない。
 
+### 読み上げの確認状況と手順
+
+実際の VoiceOver による読み上げは未実施になる。この更新では VM を使わず、実機の VoiceOver による観察も行っていない。以前の VM では初回の「Welcome to VoiceOver」画面を越えられず、読み上げ文を取得できなかった。
+
+後日、専用の検証用 Mac または実機で次の手順を行う。
+
+1. DockStudio を起動し、Command-F5 で VoiceOver を有効にする。初回の「Welcome to VoiceOver」が出た場合は「Use VoiceOver」を選び、初回設定を完了する。
+2. VoiceOver のキャプションパネルを表示する。メニューバーから「Dock をキーボードで操作」を選ぶか、設定済みの Dock フォーカス用ショートカットで DockStudio に移る。
+3. VO+右矢印で項目を順に移動し、起動中の項目、利用不可の項目、ウィジェットについて、キャプションパネルに出る読み上げを記録する。
+4. 項目上で VO+Shift+M を押してメニューを開く。VO+右矢印で各メニュー項目へ移動し、VO+Space で「開く」または「Dock から取り外す」を選べるか記録する。VO-D は macOS 標準 Dock の操作なので、DockStudio への入口として扱わない。
+
 ### 残る未確認
 
-- VoiceOver を起動した状態での読み上げ、VO-Space、VO-Shift-M の動作（ウェルカム画面を閉じる手段がない。ゲスト内の `guest-ax` でボタンを名前で押す方法は試していない）。
+- VoiceOver による読み上げ、VO-Space、VO-Shift-M の動作（上記の実機または検証用 Mac の手順で確認する）。
 - 利用不可の項目（対象が存在しない項目）のラベル。
 
-### 実装する場合の方針と工数
+### 今後の確認と判断
 
-読み上げの確認は VM で VoiceOver を起動する必要があり、キャプション表示で読み上げ文を撮るのが現実的になる。利用不可の項目には、「利用できません」のようなラベルの補足を足す。メニューの入口は、#48 の矢印移動の補完と合わせて行う。工数は 0.5 日から 1 日と見ている。
+読み上げの確認は実際の VoiceOver を使い、キャプション表示で読み上げ文を記録する。利用不可の項目には、「利用できません」のようなラベルの補足が必要か、実際の読み上げを聞いて判断する。キーボードのメニュー入口は #48 の PR #99 で実装済みになる。
 
 ## 追加で必要な検証
 
@@ -305,8 +329,8 @@ Command-F5 で VoiceOver を起動した。Quickstart が起動した後、Voice
 | #32 | ボーダーレスの非アクティブ化パネルで activation が呼ばれない原因と回避策。キャンセルの挙動 |
 | #64 | Finder の Services メニューからの実行、サンドボックス下の権限拒否、未起動時の挙動 |
 | #69 | 画面サイズの変更、標準 Dock の拡大率の変更、ドラッグ |
-| #48 | 左右配置の標準 Dock、右配置の DockStudio、項目の追加時のフォーカス |
-| #49 | 実際の VoiceOver での読み上げ（ウェルカム画面を越える方法が必要）、利用不可とウィジェットの項目 |
+| #48 | 標準 Dock の左右配置で矢印、Home、End、名前移動を照合する。DockStudio の左右配置で Tab を確認し、項目追加と非表示からの復帰時のフォーカスを確認する |
+| #49 | 実際の VoiceOver で読み上げ、VO-Space と VO-Shift-M を確認する。利用不可とウィジェットの読み上げも記録する |
 
 ## 検証後の VM の設定
 
