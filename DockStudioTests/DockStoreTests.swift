@@ -54,6 +54,28 @@ final class DockStoreTests: XCTestCase {
         XCTAssertTrue(store.status.contains("3番目に移動しました"))
     }
 
+    func testFolderDisplayModePersistsPerFolder() throws {
+        let first = DockItem(name: "First", kind: .folder, target: "file:///tmp/first/")
+        let second = DockItem(name: "Second", kind: .folder, target: "file:///tmp/second/")
+        var document = DockStore.initialDocument()
+        document.profiles[0].items = [first, second]
+        let store = DockStore(persistence: persistence, initial: document)
+
+        XCTAssertTrue(store.setFolderDisplayMode(.grid, forItem: first.id))
+
+        let reloaded = DockStore(persistence: persistence)
+        XCTAssertEqual(reloaded.activeProfile.items.first(where: { $0.id == first.id })?.folderDisplayMode, .grid)
+        XCTAssertNil(reloaded.activeProfile.items.first(where: { $0.id == second.id })?.folderDisplayMode)
+    }
+
+    func testFolderDisplayModeCanBeReadFromOlderProfileData() throws {
+        let item = #"{"id":"00000000-0000-0000-0000-000000000001","name":"Folder","kind":"folder","target":"file:///tmp/"}"#
+
+        let decoded = try JSONDecoder().decode(DockItem.self, from: Data(item.utf8))
+
+        XCTAssertNil(decoded.folderDisplayMode)
+    }
+
     func testFolderDisplayStylePersistsOnOnlyTheSelectedFolder() throws {
         let store = DockStore(persistence: persistence)
         store.addItem(DockItem(name: "Second Folder", kind: .folder, target: "file:///tmp/Second%20Folder/"))
