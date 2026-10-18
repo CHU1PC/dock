@@ -91,6 +91,7 @@ struct FolderContentsPopover: View {
     let reduceMotion: Bool
     let openItem: (DockItem) -> Void
     let openInFinder: (DockItem) -> Void
+    let moveDroppedItemsIntoFolder: ([URL], URL?) -> Void
     let updateDisplayStyle: (DockItem, FolderContentsDisplayStyle) -> Bool
     let onSortOrderChange: (FolderSortOrder) -> Void
 
@@ -103,6 +104,7 @@ struct FolderContentsPopover: View {
          onDisplayModeChange: @escaping (FolderDisplayMode) -> Void,
          dockPosition: DockPosition, reduceMotion: Bool,
          openItem: @escaping (DockItem) -> Void, openInFinder: @escaping (DockItem) -> Void,
+         moveDroppedItemsIntoFolder: @escaping ([URL], URL?) -> Void,
          updateDisplayStyle: @escaping (DockItem, FolderContentsDisplayStyle) -> Bool,
          onSortOrderChange: @escaping (FolderSortOrder) -> Void) {
         self.folder = folder
@@ -112,6 +114,7 @@ struct FolderContentsPopover: View {
         self.reduceMotion = reduceMotion
         self.openItem = openItem
         self.openInFinder = openInFinder
+        self.moveDroppedItemsIntoFolder = moveDroppedItemsIntoFolder
         self.updateDisplayStyle = updateDisplayStyle
         self.onSortOrderChange = onSortOrderChange
         _sortOrder = State(initialValue: folder.folderSortOrder ?? .name)
@@ -197,6 +200,20 @@ struct FolderContentsPopover: View {
             return .handled
         }
         .transaction { if reduceMotion { $0.animation = nil } }
+        .onDrop(of: [.fileURL], isTargeted: nil, perform: { providers in
+            guard !providers.isEmpty else { return false }
+            Task { @MainActor in
+                var urls: [URL] = []
+                for provider in providers {
+                    let url: URL? = await withCheckedContinuation { continuation in
+                        _ = provider.loadObject(ofClass: URL.self) { url, _ in continuation.resume(returning: url) }
+                    }
+                    if let url, url.isFileURL { urls.append(url) }
+                }
+                moveDroppedItemsIntoFolder(urls, folder.targetURL)
+            }
+            return true
+        })
         .task(id: "\(folder.target ?? "")-\(sortOrder.rawValue)") {
             guard let url = folder.targetURL, url.isFileURL else {
                 result = .failure(FolderContentsError.invalidFolder)

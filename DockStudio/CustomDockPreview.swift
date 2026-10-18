@@ -361,6 +361,8 @@ struct DockBar: View {
                     }, openInFinder: { folder in
                         store.clickItem(folder, modifiers: .command)
                         folderContentsItem = nil
+                    }, moveDroppedItemsIntoFolder: { urls, folderURL in
+                        store.moveDroppedItemsIntoFolder(urls, at: folderURL)
                     }, updateDisplayStyle: { folder, style in
                         store.updateFolderContentsDisplayStyle(style, for: folder.id)
                     }, onSortOrderChange: { order in
@@ -538,7 +540,9 @@ extension DockBar {
                     if let url, url.isFileURL { urls.append(url) }
                 }
                 guard !urls.isEmpty else { return }
-                store.moveDroppedItemsToTrash(urls)
+                if DockDropRouting.decision(for: .trash) == .moveToTrash {
+                    store.moveDroppedItemsToTrash(urls)
+                }
             }
             return true
         }
@@ -816,14 +820,6 @@ enum DockDropInsertion {
     }
 }
 
-enum DockDropRouting {
-    static func applicationTarget(at point: CGPoint, items: [DockItem], frames: [UUID: CGRect]) -> DockItem? {
-        items.first { item in
-            item.kind == .application && frames[item.id]?.contains(point) == true
-        }
-    }
-}
-
 private struct DockDropDelegate: DropDelegate {
     let store: DockStore
     let items: [DockItem]
@@ -862,11 +858,12 @@ private struct DockDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         let position = insertionIndex(at: info.location)
         let applicationTarget = applicationTarget(at: info.location)
+        let folderTarget = folderTarget(at: info.location)
         let providers = info.itemProviders(for: [.fileURL])
         index = nil
         cancelSpringLoading()
         guard !providers.isEmpty else { return false }
-        guard applicationTarget != nil || !store.storageIsReadOnly else { return false }
+        guard applicationTarget != nil || folderTarget != nil || !store.storageIsReadOnly else { return false }
         Task { @MainActor in
             var urls: [URL] = []
             for provider in providers {
@@ -875,10 +872,29 @@ private struct DockDropDelegate: DropDelegate {
                 }
                 if let url { urls.append(url) }
             }
+            let target: DockDropTarget
             if let applicationTarget {
-                store.openDroppedFiles(urls, with: applicationTarget)
+                target = .application(applicationTarget)
+            } else if let folderTarget {
+                target = .folder(folderTarget.targetURL)
             } else {
-                store.addDroppedItems(urls, at: position)
+                target = .insertion(position)
+            }
+            let decision = DockDropRouting.decision(
+                for: target,
+                folderIsAvailable: folderTarget.map { Self.isAvailableFolder($0.targetURL) } ?? true
+            )
+            switch decision {
+            case .openWithApplication(let item):
+                store.openDroppedFiles(urls, with: item)
+            case .moveIntoFolder(let url):
+                store.moveDroppedItemsIntoFolder(urls, at: url)
+            case .insert(let index):
+                store.addDroppedItems(urls, at: index)
+            case .moveToTrash:
+                store.moveDroppedItemsToTrash(urls)
+            case .refuse(let reason):
+                store.errorMessage = reason
             }
             index = nil
         }
@@ -891,6 +907,12 @@ private struct DockDropDelegate: DropDelegate {
 
     private func folderTarget(at point: CGPoint) -> DockItem? {
         items.first { $0.kind == .folder && frames[$0.id]?.contains(point) == true }
+    }
+
+    private static func isAvailableFolder(_ url: URL?) -> Bool {
+        guard let url, url.isFileURL,
+              let values = try? url.resourceValues(forKeys: [.isDirectoryKey]) else { return false }
+        return values.isDirectory == true
     }
 
     private func insertionIndex(at point: CGPoint) -> Int {
