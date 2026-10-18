@@ -36,12 +36,33 @@ GitHub issue #17 の実装になる。
 - 要求が受理されなかった場合はエラーを返す。
 - ストアが、起動中でない項目には状態を返さず、ステータスを切り替えに合わせて更新する。
 
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `670252c` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `0b4a6288ebbf3273b96d86867f5077abbb74b633d06b3f65f678609768f4327b` と一致した。Finder と Safari（未起動）を持つプロファイルで、「実行中のアプリを表示」を有効にし、Calculator と TextEdit を起動して、デスクトップ用パネルで確認した。メニューは、`AXShowMenu` で開き、項目は AX の押下で選んだ（右クリックの合成は、この環境で不安定だったため）。
+
+確認できたこと:
+
+- 起動中のアプリのメニューに「開く」「Finder で表示」「隠す」「終了」「Dock に保持」が出た（[panel-menu-hide.jpg](media/hide-app-from-menu/panel-menu-hide.jpg)）。
+- 「隠す」を選ぶと、Calculator が隠れ（System Events の `visible` が false）、TextEdit は表示されたままだった（[visibility-log.txt](media/hide-app-from-menu/visibility-log.txt)）。対象以外のアプリが隠れないことは、1 つのアプリ（TextEdit）で確認した。
+- 未起動の Safari のメニューには、「隠す」が出なかった（「開く」「Finder で表示」「Dock から取り外す」のみ。[menu-items-safari-not-running.txt](media/hide-app-from-menu/menu-items-safari-not-running.txt)）。
+
+**見つかったこと（コードは直していない）**:
+
+- 「隠す」を選ぶと、アプリは隠れるが、「Calculator の表示を切り替えられませんでした。」の「操作を完了できませんでした」アラートが出た（[after-hide-error-alert.jpg](media/hide-app-from-menu/after-hide-error-alert.jpg)）。2 回の実行（Calculator が表示中の状態から）で、どちらも再現した。`hide()` の直後に `isHidden` を読んで判定している疑いがある（未確認）。再現手順は、`AXShowMenu` で Calculator のメニューを開き、「隠す」を押すことである。
+- Calculator が隠れた状態で、メニューを開き直しても、「表示」ではなく「隠す」が出た（[menu-items-while-hidden.txt](media/hide-app-from-menu/menu-items-while-hidden.txt)）。このため「表示」の実画面の確認ができていない。上のアラートとの関連は未確認である。
+
+確認できなかったこと:
+
+- 「表示」への切替と、再表示の動作（上の理由）。ステータス「○○ を隠しました」の画面（アラートが先に出た）。
+- 複数ウィンドウと別の Space を持つ TextEdit の「隠す」（TextEdit のメニューが開かず、撮れなかった）。Spaces は設定していない。
+- 動画。
+
 ## 未検証
 
-- 実際のアプリでの隠す・表示の動作。
+- 実際のアプリでの「表示」の動作（「隠す」は確認した）。
 - 複数ウィンドウと Spaces で、他のアプリが隠れないこと（受け入れ条件の2つ目）。単体テストでは、対象以外に呼ばれないことだけを確認した。
 - macOS 15 以降での差分。
-- 隠している間に、メニューの文言が「表示」に変わること。
+- 隠している間に、メニューの文言が「表示」に変わること（変わらなかった。上の「見つかったこと」を参照）。
 
 ## 撮影の手順
 
