@@ -62,6 +62,21 @@ final class DockStoreTests: XCTestCase {
         XCTAssertEqual(DockStore(persistence: persistence).document.settings, settings)
     }
 
+    func testManualDockVisibilityToggleIsIndependentOfAutoHide() {
+        let store = DockStore(persistence: persistence)
+        var settings = store.document.settings
+        settings.autoHide = true
+        store.updateSettings(settings)
+
+        store.toggleDockVisibility()
+        XCTAssertTrue(store.isDockVisible)
+        XCTAssertTrue(store.document.settings.autoHide)
+
+        store.toggleDockVisibility()
+        XCTAssertFalse(store.isDockVisible)
+        XCTAssertTrue(store.document.settings.autoHide)
+    }
+
     func testInvalidSettingsDoNotReplaceDocument() {
         let store = DockStore(persistence: persistence)
         let original = store.document
