@@ -640,7 +640,7 @@ struct ItemIcon: View {
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
             } else if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: symbol ?? item.kind.symbol)
