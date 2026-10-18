@@ -44,6 +44,7 @@
 		549D9BAD44EADF220B15CCFE /* RecentDocumentAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907CA81DE5A793991439D84 /* RecentDocumentAccessTests.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
 		57EB0F0D3796CAB88BBFA894 /* ApplicationListEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B318E3C7F956C10D873F691 /* ApplicationListEntryTests.swift */; };
+		57F85B2B8250248CDF244E44 /* MinimizeEffectSettingsGuideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C7639D8C05388BC9477A265 /* MinimizeEffectSettingsGuideTests.swift */; };
 		59CA44698B3B4A4D5BFD405E /* OptionClickHide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446BE9EC97BDC15CFC617184 /* OptionClickHide.swift */; };
 		5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3448B4FA395513EEC7C924 /* DockKeyboardNavigation.swift */; };
 		65CB028378595A6413439AF1 /* ItemClickAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE48D330924061B817672BC /* ItemClickAction.swift */; };
@@ -63,6 +64,7 @@
 		8C9DA63FF1601ABC24F66CC0 /* ProfilePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */; };
 		8D7E3F9645E7B031F50E3BB8 /* RecentAppHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F35B77560302C4F53AE5E5 /* RecentAppHistoryTests.swift */; };
 		8E5F8053DB25D0A42C5C63FF /* MinimizedWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1542575F3BF889CAEA9AF1E3 /* MinimizedWindowController.swift */; };
+		8EAF15183A0EAE09D5504CAC /* MinimizeEffectSettingsGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E12DA995C6ECA09224382D /* MinimizeEffectSettingsGuide.swift */; };
 		8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */; };
 		91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */; };
 		934A6544E0A40AEB15F2CF13 /* NotificationBadgeReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CDC42B8590C8C9CB8667A2C /* NotificationBadgeReader.swift */; };
@@ -142,6 +144,7 @@
 		2E12D341AFA8F5A63734EA69 /* FolderContents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderContents.swift; sourceTree = "<group>"; };
 		31A3901B9D1B4E33814B79B2 /* DockSectionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSectionLayoutTests.swift; sourceTree = "<group>"; };
 		34683B59256856BB755CBF65 /* DockAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearance.swift; sourceTree = "<group>"; };
+		35E12DA995C6ECA09224382D /* MinimizeEffectSettingsGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimizeEffectSettingsGuide.swift; sourceTree = "<group>"; };
 		37D9AF83EA901F0252C6A2A5 /* DockDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDocument.swift; sourceTree = "<group>"; };
 		3AB6B90C9DC1A18484C27B49 /* ApplicationDockMenuAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockMenuAccess.swift; sourceTree = "<group>"; };
 		3D05D419252EF0367C316635 /* TrashInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashInspector.swift; sourceTree = "<group>"; };
@@ -170,6 +173,7 @@
 		8A79CC1F521B1E37932202F2 /* ApplicationListEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationListEntry.swift; sourceTree = "<group>"; };
 		8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBadgeReaderTests.swift; sourceTree = "<group>"; };
 		8C5A3D597201827F7044AD33 /* OptionClickHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionClickHideTests.swift; sourceTree = "<group>"; };
+		8C7639D8C05388BC9477A265 /* MinimizeEffectSettingsGuideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimizeEffectSettingsGuideTests.swift; sourceTree = "<group>"; };
 		900EEEC2A6259B224B83CD3F /* DockDragOutRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemovalTests.swift; sourceTree = "<group>"; };
 		912971D9112E6027481785E5 /* FolderContentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderContentsTests.swift; sourceTree = "<group>"; };
 		91554E1AB52AFE75F21497E8 /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
@@ -322,6 +326,7 @@
 				D2AD7C916784EA80FA1397A7 /* LoginLaunchPolicyTests.swift */,
 				A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */,
 				75F6F6CE458C6066FE525585 /* MinimizedWindowControllerTests.swift */,
+				8C7639D8C05388BC9477A265 /* MinimizeEffectSettingsGuideTests.swift */,
 				238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */,
 				DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */,
 				8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */,
@@ -368,6 +373,7 @@
 				CE3448B4FA395513EEC7C924 /* DockKeyboardNavigation.swift */,
 				EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */,
 				60ADE6223768FD15BB95E9FA /* DockVisibilityState.swift */,
+				35E12DA995C6ECA09224382D /* MinimizeEffectSettingsGuide.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -484,6 +490,7 @@
 				C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */,
 				E1E45C0B055E752BCEB594CB /* LoginLaunchPolicyTests.swift in Sources */,
 				72424A2AD63E9103A58BAEED /* LoginRestoreTests.swift in Sources */,
+				57F85B2B8250248CDF244E44 /* MinimizeEffectSettingsGuideTests.swift in Sources */,
 				4AE1143FDE958ACA8791FB51 /* MinimizedWindowControllerTests.swift in Sources */,
 				BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */,
 				345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */,
@@ -544,6 +551,7 @@
 				5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */,
 				34221F28FDB55CEE67C23859 /* LoginItemController.swift in Sources */,
 				D2D71D4CF2AFAF0FAC1F085B /* LoginLaunchPolicy.swift in Sources */,
+				8EAF15183A0EAE09D5504CAC /* MinimizeEffectSettingsGuide.swift in Sources */,
 				8E5F8053DB25D0A42C5C63FF /* MinimizedWindowController.swift in Sources */,
 				243B18C447B03FFBB600534D /* NativeDockReader.swift in Sources */,
 				FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */,
