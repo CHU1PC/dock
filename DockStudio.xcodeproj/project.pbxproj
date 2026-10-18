@@ -31,6 +31,7 @@
 		97000A48705869EBF0685E73 /* ProfileEditorPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */; };
 		9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60EB0DB463C5447E89F603D /* SettingsPreview.swift */; };
 		9FAB0492CF4B4CD9A8144FA8 /* AsyncProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */; };
+		A72E585B7A9AF1351C676295 /* ApplicationHideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */; };
 		A90482099F2E73ED122C2AA9 /* RemoveDockItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */; };
 		B72FA7DF2DD2955D1A30A443 /* DockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF08A2FAB56E7BFFE8EE703 /* DockStore.swift */; };
 		B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */; };
@@ -41,6 +42,7 @@
 		E2E1B7F75933FAFCC70FBCE4 /* NativeDockTilePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */; };
 		E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D821980A359C628760823676 /* DockIconSizeRangeTests.swift */; };
 		EE2156FBCBA4A552256196BF /* ApplicationQuitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */; };
+		F459FC0A0B61FD5EC180F56A /* ApplicationHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */; };
 		F45A353F73F29ABB3A148CFB /* DockStudioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */; };
 		F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */; };
 		FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */; };
@@ -73,6 +75,7 @@
 		60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTilePreview.swift; sourceTree = "<group>"; };
 		68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearanceRendering.swift; sourceTree = "<group>"; };
 		763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearanceTests.swift; sourceTree = "<group>"; };
+		8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHideTests.swift; sourceTree = "<group>"; };
 		91554E1AB52AFE75F21497E8 /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
 		950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppDelegate.swift; sourceTree = "<group>"; };
 		99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockLabelPlacementTests.swift; sourceTree = "<group>"; };
@@ -93,6 +96,7 @@
 		DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationQuitTests.swift; sourceTree = "<group>"; };
 		DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileTests.swift; sourceTree = "<group>"; };
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHider.swift; sourceTree = "<group>"; };
 		E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropDockItemsTests.swift; sourceTree = "<group>"; };
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
 		F60EB0DB463C5447E89F603D /* SettingsPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreview.swift; sourceTree = "<group>"; };
@@ -118,6 +122,7 @@
 		4922A2FF99AD437958378418 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */,
 				DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */,
 				19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */,
 				19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */,
@@ -138,6 +143,7 @@
 		5EBA866E2ADD6ACF031B7B22 /* DockStudioTests */ = {
 			isa = PBXGroup;
 			children = (
+				8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */,
 				DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */,
 				763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */,
 				D821980A359C628760823676 /* DockIconSizeRangeTests.swift */,
@@ -266,6 +272,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A72E585B7A9AF1351C676295 /* ApplicationHideTests.swift in Sources */,
 				EE2156FBCBA4A552256196BF /* ApplicationQuitTests.swift in Sources */,
 				D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */,
 				E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */,
@@ -287,6 +294,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F459FC0A0B61FD5EC180F56A /* ApplicationHider.swift in Sources */,
 				948F7CBA787B4B0D01DEBEE4 /* ApplicationQuitter.swift in Sources */,
 				9FAB0492CF4B4CD9A8144FA8 /* AsyncProcessRunner.swift in Sources */,
 				2621849FEBDE349A03BDC598 /* CustomDockPreview.swift in Sources */,
