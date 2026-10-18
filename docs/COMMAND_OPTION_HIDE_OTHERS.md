@@ -52,6 +52,27 @@
 - **Finder が隠れた。** 仕様の撮影手順は「Dock Studio 自身と Finder は隠れない」を期待しているが、Finder が隠れた。docs の仕様は、隠す対象を「起動中の通常アプリ（`.regular`）で、対象と Dock Studio 自身を除く」としており、Finder は除外されていない。標準 Dock の Command+Option クリックは Finder を隠すかどうかは、この撮影では確認していない。
 - 動画は[panel-cmd-opt-click.mp4](media/command-option-hide-others/panel-cmd-opt-click.mp4)（8fps、第 1 回の操作のみ。アラートが出る場面を含む）。第 2 回（Dock Studio が前面のとき）は動画なし。
 
+### 再撮影: LaunchServices 経由の前面化の修正後（コミット `bee28f1`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `f59e5b8b12a98364b96864d89a2144249be9cf12b6c3e065023d98b710d307dd` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした。Terminal、Calculator、TextEdit を起動し、Command+Option は本物のキー押下で、アイコンの座標は AX で測って送った。ログは[fixed-panel-log.txt](media/command-option-hide-others/fixed-panel-log.txt)と[standard-dock-cmd-opt-log.txt](media/command-option-hide-others/standard-dock-cmd-opt-log.txt)にある。
+
+| 操作（前面は Terminal） | 結果 |
+| --- | --- |
+| パネルで TextEdit を Command+Option クリック | TextEdit が前面になり、Terminal、Calculator、Finder が隠れた。Dock Studio は隠れなかった。アラートなし。前回の「前面にできません」は出なかった（[動画](media/command-option-hide-others/panel-cmd-opt-click-fixed.mp4)） |
+| 右クリックのメニューの「ほかを隠す」（TextEdit） | 同じ結果（front=TextEdit、Terminal、Calculator、Finder が隠れ、Dock Studio は残った。アラートなし。[動画](media/command-option-hide-others/panel-menu-hide-others-fixed.mp4)）。最初の試行は、メニューが開く前に項目を押して何も起きなかったため、やり直した |
+| プロセス | TextEdit、Terminal、Calculator、Dock Studio、Finder のどの pid も変わらず、終了していない |
+
+### 標準 Dock の実測（Finder を除外するかの根拠）
+
+標準 Dock（自動非表示を無効にし、撮影後に戻した。Dock Studio は起動したまま、パネルは隠した）で、前面が Terminal のとき、TextEdit を Command+Option クリックした。
+
+```
+S1 STANDARD Dock: Command+Option click on TextEdit (front=Terminal)
+  -> front=TextEdit | TextEdit=true Terminal=false Calculator=false DockStudio=false Finder=false
+```
+
+- **標準 Dock は、Finder と Dock Studio も隠した。** Dock Studio のパネルは、アプリが隠れるため、標準 Dock では同時に消える。したがって、Finder を除外する根拠は、標準 Dock にはない（仕様は、Finder を除外していない現状のままでよい）。Dock Studio 自身を隠さないのは、アプリ側の仕様で、標準 Dock と異なる。画像は[standard-dock-after-cmd-opt-click-full.jpg](media/command-option-hide-others/standard-dock-after-cmd-opt-click-full.jpg)（TextEdit だけが前面に見える）、動画は[standard-dock-cmd-opt-click.mp4](media/command-option-hide-others/standard-dock-cmd-opt-click.mp4)。
+
 ## 撮影の手順
 
 確認する OS は、macOS 26.6.2 の専用ヘッドレス VM だけになる。ホストの画面には何も表示しない。
