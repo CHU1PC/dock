@@ -452,12 +452,14 @@ extension DockBar {
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
                                        isFinder: FinderDockEntry.isFinder(item),
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
-                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
+                                       isApplication: item.kind == .application)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .openLoginItemsSettings: store.loginItem.openSystemSettings()
                 case .hide, .show: store.toggleApplicationVisibility(item)
                 case .hideOthers: store.hideOthers(of: item)
                 case .quit: store.quitApplication(item)
@@ -552,6 +554,19 @@ extension DockBar {
             entry.target = DockMenuHandler.shared
             entry.representedObject = action.perform
             menu.addItem(entry)
+        }
+        let recentDocuments = store.recentDocuments(for: item)
+        if !recentDocuments.isEmpty {
+            let recentItem = NSMenuItem(title: "最近使った書類", action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+            for document in recentDocuments {
+                let entry = NSMenuItem(title: document.title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { store.openRecentDocument(document.id, for: item) }
+                submenu.addItem(entry)
+            }
+            recentItem.submenu = submenu
+            menu.addItem(recentItem)
         }
         if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
             let windowMenu = NSMenuItem(title: "ウィンドウを前面に表示", action: nil, keyEquivalent: "")
