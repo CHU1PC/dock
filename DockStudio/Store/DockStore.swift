@@ -852,7 +852,7 @@ final class DockStore {
         return "\(base) \(suffix)"
     }
 
-    private static func initialDocument() -> DockDocument {
+    static func initialDocument() -> DockDocument {
         func app(_ id: String, _ name: String) -> DockItem? {
             guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return nil }
             return DockItem(name: name, kind: .application, target: url.absoluteString)
@@ -860,6 +860,7 @@ final class DockStore {
         let work = DockProfile(name: "仕事", items: [
             app("com.apple.finder", "Finder"), app("com.apple.Safari", "Safari"),
             app("com.apple.mail", "メール"), app("com.apple.Terminal", "ターミナル"),
+            DockItem(name: "Downloads", kind: .folder, target: DockItem.downloadsLocationTarget),
             DockItem(name: "スペーサー", kind: .spacer)
         ].compactMap { $0 })
         let personal = DockProfile(name: "プライベート", items: [
