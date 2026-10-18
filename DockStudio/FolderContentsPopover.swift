@@ -4,14 +4,27 @@ struct FolderContentsPopover: View {
     let folder: DockItem
     let openItem: (DockItem) -> Void
     let openInFinder: (DockItem) -> Void
+    let onSortOrderChange: (FolderSortOrder) -> Void
 
     @State private var result: Result<[DockItem], Error>?
+    @State private var sortOrder: FolderSortOrder = .name
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(folder.name)
-                .font(.headline)
-                .lineLimit(1)
+            HStack {
+                Text(folder.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Picker("並べ替え", selection: $sortOrder) {
+                    ForEach(FolderSortOrder.allCases) { order in
+                        Text(order.title).tag(order)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                .onChange(of: sortOrder) { _, order in onSortOrderChange(order) }
+            }
 
             Group {
                 if let result {
@@ -64,15 +77,17 @@ struct FolderContentsPopover: View {
         }
         .padding(12)
         .frame(width: 280)
-        .task(id: folder.target) {
+        .task(id: "\(folder.target ?? "")-\(sortOrder.rawValue)") {
             guard let url = folder.targetURL, url.isFileURL else {
                 result = .failure(FolderContentsError.invalidFolder)
                 return
             }
+            let currentSortOrder = sortOrder
             result = await Task.detached(priority: .userInitiated) {
-                Result { try FolderContentsReader.read(at: url) }
+                Result { try FolderContentsReader.read(at: url, sortOrder: currentSortOrder) }
             }.value
         }
+        .onAppear { sortOrder = folder.folderSortOrder ?? .name }
     }
 }
 

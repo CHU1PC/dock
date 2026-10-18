@@ -487,6 +487,15 @@ final class DockStore {
         editorProfile = profile
     }
 
+    func setFolderSortOrder(_ order: FolderSortOrder, for folderID: UUID) {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == folderID }) else { return }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderSortOrder = order
+        _ = commit(candidate)
+    }
+
     func moveItem(_ id: UUID, by offset: Int) {
         var profile = editorProfile
         guard let index = profile.items.firstIndex(where: { $0.id == id }),

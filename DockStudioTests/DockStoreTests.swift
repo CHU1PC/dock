@@ -54,6 +54,18 @@ final class DockStoreTests: XCTestCase {
         XCTAssertTrue(store.status.contains("3番目に移動しました"))
     }
 
+    func testFolderSortOrderPersistsOnItsDockItem() {
+        let folder = DockItem(name: "Downloads", kind: .folder, target: "file:///tmp/Downloads/")
+        var document = DockStore.initialDocument()
+        document.profiles[0].items = [folder]
+        let store = DockStore(persistence: persistence, initial: document)
+
+        store.setFolderSortOrder(.dateModified, for: folder.id)
+
+        let reloaded = DockStore(persistence: persistence)
+        XCTAssertEqual(reloaded.activeProfile.items.first?.folderSortOrder, .dateModified)
+    }
+
     func testSavingInactiveProfileDoesNotActivateIt() {
         let store = DockStore(persistence: persistence)
         let activeID = store.document.activeProfileID

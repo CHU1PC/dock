@@ -37,6 +37,7 @@ struct DockItem: Codable, Equatable, Identifiable {
     var target: String?
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
+    var folderSortOrder: FolderSortOrder?
 
     var targetURL: URL? { resolvedTargetURL() }
 

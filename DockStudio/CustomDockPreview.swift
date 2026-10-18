@@ -246,6 +246,8 @@ struct DockBar: View {
                     } openInFinder: { folder in
                         store.clickItem(folder, modifiers: .command)
                         folderContentsItem = nil
+                    } onSortOrderChange: { order in
+                        store.setFolderSortOrder(order, for: folder.id)
                     }
                 }
             }
