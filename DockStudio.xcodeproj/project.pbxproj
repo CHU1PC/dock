@@ -13,6 +13,7 @@
 		0E7E417876D39D31A369A3CD /* DockTemporaryMagnification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */; };
 		0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */; };
 		0FA34350AC00DF2F19A2B5A1 /* GlobalDockFocusShortcutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB3469962E3021CC865A627 /* GlobalDockFocusShortcutController.swift */; };
+		128C0005EB44569428CF7DDA /* NotificationBadgeReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */; };
 		156F522A6DDFC46E4A8AD7C6 /* ItemAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */; };
 		162467E14E9509C458CF1106 /* DockFocusShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAC827BCD22081B23C609FC /* DockFocusShortcutTests.swift */; };
 		17756CC9580CF9721B3E26CC /* DockIconSizeResizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FA201CC570AF21E46FC468 /* DockIconSizeResizeTests.swift */; };
@@ -57,6 +58,7 @@
 		8E5F8053DB25D0A42C5C63FF /* MinimizedWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1542575F3BF889CAEA9AF1E3 /* MinimizedWindowController.swift */; };
 		8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */; };
 		91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */; };
+		934A6544E0A40AEB15F2CF13 /* NotificationBadgeReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CDC42B8590C8C9CB8667A2C /* NotificationBadgeReader.swift */; };
 		948F7CBA787B4B0D01DEBEE4 /* ApplicationQuitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */; };
 		96F78F3A01BFD0967D36EFF3 /* DockSectionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A3901B9D1B4E33814B79B2 /* DockSectionLayoutTests.swift */; };
 		97000A48705869EBF0685E73 /* ProfileEditorPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */; };
@@ -125,6 +127,7 @@
 		2AB86C3AB95EF20C137DE78A /* KeepRunningAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepRunningAppTests.swift; sourceTree = "<group>"; };
 		2B49140B4FD109A655440582 /* DockPreviewLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockPreviewLayoutTests.swift; sourceTree = "<group>"; };
 		2BF9C0D6213AF118595D5880 /* VolumeEjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeEjector.swift; sourceTree = "<group>"; };
+		2CDC42B8590C8C9CB8667A2C /* NotificationBadgeReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBadgeReader.swift; sourceTree = "<group>"; };
 		2E12D341AFA8F5A63734EA69 /* FolderContents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderContents.swift; sourceTree = "<group>"; };
 		31A3901B9D1B4E33814B79B2 /* DockSectionLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSectionLayoutTests.swift; sourceTree = "<group>"; };
 		34683B59256856BB755CBF65 /* DockAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearance.swift; sourceTree = "<group>"; };
@@ -149,6 +152,7 @@
 		763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearanceTests.swift; sourceTree = "<group>"; };
 		873F2DB6F8BB95032D1A31C8 /* ApplicationWindowAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationWindowAccessTests.swift; sourceTree = "<group>"; };
 		8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHideTests.swift; sourceTree = "<group>"; };
+		8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBadgeReaderTests.swift; sourceTree = "<group>"; };
 		8C5A3D597201827F7044AD33 /* OptionClickHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionClickHideTests.swift; sourceTree = "<group>"; };
 		900EEEC2A6259B224B83CD3F /* DockDragOutRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemovalTests.swift; sourceTree = "<group>"; };
 		912971D9112E6027481785E5 /* FolderContentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderContentsTests.swift; sourceTree = "<group>"; };
@@ -246,6 +250,7 @@
 				A3243251C3D1D413F413377E /* NativeDockReader.swift */,
 				43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */,
 				60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */,
+				2CDC42B8590C8C9CB8667A2C /* NotificationBadgeReader.swift */,
 				446BE9EC97BDC15CFC617184 /* OptionClickHide.swift */,
 				3F6A348182CCD7146AAB5546 /* OtherApplicationsHider.swift */,
 				B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */,
@@ -290,6 +295,7 @@
 				75F6F6CE458C6066FE525585 /* MinimizedWindowControllerTests.swift */,
 				238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */,
 				DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */,
+				8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */,
 				8C5A3D597201827F7044AD33 /* OptionClickHideTests.swift */,
 				CAF2512B6A17862EFF5276F1 /* PanelFrameGeometryTests.swift */,
 				93F35B77560302C4F53AE5E5 /* RecentAppHistoryTests.swift */,
@@ -447,6 +453,7 @@
 				4AE1143FDE958ACA8791FB51 /* MinimizedWindowControllerTests.swift in Sources */,
 				BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */,
 				345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */,
+				128C0005EB44569428CF7DDA /* NotificationBadgeReaderTests.swift in Sources */,
 				4C2E0DD9FBD8CDA0F870E95D /* OptionClickHideTests.swift in Sources */,
 				BE72FBCF43DE6685CC2FD0FB /* PanelFrameGeometryTests.swift in Sources */,
 				8D7E3F9645E7B031F50E3BB8 /* RecentAppHistoryTests.swift in Sources */,
@@ -502,6 +509,7 @@
 				243B18C447B03FFBB600534D /* NativeDockReader.swift in Sources */,
 				FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */,
 				E2E1B7F75933FAFCC70FBCE4 /* NativeDockTilePreview.swift in Sources */,
+				934A6544E0A40AEB15F2CF13 /* NotificationBadgeReader.swift in Sources */,
 				59CA44698B3B4A4D5BFD405E /* OptionClickHide.swift in Sources */,
 				E351773BC552D65929063461 /* OtherApplicationsHider.swift in Sources */,
 				579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */,

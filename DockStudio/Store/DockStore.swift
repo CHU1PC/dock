@@ -21,6 +21,8 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    var notificationBadges: [String: String] = [:]
+    var notificationBadgeAccessibilityGranted = true
     @ObservationIgnored let minimizedWindowController: MinimizedWindowController
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
@@ -111,6 +113,12 @@ final class DockStore {
     }
 
     static func preview() -> DockStore { DockStore(persistence: nil) }
+
+    func refreshNotificationBadges() async {
+        let snapshot = await Task.detached(priority: .utility) { NotificationBadgeReader().read() }.value
+        notificationBadges = snapshot.badgesByPath
+        notificationBadgeAccessibilityGranted = snapshot.hasAccessibilityPermission
+    }
 
     private var appearanceURL: URL? {
         persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("appearance.json")

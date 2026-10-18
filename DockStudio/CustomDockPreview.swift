@@ -124,6 +124,20 @@ struct DockBar: View {
                             }
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        if !store.notificationBadgeAccessibilityGranted,
+                           items.contains(where: { $0.kind == .application }) {
+                            Button {
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            } label: {
+                                Label("通知バッジにはアクセシビリティの許可が必要です", systemImage: "lock.fill")
+                                    .font(.caption).padding(8)
+                                    .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
+                            .help("システム設定の「プライバシーとセキュリティ」で Dock Studio を許可してください")
+                        }
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
                                                     iconStyle: store.appearance.iconStyle,
                                                     controller: store.minimizedWindowController,
@@ -168,6 +182,12 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) {
             if store.isDockPointerInside { refreshAvailability() }
             if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
+        .task {
+            while !Task.isCancelled {
+                await store.refreshNotificationBadges()
+                try? await Task.sleep(for: .seconds(2))
+            }
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
@@ -252,6 +272,18 @@ struct DockBar: View {
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+                    .overlay(alignment: .topTrailing) {
+                        if let badge = NotificationBadgeSnapshot.badge(for: item, in: store.notificationBadges) {
+                            Text(badge)
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 5)
+                                .frame(minWidth: 18, minHeight: 18)
+                                .background(.red, in: Capsule())
+                                .offset(x: 5, y: -4)
+                                .accessibilityHidden(true)
+                        }
+                    }
                 if bouncing {
                     icon.modifier(LaunchBounce(position: store.document.settings.position,
                                                height: min(store.effectiveIconSize * 0.5, 28)))
