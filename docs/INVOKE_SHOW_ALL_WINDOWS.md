@@ -25,7 +25,7 @@
 
 | 項目 | 結果 |
 |---|---|
-| `swift test` | 336件成功、失敗0 |
+| `swift test` | 339件成功、失敗0 |
 | Release ビルド | 成功 |
 | `build-for-testing` | 成功 |
 
