@@ -2,13 +2,15 @@ import XCTest
 @testable import DockStudio
 
 final class OptionClickHideTests: XCTestCase {
-    private func action(_ flags: NSEvent.ModifierFlags, target: String? = "a", front: String? = "a", running: Bool = true) -> OptionClickAction {
-        OptionClickPolicy.action(flags: flags, targetBundleIdentifier: target, frontmostBundleIdentifier: front, targetIsRunning: running)
+    private func action(_ flags: NSEvent.ModifierFlags, target: String? = "a", front: String? = "a",
+                        own: String? = "own", running: Bool = true) -> OptionClickAction {
+        OptionClickPolicy.action(flags: flags, targetBundleIdentifier: target, frontmostBundleIdentifier: front,
+                                 ownBundleIdentifier: own, targetIsRunning: running)
     }
 
-    func testOptionClickOnFrontmostRunningAppHides() {
-        XCTAssertEqual(action(.option), .hideFrontmost)
-        XCTAssertEqual(action([.option, .capsLock]), .hideFrontmost)
+    func testOptionClickOnFrontmostRunningAppHidesIt() {
+        XCTAssertEqual(action(.option), .hideTarget)
+        XCTAssertEqual(action([.option, .capsLock]), .hideTarget)
     }
 
     func testPlainClickLaunches() {
@@ -16,8 +18,16 @@ final class OptionClickHideTests: XCTestCase {
         XCTAssertEqual(action(.capsLock), .launch)
     }
 
-    func testOptionClickOnNonFrontmostAppLaunches() {
-        XCTAssertEqual(action(.option, front: "b"), .launch)
+    func testOptionClickOnBackgroundAppActivatesItAndHidesPrevious() {
+        XCTAssertEqual(action(.option, front: "b"), .activateAndHide(previous: "b"))
+        XCTAssertEqual(action(.option, front: "com.apple.finder"), .activateAndHide(previous: "com.apple.finder"))
+    }
+
+    func testOwnAppIsNeverHidden() {
+        XCTAssertEqual(action(.option, front: "own"), .launch)
+    }
+
+    func testUnknownFrontmostLaunches() {
         XCTAssertEqual(action(.option, front: nil), .launch)
     }
 
@@ -29,6 +39,7 @@ final class OptionClickHideTests: XCTestCase {
     func testOtherModifierCombinationsLaunch() {
         for flags: NSEvent.ModifierFlags in [[.option, .command], [.option, .shift], [.option, .control]] {
             XCTAssertEqual(action(flags), .launch)
+            XCTAssertEqual(action(flags, front: "b"), .launch)
         }
     }
 }
