@@ -191,7 +191,10 @@ struct DockBar: View {
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
             && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
-            Button { store.clickItem(item, modifiers: NSEvent.modifierFlags) } label: {
+            Button {
+                store.clickItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
+                                                                                 current: NSEvent.modifierFlags))
+            } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,

@@ -12,6 +12,10 @@ struct ItemClickPolicy {
         flags.intersection([.command, .option, .control, .shift]) == [.command]
     }
 
+    static func clickModifiers(event: NSEvent.ModifierFlags?, current: NSEvent.ModifierFlags) -> NSEvent.ModifierFlags {
+        event ?? current
+    }
+
     func action(for item: DockItem, revealRequested: Bool, availability: ItemAvailability) -> ItemClickAction {
         guard revealRequested else { return .open }
         switch item.kind {
@@ -39,7 +43,9 @@ extension DockStore {
         itemAvailability.record(item, current)
         switch ItemClickPolicy().action(for: item, revealRequested: true, availability: current) {
         case .open: openItem(item)
-        case .revealInFinder(let url): NSWorkspace.shared.activateFileViewerSelecting([url])
+        case .revealInFinder(let url):
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first?.activate()
         case .unavailable(let message): errorMessage = message
         case .ignore: break
         }

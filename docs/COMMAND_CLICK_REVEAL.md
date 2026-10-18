@@ -30,6 +30,7 @@ Dock の項目を Command だけを押しながらクリックすると、対象
 ### 未検証
 
 - 管理画面内の Dock で Command クリックが Finder に表示されることは、実画面で確認した。パネルでは確認できず、上の「所見」を参照
+- 修正後のパネルでの Command クリック。ボタンの action 内で `NSApp.currentEvent?.modifierFlags` を優先し、無ければ `NSEvent.modifierFlags` を使うようにした。さらに、`activateFileViewerSelecting` のあとに Finder の `NSRunningApplication.activate()` を加えた。どちらが原因だったか、効いたかは VM で未確認で、撮影担当は、パネルで Finder が前面に出て対象が選択されることを再確認する。
 - macOS 15 以降での差異（VM が 26.6.2 のみ）
 
 ## 実画面の確認（専用ヘッドレス VM）

@@ -21,6 +21,12 @@ final class ItemClickActionTests: XCTestCase {
         XCTAssertFalse(ItemClickPolicy.isRevealClick([.command, .control]))
     }
 
+    func testEventModifiersTakePrecedenceOverCurrentState() {
+        XCTAssertEqual(ItemClickPolicy.clickModifiers(event: [.command], current: []), [.command])
+        XCTAssertEqual(ItemClickPolicy.clickModifiers(event: [], current: [.command]), [])
+        XCTAssertEqual(ItemClickPolicy.clickModifiers(event: nil, current: [.command]), [.command])
+    }
+
     func testPlainClickOpens() {
         let app = item(.application, target: "file:///System/Applications/Calculator.app/")
         XCTAssertEqual(policy.action(for: app, revealRequested: false, availability: .available), .open)
