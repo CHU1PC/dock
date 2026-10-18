@@ -53,6 +53,17 @@ final class HideOthersTests: XCTestCase {
         XCTAssertEqual(DockItemMenu.Kind.hideOthers.title, "ほかを隠す")
     }
 
+    func testLoginItemsSettingsIsOnlyOfferedForApplicationItems() {
+        let applicationKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
+                                                  isApplication: true)
+        XCTAssertTrue(applicationKinds.contains(.openLoginItemsSettings))
+        XCTAssertEqual(DockItemMenu.Kind.openLoginItemsSettings.title, "システム設定のログイン項目を開く")
+        XCTAssertFalse(DockItemMenu.Kind.openLoginItemsSettings.isAccessibilityAction)
+
+        let fileKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false)
+        XCTAssertFalse(fileKinds.contains(.openLoginItemsSettings))
+    }
+
     func testFolderMenuOffersOnlyTheAlternateDisplayStyle() {
         XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
                                           folderDisplayStyle: .folder),
