@@ -26,6 +26,7 @@ final class DockStore {
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
+    @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live
     private(set) var hiddenApplicationIdentities: Set<String> = []
     @ObservationIgnored var confirmForceQuit: (DockItem) -> Bool = { item in
         let alert = NSAlert()
@@ -654,6 +655,21 @@ final class DockStore {
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
         }
+    }
+
+    func hideOthers(of item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        switch otherApplicationsHider.hideOthers(of: item) {
+        case .hidOthers: status = "\(item.name) 以外のアプリを隠しました"
+        case .notRunning, .notHideable: openItem(item)
+        case .rejected: errorMessage = "\(item.name) を前面にできませんでした。"
+        }
+        refreshHiddenApplications()
+    }
+
+    func canHideOthers(_ item: DockItem) -> Bool {
+        guard let identifier = otherApplicationsHider.targetBundleIdentifier(for: item) else { return false }
+        return runningItems.contains { $0.applicationIdentity == "bundle:\(identifier)" }
     }
 
     func applicationVisibility(_ item: DockItem) -> ApplicationVisibility? {

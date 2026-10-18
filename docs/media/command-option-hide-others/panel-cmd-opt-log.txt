@@ -1,0 +1,35 @@
+# 第1回の操作（Terminal が前面で開始）
+start: front=Terminal | TextEdit=true Terminal=true Calculator= DockStudio=true Finder=true 
+1 Command+Option click on TextEdit (running)
+  -> front=DockStudio | TextEdit=true Terminal=true Calculator= DockStudio=true Finder=true 
+2 Command+Option click on Calculator (not running)
+  -> front=Calculator | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true 
+3 Command+Option+Shift click on Terminal
+  -> front=Terminal | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true 
+4 plain click on TextEdit
+  -> front=TextEdit | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true 
+5 Command-only click on TextEdit (Finder reveal)
+  -> front=Finder | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true 
+6 right-click TextEdit menu
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem 隠す value nil pos Opt
+     AXMenuItem ほかを隠す value ni
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem 強制終了… value ni
+     AXMenuItem Dock から取り外す 
+     AXMenuItem 終了 value nil pos Opt
+
+# 第2回の操作
+7 menu 'ほかを隠す' on TextEdit (TextEdit not front)
+Press ほかを隠す result 0
+  -> front=Terminal | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true  | alerts=1
+8 Command+Option click on TextEdit with DockStudio front
+  before: front=DockStudio
+  -> front=TextEdit | TextEdit=true Terminal=false Calculator=false DockStudio=true Finder=false  | alerts=0
+9 processes:
+  TextEdit pid=31217
+  Terminal pid=31328
+  Calculator pid=31429
+  DockStudio pid=31341
+  Finder pid=30571

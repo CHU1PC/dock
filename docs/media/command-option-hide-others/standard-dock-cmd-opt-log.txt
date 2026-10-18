@@ -1,0 +1,4 @@
+pids-before: TextEdit=32208 Terminal=32204 Calculator=32206 DockStudio=32219 Finder=30571 
+S1 STANDARD Dock: Command+Option click on TextEdit (front=Terminal)
+  -> front=TextEdit | TextEdit=true Terminal=false Calculator=false DockStudio=false Finder=false 
+pids-after: TextEdit=32208 Terminal=32204 Calculator=32206 DockStudio=32219 Finder=30571 

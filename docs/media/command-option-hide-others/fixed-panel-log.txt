@@ -1,0 +1,20 @@
+pids-before: TextEdit=32208 Terminal=32204 Calculator=32206 DockStudio=32219 Finder=30571 
+1 Command+Option click on TextEdit (front=Terminal)
+  -> front=TextEdit | TextEdit=true Terminal=false Calculator=false DockStudio=true Finder=false  | alerts=0
+2 menu ほかを隠す on TextEdit (front=Terminal)
+  -> front=Terminal | TextEdit=true Terminal=true Calculator=true DockStudio=true Finder=true  | alerts=0
+pids-after: TextEdit=32208 Terminal=32204 Calculator=32206 DockStudio=32219 Finder=30571 
+
+# 2 のやり直し（1 回目は、メニューが開く前に押下して何も起きなかった。ログは上）
+2b menu ほかを隠す on TextEdit (front=Terminal), retry
+AXShowMenu on TextEdit、起動中 result -25204
+showmenu-done
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem 隠す value nil pos Opt
+     AXMenuItem ほかを隠す value ni
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem 強制終了… value ni
+     AXMenuItem 終了 value nil pos Opt
+Press ほかを隠す result 0
+press-rc=0
+  -> front=TextEdit | TextEdit=true Terminal=false Calculator=false DockStudio=true Finder=false  | alerts=0

@@ -325,7 +325,7 @@ extension DockBar {
 
     fileprivate func actions(for item: DockItem) -> [DockItemAction] {
         let kinds = DockItemMenu.kinds(hasFileURL: item.targetURL?.isFileURL == true,
-                                       visibility: store.applicationVisibility(item),
+                                       visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item))
         return kinds.map { kind in
             DockItemAction(kind: kind) {
@@ -333,6 +333,7 @@ extension DockBar {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
                 case .hide, .show: store.toggleApplicationVisibility(item)
+                case .hideOthers: store.hideOthers(of: item)
                 case .quit: store.quitApplication(item)
                 case .forceQuit: store.forceQuitApplication(item)
                 case .remove: store.removeFromActiveProfile(item)
