@@ -1,0 +1,13 @@
+# GUI の Terminal から probe.command を open -a Terminal で実行した結果（Full Disk Access なし、ゲストの admin ユーザー）
+# probe.command（2回目、$HOME に出力する版）:
+#   { echo "id=$(id -un)"; ls -la ~/.Trash; echo rc=$?; } > $HOME/trash-probe.out 2>&1
+id=admin
+ls: /Users/admin/.Trash: Operation not permitted
+total 0
+rc=1
+
+# 1回目の probe.command（ls -la ~/.Trash > /tmp/trash-probe.out）の出力
+ls: /Users/admin/.Trash: Operation not permitted
+total 0
+
+# 参考: SSH 経由のシェルでは、同じ ls が成功した（ゲストの ~/.Trash は空。total 0 の . と .. だけ）。

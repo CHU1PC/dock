@@ -15,6 +15,10 @@ final class DockStore {
     var status = ""
     var isDockVisible = false
     var runningItems: [DockItem] = []
+    var trashState = TrashState.unknown
+    @ObservationIgnored var trashInspector = TrashInspector()
+    @ObservationIgnored var trashMonitor: Task<Void, Never>?
+    @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
@@ -43,6 +47,10 @@ final class DockStore {
     @ObservationIgnored private var revealDurationSaveTask: Task<Void, Never>?
     private var hasPersistedDocument = false
     let isPreview: Bool
+    @ObservationIgnored private(set) lazy var itemAvailability = ItemAvailabilityMonitor { [weak self] in
+        guard let self else { return [] }
+        return self.document.profiles.flatMap(\.items) + self.drafts.values.flatMap(\.items)
+    }
     private let persistence: ProfilePersistence?
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil) {
@@ -66,6 +74,8 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        startTrashMonitoring()
+        if !isPreview { itemAvailability.startObserving() }
     }
 
     static func preview() -> DockStore { DockStore(persistence: nil) }
@@ -590,6 +600,17 @@ final class DockStore {
 
     func openItem(_ item: DockItem) {
         guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        let current = ItemAvailabilityChecker().check(item)
+        itemAvailability.record(item, current)
+        switch current {
+        case .missing:
+            errorMessage = "\(item.name) は見つかりません。参照先が移動または削除された可能性があります。"
+            return
+        case .volumeNotMounted:
+            errorMessage = "\(item.name) があるボリュームが接続されていません。接続してからもう一度開いてください。"
+            return
+        case .available, .inaccessible: break
+        }
         let url: URL
         do { url = try ItemLaunchPolicy().validate(item) }
         catch { errorMessage = "項目を開けませんでした。\n\(error.localizedDescription)"; return }

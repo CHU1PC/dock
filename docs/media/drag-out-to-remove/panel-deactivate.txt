@@ -1,0 +1,4 @@
+手順7（別のアプリをアクティブにしてから離す）の結果。左配置のパネル、macOS 26.6.2 の専用 VM。
+- Safari を外までドラッグし、7秒保持した。保持の途中（約5秒後）に、ssh で `open -a Calculator` を実行して Calculator をアクティブにした。
+- 離した後、保存ファイルから Safari が消えた（Finder、Terminal、Calendar、Downloads が残った）。取り外された。
+- 画像: panel-deactivate-left.jpg（Calculator の起動後。パネルに Safari はなく、状態に「Safari を Dock から取り外しました」が出ている）
