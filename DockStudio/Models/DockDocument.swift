@@ -101,6 +101,7 @@ enum DockPosition: String, Codable, CaseIterable, Identifiable {
 
 struct DockSettings: Codable, Equatable {
     var mode: DockMode = .both
+    var arrangement: DockArrangement = .free
     var position: DockPosition = .bottom
     var iconSize = 52.0
     var autoHide = false
@@ -115,12 +116,13 @@ extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID
+        case mode, arrangement, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         mode = try values.decode(DockMode.self, forKey: .mode)
+        arrangement = try values.decodeIfPresent(DockArrangement.self, forKey: .arrangement) ?? .free
         position = try values.decode(DockPosition.self, forKey: .position)
         iconSize = try values.decode(Double.self, forKey: .iconSize)
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
@@ -129,6 +131,18 @@ extension DockSettings {
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
         showRecentApps = try values.decodeIfPresent(Bool.self, forKey: .showRecentApps) ?? false
         displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
+    }
+}
+
+enum DockArrangement: String, Codable, CaseIterable, Identifiable {
+    case free, standardSections
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .free: "自由配置"
+        case .standardSections: "標準の区画"
+        }
     }
 }
 
