@@ -1,0 +1,62 @@
+# single-log
+## 1 drag single.txt to panel trash
+source dir:
+default.profraw
+locked.txt
+multi-a.txt
+multi-b.txt
+trash:
+.DS_Store
+single.txt
+trash AX value: 項目あり
+
+# multi-log
+(single.txt restored by mv; Finder Put Back not used)
+## 2 select all (4 files + default.profraw) and drag multi-a.txt onto panel trash
+source dir:
+total 24
+-rw-r--r--  1 admin  staff  -     0 Oct 18 06:56 default.profraw
+-rw-r--r--  1 admin  staff  uchg 18 Oct 18 06:56 locked.txt
+-rw-r--r--  1 admin  staff  -    19 Oct 18 06:56 multi-b.txt
+-rw-r--r--@ 1 admin  staff  -    18 Oct 18 06:56 single.txt
+trash:
+.DS_Store
+multi-a.txt
+owner=Dock Studio id=5823 layer=21 alpha=1 onscreen=1 name= bounds=x568 y846 w463 h157
+owner=Dock Studio id=5822 layer=0 alpha=1 onscreen=1 name= bounds=x260 y122 w1080 h850
+
+# multi-log2
+## 3 select locked.txt..single.txt (range) and drag multi-b.txt (selected, includes locked.txt) onto trash
+source dir:
+total 24
+-rw-r--r--  1 admin  staff  -     0 Oct 18 06:56 default.profraw
+-rw-r--r--  1 admin  staff  uchg 18 Oct 18 06:56 locked.txt
+-rw-r--r--  1 admin  staff  -    19 Oct 18 06:56 multi-a.txt
+-rw-r--r--@ 1 admin  staff  -    18 Oct 18 06:56 single.txt
+trash:
+.DS_Store
+multi-b.txt
+
+# multi-log3
+## 4 rubber-band select all 4 files then drag multi-a.txt (selected) onto trash
+source dir:
+total 8
+-rw-r--r--  1 admin  staff  -     0 Oct 18 06:56 default.profraw
+-rw-r--r--  1 admin  staff  uchg 18 Oct 18 06:56 locked.txt
+trash:
+.DS_Store
+multi-a.txt
+multi-b.txt
+single.txt
+
+# cleanup-log
+Press 閉じる result 0
+trash before cleanup:
+.DS_Store
+multi-a.txt
+multi-b.txt
+single.txt
+trash after cleanup:
+.DS_Store
+gone
+

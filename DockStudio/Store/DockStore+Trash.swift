@@ -35,4 +35,16 @@ extension DockStore {
         guard !isPreview else { status = "ゴミ箱を選択しました"; return }
         if !trashOpener(trashURL) { errorMessage = "ゴミ箱を開けませんでした。" }
     }
+
+    func moveDroppedItemsToTrash(_ urls: [URL]) {
+        guard !isPreview else { status = "ゴミ箱へ移動しました"; return }
+        let failures = TrashDropService.move(urls, using: trashItemMover)
+        if failures.isEmpty {
+            status = "項目をゴミ箱へ移動しました。"
+        } else {
+            let details = failures.map { "\($0.name): \($0.message)" }.joined(separator: "\n")
+            errorMessage = "次の項目をゴミ箱へ移動できませんでした。権限が不足している場合は、ファイルへのアクセスを許可してください。\n\(details)"
+        }
+        Task { await refreshTrash() }
+    }
 }
