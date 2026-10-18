@@ -35,13 +35,32 @@ Dock の末尾に、区切り線に続けて、常設のゴミ箱を表示する
 
 自動テストで確認した内容は、空、`.DS_Store` のみ、存在しない場所、複数の場所のどれかに項目がある場合、隠しファイル、読み取り権限がない場所（空にならず、他に項目があれば内容ありになる）、変更への追従、開く処理の呼び出しと失敗時のエラー、プロファイルの項目に含まれないことになる。
 
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `b64491c` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `87c6d34fff224e99a26ceeea27b5dcf770ddcdb3327f932a7eab7ae73e332387` と一致した。検証用データは、ゲストにあった `payload/data`（Glass 検証）を使った。ホストの画面には何も表示していない。
+
+TCC の確認（撮影手順 3）:
+
+- GUI の Terminal から `open -a Terminal` で `probe.command` を実行すると、`ls -la ~/.Trash` は `Operation not permitted` で失敗した（[tcc-probe.txt](media/dock-trash-item/tcc-probe.txt)）。SSH 経由のシェルでは、同じ `ls` が成功した。したがって、SSH の結果はアプリの状態の証拠にならない。懸念のとおり、Full Disk Access を持たない GUI のプロセスは `~/.Trash` を読めない。
+- Full Disk Access を付けない Dock Studio では、ゴミ箱は常に `trash.slash`（確認できない）で表示された。VoiceOver の値は「状態を確認できません」だった（[unknown-hover.jpg](media/dock-trash-item/unknown-hover.jpg)、[unknown-no-hover.jpg](media/dock-trash-item/unknown-no-hover.jpg)）。ゲストの `~/.Trash` は空だったが、空の表示にはならなかった。**現在の実装では、Full Disk Access を与えない通常の利用者に、ゴミ箱の状態が表示されない可能性が高い。** これは不具合の疑いとして報告する。
+
+確認できたこと:
+
+- Dock の末尾に、区切り線に続けてゴミ箱が出た。ホバーで名前「ゴミ箱」が出た（[unknown-hover.jpg](media/dock-trash-item/unknown-hover.jpg)）。
+- ゴミ箱を押す（AX の `AXPress`）と、Finder の「Trash」ウインドウが開いた。ゴミ箱は空だった（[finder-open.jpg](media/dock-trash-item/finder-open.jpg)、[動画](media/dock-trash-item/click-opens-finder-trash.mp4)）。動画は撮影時刻の間隔を維持して12fps に変換し、倍速にはしていない。VNC の取得に依存するため、描画性能の測定ではない。開く処理は、確認できないの状態でも動いた。
+
+確認できなかったこと:
+
+- 空の `trash` と内容ありの `trash.fill` の実表示。ゲストのシステム設定で Dock Studio に Full Disk Access を付ける操作は、行っていない（SIP が有効で、TCC のデータベースを直接変更できない。設定画面での操作は認証が要るため、共有 VM では試していない）。このため `empty.png`、`has-items.png`、`trash-demo.mp4` は撮れていない。`HOME` を差し替えたプロセスでも、`FileManager` のゴミ箱の場所は変わらず、確認できないのままだった。
+- 各配置（左右）、外観の違い、外部ボリュームの `.Trashes/<uid>`（ゲストには外部ボリュームがない）。
+
+ゲストの状態: `~/.Trash` は空のまま（変更していない）。`probe.command` と出力は削除した。撮影中に開いた Finder の「Trash」ウインドウは、AppleEvents の許可がなく閉じられなかったため、ゲストに開いたまま残っている。
+
 ## 未検証
 
-GUI は検証できていない。専用ヘッドレス VM のロックを45分待ったが、他の作業が保持し続けて取得できなかった。以下は未検証であり、画像と動画も保存していない。
+上の「実画面の確認」で確認できなかった項目は、次のとおり。
 
-- 空と内容ありの実表示、ホバー名、各配置（下・左右）、ガラス調などの外観
-- クリックで Finder のゴミ箱が開くこと
-- VM のゲストで、権限がない場合に「確認できない」の表示になること
+- 空と内容ありの実表示（Full Disk Access を付けた状態）、各配置（左右）、外観の違い
 - 実際の外部ボリュームの `.Trashes/<uid>` の確認
 - macOS 15〜25 での動作
 
