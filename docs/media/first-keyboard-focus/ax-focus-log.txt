@@ -1,0 +1,52 @@
+== bottom run 1
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== bottom run 2
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== bottom run 3
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== bottom run 4
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== bottom run 5
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== left run 1
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== left run 2
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== left run 3
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== left run 4
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== left run 5
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== right run 1
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== right run 2
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== right run 3
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== right run 4
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+== right run 5
+AXfocus-first=[focused: role=AXScrollArea title= desc=]
+AXfocus-after-arrow=[focused: role=AXScrollArea title= desc=]
+first entry done (Finder focused). Tab x4:
+tab1
+tab2
+tab3
+tab4
+escape
+zsh:1: unknown file attribute: 2
