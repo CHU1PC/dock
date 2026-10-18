@@ -80,7 +80,7 @@ struct DockBar: View {
 
     var body: some View {
         let items = store.displayedItems
-        let hoverIndex = items.firstIndex { $0.id == hovered }
+        let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
             DockBackdrop(appearance: store.appearance)
@@ -98,6 +98,7 @@ struct DockBar: View {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
                 }
                 .padding(.horizontal, 12).padding(.vertical, 10)
@@ -126,7 +127,7 @@ struct DockBar: View {
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let frame = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
+                if let labelID = hovered, let frame = frames[labelID], let item = DockStore.hoverableItems(items).first(where: { $0.id == labelID }) {
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
                     Text(item.name).font(.system(size: 12, weight: .medium))
@@ -245,6 +246,42 @@ struct DockBar: View {
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
                                                                            thickness: DockMetrics.barThickness(for: store))) {
             store.removeFromActiveProfile(item)
+        })
+        .onHover { if $0 { hovered = item.id } }
+    }
+}
+
+extension DockBar {
+    @ViewBuilder
+    fileprivate func trashSection(index: Int, hoveredIndex: Int?) -> some View {
+        let item = DockStore.trashItem
+        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+        let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
+        let state = store.trashState
+        let symbol = switch state {
+        case .empty: "trash"
+        case .hasItems: "trash.fill"
+        case .unknown: "trash.slash"
+        }
+        Rectangle().fill(.primary.opacity(0.45))
+            .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+        VStack(spacing: 5) {
+            Button { store.openTrash() } label: {
+                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                         glassNeedsContrast: store.appearance.background == .transparent,
+                         glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion, symbol: symbol)
+                    .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(item.name)
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
+            .contextMenu { Button("開く") { store.openTrash() } }
+            Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
+        }
+        .padding(vertical ? .vertical : .horizontal, 5)
+        .contentShape(Rectangle())
+        .background(GeometryReader { proxy in
+            Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
         })
         .onHover { if $0 { hovered = item.id } }
     }
@@ -370,6 +407,7 @@ struct ItemIcon: View {
     var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
+    var symbol: String?
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -385,7 +423,7 @@ struct ItemIcon: View {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
-                Image(systemName: item.kind.symbol)
+                Image(systemName: symbol ?? item.kind.symbol)
                     .font(.system(size: size * 0.5, weight: .medium))
                     .foregroundStyle(style == .original ? StudioColor.accent : .primary)
                     .opacity(style == .glass ? 0.72 : 1)
@@ -470,10 +508,11 @@ private struct FocusTimerTile: View {
 enum DockMetrics {
     static func length(for store: DockStore) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
-        let total = store.displayedItems.reduce(24.0) { sum, item in
+        let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
+        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
         let reserve = store.appearance.magnification ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
     }
