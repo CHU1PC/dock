@@ -69,6 +69,7 @@ struct DockBar: View {
     @FocusState private var focused: UUID?
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
+    @State private var folderContentsItem: DockItem?
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
@@ -221,8 +222,8 @@ struct DockBar: View {
             && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
             Button {
-                store.clickItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
-                                                                                 current: NSEvent.modifierFlags))
+                clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
+                                                                                current: NSEvent.modifierFlags))
             } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
@@ -237,6 +238,17 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
+                if let folder = folderContentsItem {
+                    FolderContentsPopover(folder: folder) { child in
+                        folderContentsItem = nil
+                        store.openItem(child)
+                    } openInFinder: { folder in
+                        store.clickItem(folder, modifiers: .command)
+                        folderContentsItem = nil
+                    }
+                }
+            }
             .focusable(false)
             .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
@@ -247,8 +259,8 @@ struct DockBar: View {
                 return handleKey(key, items: store.displayedItems) ? .handled : .ignored
             }
             .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
-            .onKeyPress(.return) { store.openItem(item); return .handled }
-            .onKeyPress(.space) { store.openItem(item); return .handled }
+            .onKeyPress(.return) { activateDockItem(item); return .handled }
+            .onKeyPress(.space) { activateDockItem(item); return .handled }
             .accessibilityActions {
                 ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
                     Button(action.title, action: action.perform)
@@ -276,6 +288,40 @@ struct DockBar: View {
             store.ejectVolume(item)
         }))
         .onHover { if $0 { hovered = item.id } }
+    }
+
+    private func folderPopoverBinding(for item: DockItem) -> Binding<Bool> {
+        Binding(
+            get: { folderContentsItem?.id == item.id },
+            set: { isPresented in
+                if !isPresented, folderContentsItem?.id == item.id { folderContentsItem = nil }
+            }
+        )
+    }
+
+    private var folderPopoverEdge: Edge {
+        if vertical {
+            return store.document.settings.position == .left ? .leading : .trailing
+        }
+        return .bottom
+    }
+
+    private func clickDockItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if item.kind == .folder,
+           !ItemClickPolicy.isRevealClick(modifiers),
+           !ItemClickPolicy.isHideOthersClick(modifiers) {
+            folderContentsItem = item
+        } else {
+            store.clickItem(item, modifiers: modifiers)
+        }
+    }
+
+    private func activateDockItem(_ item: DockItem) {
+        if item.kind == .folder {
+            folderContentsItem = item
+        } else {
+            store.openItem(item)
+        }
     }
 }
 

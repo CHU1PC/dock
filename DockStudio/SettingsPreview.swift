@@ -109,6 +109,26 @@ struct SettingsPreview: View {
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
+                Divider()
+                Toggle("最近使ったアプリを表示", isOn: setting(\.showRecentApps))
+                Text("固定済みと実行中のアプリを除き、最近使ったアプリを最大3件表示します。オフにすると履歴を消去します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+            }
+            settingsGroup("グローバルショートカット") {
+                Picker("Dock にフォーカス", selection: setting(\.dockFocusShortcut)) {
+                    ForEach(DockFocusShortcut.allCases) { shortcut in
+                        Text(shortcut.title).tag(shortcut)
+                    }
+                }
+                .frame(maxWidth: 260, alignment: .leading)
+                Text("どのアプリを使っていても Custom Dock にフォーカスします。Control+Option+Command を使うため、Control+F3 など macOS 標準の Dock 操作キーは変更しません。アクセシビリティの許可は不要です。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Text("別のアプリや macOS が選んだキーを使っている場合は登録できません。キーを選び直してください。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                if let message = store.dockFocusShortcutMessage {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout).foregroundStyle(.orange)
+                }
             }
         }
     }
