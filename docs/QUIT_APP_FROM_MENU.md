@@ -36,7 +36,7 @@ GitHub issue #15 の実装になる。
 - メニューの出し分けの判定（`canQuitApplication`）が、起動中でない項目と対象外の項目で false になる。
 - 同じ bundle identifier の複数インスタンスのすべてに要求が届き、1つでも受理されれば `.requested` になる。
 
-未検証: 実際のメニュー表示、VoiceOver での操作、未保存書類のある対象アプリでの確認とキャンセル、macOS 15〜25。
+実画面の確認は、次の「実画面の確認」に書く。
 
 ## 撮影の手順
 
@@ -55,3 +55,30 @@ GitHub issue #15 の実装になる。
 
 - 画像: 起動中の Calculator のメニュー（「終了」あり）、未起動のアプリのメニュー（「終了」なし）、Finder のメニュー（「終了」なし）、ステータス表示。
 - 動画: 手順5から6まで（右クリック、終了、Dock の表示が変わるまで）。可能なら手順8の保存確認とキャンセルも撮る。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `9e42bfe` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `0c9515167ccd6c72c6cd3e90164ac5b2f0b050dda24d359dc4b71cb4db67f048` と一致した。ホストの画面には何も表示していない。検証用データは、Finder、Safari、TextEdit（保持済みで未起動）を持つ新規プロファイルで、`showRunningApps` を有効にした `profiles.json` を使った。撮影手順の 2〜3 にある、設定画面で「実行中のアプリを表示」を有効にする操作は行っていない。
+
+確認できたこと:
+
+- 起動前の状態は[before.jpg](media/quit-app-from-menu/before.jpg)に保存した。保持済みの Finder、Safari、TextEdit（未起動）と、起動中の Calculator が並ぶ。
+- 起動中の Calculator を右クリックすると、「開く」「Finder で表示」「終了」が出た（[menu-running-calculator.jpg](media/quit-app-from-menu/menu-running-calculator.jpg)）。一時表示の項目なので「Dock から取り外す」は出なかった。
+- 「終了」を選ぶと、Calculator が終了して Dock から消えた。状態は、Custom Dock の画面のタイトル下に「Calculator に終了を要求しました」と出た（[after-quit-calculator.jpg](media/quit-app-from-menu/after-quit-calculator.jpg)）。操作の動画は[quit-running-app.mp4](media/quit-app-from-menu/quit-running-app.mp4)に保存した。メニューを出す、終了を選ぶ、Calculator が消える、TextEdit のメニュー、Finder のメニューまでを含む。撮影時刻の間隔を維持して15fps に変換し、倍速にはしていない。Dock と状態の表示を含む範囲に切り出している。
+- 未起動の対象のメニュー（保持済みの TextEdit）には「終了」が出なかった。「開く」「Finder で表示」「Dock から取り外す」だけだった（[menu-not-running-textedit.jpg](media/quit-app-from-menu/menu-not-running-textedit.jpg)）。
+- Finder のメニューにも「終了」は出なかった（[menu-finder.jpg](media/quit-app-from-menu/menu-finder.jpg)）。
+- 未保存の書類を持つ TextEdit では、「終了」を選ぶと状態に「TextEdit に終了を要求しました」が出て、TextEdit に保存確認（"Do you want to keep this new document \"Untitled\"?"、ゲストの表示言語は英語）が出た（[textedit-save-sheet.jpg](media/quit-app-from-menu/textedit-save-sheet.jpg)）。キャンセルを選ぶと、TextEdit は起動中のまま残り、Dock の点も残った（[after-cancel-still-running.jpg](media/quit-app-from-menu/after-cancel-still-running.jpg)）。
+- VoiceOver 用アクションは、AX API の確認用ツールで確かめた。起動中の Calculator と TextEdit のアクションに「終了」が含まれた。保持済みで未起動の TextEdit と Safari、Finder には含まれなかった（[ax-actions.txt](media/quit-app-from-menu/ax-actions.txt)）。VoiceOver は有効にしていない。
+
+確認できなかったこと:
+
+- `AXPerformAction` で「終了」を実行した結果は、試していない。
+- 未保存の書類の確認で「保存しない」を選んで終了する場合と、保存して終了する場合は、撮影していない。
+- TextEdit の保存確認のウインドウは、Dock Studio のウインドウの裏に隠れた。TextEdit を前面にするまで見えなかった。終了を要求したアプリを前面にする動作は、実装していない。
+
+撮影手順との違い（結果への影響は小さい）:
+
+- Dock Studio のウインドウの中の Dock で撮影した。デスクトップのパネルでは撮影していない。
+- メニュー項目は、ゲスト内の CGEvent のクリックで選んだ。
+- 保存確認を撮った TextEdit は、手順 7 で使った保持済みの項目を、右クリックの「Dock から取り外す」で外してから撮影した。取り外し後も起動中の一時表示として残った。
+- 動画は、保存確認の場面を含まない。保存確認は静止画で記録した。
