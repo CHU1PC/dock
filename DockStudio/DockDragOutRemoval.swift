@@ -48,6 +48,11 @@ enum DockDragOutRemoval {
         guard !bounds.isEmpty else { return false }
         return !bounds.insetBy(dx: -margin, dy: -margin).contains(location)
     }
+
+    static func shouldIgnoreMouseEvents(pointerIsInteractive: Bool, trackingMenus: Bool,
+                                        hasActivePopover: Bool, isDragging: Bool) -> Bool {
+        !pointerIsInteractive && !trackingMenus && !hasActivePopover && !isDragging
+    }
 }
 
 struct DragOutToRemove: ViewModifier {
