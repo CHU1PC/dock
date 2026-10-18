@@ -769,6 +769,51 @@ final class DockStore {
         }
     }
 
+    func openDroppedFiles(_ urls: [URL], with item: DockItem) {
+        guard !isPreview else { status = "\(item.name) でファイルを開きます"; return }
+        let files = urls.filter(\.isFileURL)
+        guard !files.isEmpty else { errorMessage = "開くファイルを読み込めませんでした。"; return }
+        let current = ItemAvailabilityChecker().check(item)
+        itemAvailability.record(item, current)
+        switch current {
+        case .missing:
+            errorMessage = "\(item.name) は見つかりません。参照先が移動または削除された可能性があります。"
+            return
+        case .volumeNotMounted:
+            errorMessage = "\(item.name) があるボリュームが接続されていません。接続してからもう一度開いてください。"
+            return
+        case .available, .inaccessible: break
+        }
+        let applicationURL: URL
+        do { applicationURL = try ItemLaunchPolicy().validate(item) }
+        catch { errorMessage = "項目を開けませんでした。\n\(error.localizedDescription)"; return }
+        if item.requiresLaunchConfirmation == true {
+            let alert = NSAlert()
+            alert.messageText = "読み込んだ項目を開きますか？"
+            alert.informativeText = "表示名: \(item.name)\n実際の対象: \(applicationURL.path)\n信頼できる対象であることを確認してください。"
+            alert.addButton(withTitle: "開く")
+            alert.addButton(withTitle: "キャンセル")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        }
+        let alreadyRunning = Bundle(url: applicationURL)?.bundleIdentifier.map {
+            !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty
+        } ?? false
+        if document.settings.launchBounce && !alreadyRunning { beginLaunch(item.id) }
+        NSWorkspace.shared.open(files, withApplicationAt: applicationURL, configuration: .init()) { [weak self] app, error in
+            Task { @MainActor in
+                guard let self else { return }
+                if let error {
+                    self.endLaunch(item.id)
+                    self.errorMessage = "ファイルを \(item.name) で開けませんでした。\n\(error.localizedDescription)"
+                } else if let app, self.launchingItemIDs.contains(item.id) {
+                    self.finishLaunch(item.id, when: { app.isFinishedLaunching || app.isTerminated })
+                } else {
+                    self.endLaunch(item.id)
+                }
+            }
+        }
+    }
+
     func beginLaunch(_ id: UUID) {
         launchTasks[id]?.cancel()
         launchTasks[id] = nil

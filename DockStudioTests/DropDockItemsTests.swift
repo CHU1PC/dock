@@ -177,4 +177,16 @@ final class DropDockItemsTests: XCTestCase {
         XCTAssertEqual(DockDropInsertion.index(at: CGPoint(x: 20, y: 80), frames: column, vertical: true), 2)
         XCTAssertEqual(DockDropInsertion.index(at: CGPoint(x: 20, y: 80), frames: [], vertical: true), 0)
     }
+
+    func testDropOnApplicationItemRoutesToOpeningFiles() {
+        let app = DockItem(name: "TextEdit", kind: .application, target: "file:///Applications/TextEdit.app/")
+        let file = DockItem(name: "Existing file", kind: .file, target: "file:///tmp/existing.txt")
+        let appFrame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        let fileFrame = CGRect(x: 50, y: 0, width: 50, height: 50)
+        let frames = [app.id: appFrame, file.id: fileFrame]
+
+        XCTAssertEqual(DockDropRouting.applicationTarget(at: CGPoint(x: 25, y: 25), items: [app, file], frames: frames), app)
+        XCTAssertNil(DockDropRouting.applicationTarget(at: CGPoint(x: 75, y: 25), items: [app, file], frames: frames))
+        XCTAssertNil(DockDropRouting.applicationTarget(at: CGPoint(x: 50, y: 25), items: [app, file], frames: frames))
+    }
 }
