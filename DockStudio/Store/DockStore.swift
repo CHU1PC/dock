@@ -16,6 +16,7 @@ final class DockStore {
     var isDockVisible = false
     var runningItems: [DockItem] = []
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationHider = ApplicationHider.live
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
@@ -585,6 +586,24 @@ final class DockStore {
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
         }
+    }
+
+    func clickItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if DockClickAction.resolve(modifiers: modifiers) == .hideOthers { hideOthers(of: item) } else { openItem(item) }
+    }
+
+    func hideOthers(of item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        switch applicationHider.hideOthers(of: item) {
+        case .hidOthers: status = "\(item.name) 以外のアプリを隠しました"
+        case .notRunning, .notHideable: openItem(item)
+        case .rejected: errorMessage = "\(item.name) を前面にできませんでした。"
+        }
+    }
+
+    func canHideOthers(_ item: DockItem) -> Bool {
+        guard let identifier = applicationHider.targetBundleIdentifier(for: item) else { return false }
+        return runningItems.contains { $0.applicationIdentity == "bundle:\(identifier)" }
     }
 
     func openItem(_ item: DockItem) {
