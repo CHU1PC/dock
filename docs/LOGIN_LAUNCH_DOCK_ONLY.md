@@ -1,31 +1,55 @@
 # ログイン時は Dock だけを表示する
 
-GitHub issue #86 の実装になる。
+GitHub issue #86 の仕様と実装記録になる。
 
-## 仕様
+## 原因と仕様
 
-- `kAEOpenApplication` の Apple event に `keyAELaunchedAsLogInItem` が付いている場合、Studio ウィンドウを自動で開かない。
+ログイン起動では SwiftUI の Studio `Window` が抑制される。以前は `DockAppDelegate.applicationDidFinishLaunching` の中で `CustomDockWindowController` を同期的に作り、その初期更新でパネルを前面に出していた。Studio の scene が抑制される起動時に、SwiftUI の scene 初期化と AppKit パネルの表示順序が競合し、パネルが表示されない状態になっていた。Studio をメニューから開くとパネルが現れた再現結果も、この起動時のライフサイクル競合と整合する。
+
+`DockAppDelegate.swift` では最初のイベントループを譲ってからコントローラを作り、SwiftUI が起動時の Window scene を確定した後にパネルの初期表示を行う。Custom Dock のコントローラは Studio ウィンドウの表示に依存せず、Dock の表示状態は `DockStore` が復元した値で決まる。
+
+- `kAEOpenApplication` に `keyAELaunchedAsLogInItem` が付いたログイン起動では、Dock の復元値が `true` なら Dock を表示し、Studio ウィンドウは自動で開かない。
+- ログイン起動で Dock の復元値が `false` なら、Dock と Studio ウィンドウのどちらも自動で表示しない。
 - 通常起動では、従来どおり Studio ウィンドウを自動で開く。
-- Custom Dock のコントローラは、Studio ウィンドウの表示状態に依存せず、アプリの起動時に作る。ログイン起動でも Dock の復元状態を適用して表示する。
-- メニューバーから Studio ウィンドウを開く動作と、前回の Dock 表示状態の復元は既存の実装を使う。
-- ログイン起動の判定は `LoginLaunchPolicy.isLoginLaunch(eventID:propertyDataCode:)` に集めた。Apple event のイベント ID と `keyAEPropData` の値から Studio ウィンドウを自動で開くか決める純粋な関数になる。
+- メニューバーから Studio ウィンドウを開く動作と、Dock の表示状態の復元を維持する。
 
 ## 自動テスト
 
-`LoginLaunchPolicyTests` で次を確認した。
+`LoginLaunchPolicyTests` に次の回帰テストを追加した。
 
-- ログイン項目の `kAEOpenApplication` だけを、ログイン起動として判定する。
-- マーカーがない通常の `kAEOpenApplication` は、通常起動として判定する。
-- 別の Apple event にログイン項目のマーカーが付いても、ログイン起動として扱わない。
+- `testLoginLaunchRestoresVisibleDockWithoutStudioWindow` は、ログイン起動かつ Dock 復元値が `true` のとき `showDock == true` と `showStudio == false` を検証する。修正前は `XCTAssertTrue(decision.showDock)` が失敗した。
+- `testLoginLaunchWithHiddenDockShowsNeitherWindow` は、ログイン起動かつ Dock 復元値が `false` のとき両方が `false` であることを検証する。
+- `testNormalLaunchShowsStudioWindow` は、通常起動では Dock が非表示でも Studio ウィンドウを開くことを検証する。
+- 既存テストは Apple event のログイン判定と通常起動の判定を検証する。
 
-ホストで GUI を開かずに実行した結果は、259 件すべて成功した。Release ビルドと `build-for-testing` も成功した。
+修正後のホスト側検証出力は次のとおり。アプリの GUI は起動していない。
+
+```
+/private/tmp/cw/run-check.sh 86 test
+	 Executed 27 tests, with 0 failures (0 unexpected) in 1.919 (1.925) seconds
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.032 (0.033) seconds
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.533 (0.534) seconds
+	 Executed 262 tests, with 0 failures (0 unexpected) in 10.112 (10.154) seconds
+	 Executed 262 tests, with 0 failures (0 unexpected) in 10.112 (10.164) seconds
+exit=0
+
+/private/tmp/cw/run-check.sh 86 release
+** BUILD SUCCEEDED **
+exit=0
+
+/private/tmp/cw/run-check.sh 86 testbuild
+** TEST BUILD SUCCEEDED **
+exit=0
+```
 
 ## 未検証
 
-- 専用 VM での実際のログアウトと再ログイン、およびログイン項目からの起動。
-- VM 上で、ログイン起動時に Studio ウィンドウが表示されず、Custom Dock が表示されること。
-- Finder と Dock からの通常起動、メニューバーからの Studio ウィンドウ表示、前回の表示状態の復元の実画面。
+- 修正後の専用 VM でログイン起動し、Dock が表示され Studio ウィンドウが開かないこと。
+- 実際のログアウトと再ログインによるログイン項目からの自動起動。
+- Finder と Dock からの通常起動、メニューバーからの Studio 表示、Dock の状態復元の実画面。
 - macOS 15 の実機での起動順序。
+
+修正前の専用 VM では、通常起動で Dock と Studio の両方が表示され、Apple event を使ったログイン項目風の起動では Studio は抑制された一方、Dock パネルも表示されなかった。`launch-state.json` は `{"dockVisible": true}` で、メニューから Studio を開くと Dock パネルが現れた。詳細ログと動画は `media/login-launch-dock-only/` にある。修正後の VM 撮影は必要になる。
 
 ## 撮影の手順
 
@@ -45,18 +69,3 @@ GitHub issue #86 の実装になる。
 - 画像 4: Dock または Finder から通常起動した状態。
 - 動画 1: ログアウト、再ログイン、自動起動後に Custom Dock だけが表示されるまでの動き。
 - 動画 2: 標準 Dock の自動表示と拡大動作。自動非表示が無効なら、その設定と通常表示を記録する。
-
-## 実画面の確認（専用ヘッドレス VM）
-
-2026-10-18 に、コミット `4dc6a62` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `f90f503d5dce3ca71e46f94350a9fe89ecad7ef032815b210743b8955f2c57a2` と一致した。**ログアウトと再ログインは行っていない**（共有 VM のセッションを切らないため）。代わりに、ゲスト内の小さな Swift ツールで、`NSWorkspace.OpenConfiguration.appleEvent` に、`kAEOpenApplication` と `keyAEPropData = keyAELaunchedAsLogInItem` を付けた Apple event を渡して起動した（ログイン項目の起動と同じイベントの形）。実際のログイン項目の自動起動は、**未確認**である。ログは[logs.txt](media/login-launch-dock-only/logs.txt)にある。
-
-```
-## 通常起動（初回）: windows: layer=21 onscreen=1（Custom Dock）; layer=0 onscreen=1（Studio ウィンドウ）; launch-state {"dockVisible":true}
-## ログイン項目風の起動（dockVisible が true の状態）:
-t~2s..15s: layer=0 onscreen=false x0 y0 w0 h0（Studio ウィンドウなし。Custom Dock のパネルも出ない）
-メニュー「Dock を管理…」を押した後: layer=21 onscreen=1 x537 y846 w525 h157 / layer=0 onscreen=1 x260 y122 w1080 h850
-```
-- 通常起動では、Studio ウィンドウと Custom Dock が従来どおり表示された。
-- ログイン項目風の起動では、**Studio ウィンドウは開かなかった**（仕様の前半は満たした）。
-- **ただし、Custom Dock のパネルも出なかった**（`launch-state.json` は `dockVisible: true`）。仕様は「ログイン起動でも Dock の復元状態を適用して表示する」だが、15 秒後まで、パネルのウィンドウが現れなかった。メニューの「Dock を管理…」でウィンドウを開くと、パネルも同時に現れた（[動画](media/login-launch-dock-only/login-style-launch.mp4)）。**不具合の疑い**: Studio ウィンドウを開かない起動では、Custom Dock のコントローラが作られていない可能性がある。ただし、この再現は、ログイン項目風の Apple event による起動であり、実際のログイン起動では異なる可能性がある。
-- 手順 3 のメニューから Studio を開く動作は確認した。手順 4（ログイン項目を無効にした通常起動の対照）は、通常起動の結果で代えた。標準 Dock の比較（手順 5）は、撮影していない。

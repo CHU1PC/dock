@@ -33,7 +33,12 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
             nativeTile = controller
             controller.start()
         } else {
-            dockController = CustomDockWindowController(store: store)
+            // SwiftUI が起動時の Window scene を確定してからパネルを作る。
+            Task { @MainActor [weak self] in
+                await Task.yield()
+                guard let self, let store = self.store else { return }
+                self.dockController = CustomDockWindowController(store: store)
+            }
         }
     }
 

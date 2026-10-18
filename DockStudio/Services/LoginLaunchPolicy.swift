@@ -3,9 +3,18 @@ import Carbon
 import Observation
 
 enum LoginLaunchPolicy {
+    struct Decision: Equatable {
+        let showDock: Bool
+        let showStudio: Bool
+    }
+
     static func isLoginLaunch(eventID: AEEventID, propertyDataCode: OSType?) -> Bool {
         eventID == AEEventID(kAEOpenApplication)
             && propertyDataCode == OSType(keyAELaunchedAsLogInItem)
+    }
+
+    static func decision(isLoginLaunch: Bool, dockVisible: Bool) -> Decision {
+        Decision(showDock: dockVisible, showStudio: !isLoginLaunch)
     }
 }
 

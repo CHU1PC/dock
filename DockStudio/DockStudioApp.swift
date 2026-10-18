@@ -31,7 +31,10 @@ struct DockStudioApp: App {
                 .environment(store)
         }
         .defaultSize(width: 1080, height: 700)
-        .defaultLaunchBehavior(tileOnly || loginLaunchState.isLoginLaunch ? .suppressed : .automatic)
+        .defaultLaunchBehavior(tileOnly || !LoginLaunchPolicy.decision(
+            isLoginLaunch: loginLaunchState.isLoginLaunch,
+            dockVisible: store.isDockVisible
+        ).showStudio ? .suppressed : .automatic)
         .restorationBehavior(tileOnly ? .disabled : .automatic)
         .commands {
             CommandMenu("Custom Dock") {
