@@ -45,7 +45,11 @@ extension DockStore {
         case .open: openItem(item)
         case .revealInFinder(let url):
             NSWorkspace.shared.activateFileViewerSelecting([url])
-            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first?.activate()
+            if let finder = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.finder") {
+                let configuration = NSWorkspace.OpenConfiguration()
+                configuration.activates = true
+                NSWorkspace.shared.openApplication(at: finder, configuration: configuration)
+            }
         case .unavailable(let message): errorMessage = message
         case .ignore: break
         }

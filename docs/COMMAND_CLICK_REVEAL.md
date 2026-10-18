@@ -30,7 +30,7 @@ Dock の項目を Command だけを押しながらクリックすると、対象
 ### 未検証
 
 - 管理画面内の Dock で Command クリックが Finder に表示されることは、実画面で確認した。パネルでは確認できず、上の「所見」を参照
-- 修正後のパネルでの Command クリック。ボタンの action 内で `NSApp.currentEvent?.modifierFlags` を優先し、無ければ `NSEvent.modifierFlags` を使うようにした。さらに、`activateFileViewerSelecting` のあとに Finder の `NSRunningApplication.activate()` を加えた。どちらが原因だったか、効いたかは VM で未確認で、撮影担当は、パネルで Finder が前面に出て対象が選択されることを再確認する。
+- 修正後のパネルでの Command クリック。ボタンの action 内で `NSApp.currentEvent?.modifierFlags` を優先し、無ければ `NSEvent.modifierFlags` を使うようにした。さらに、`activateFileViewerSelecting` のあとに、LaunchServices 経由で Finder を前面に出す（`openApplication` の `activates = true`）処理を加えた。どちらが原因だったか、効いたかは VM で未確認で、撮影担当は、パネルで Finder が前面に出て対象が選択されることを再確認する。
 - macOS 15 以降での差異（VM が 26.6.2 のみ）
 
 ## 実画面の確認（専用ヘッドレス VM）
@@ -135,3 +135,7 @@ Command のキー押下は、ゲスト内の CGEvent（クリックのイベン�
 - 画像: Removed Folder の Command クリックで出るアラート
 - 動画: Dock の項目を Command クリックして Finder で選択され、Calculator が起動していないこと（Dock の起動中表示や、Calculator のウィンドウが出ないこと）が分かるもの
 - 動画: 修飾キーなしのクリックで Calculator が起動する場面（比較用）
+
+### 補足: 修飾キーの合成について
+
+`CGEvent` のクリックに `.maskCommand` を付けるだけの合成では、グローバルの修飾状態（`NSEvent.modifierFlags`）は変わらない。パネルの Command クリックを撮るときは、ゲスト内で `CGEventPost` により Command（キーコード 55）のキーダウンを先に送り、押したままクリックしてから、キーアップを送る。
