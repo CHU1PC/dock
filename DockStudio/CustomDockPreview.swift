@@ -47,16 +47,25 @@ struct CustomDockPreview: View {
 
     private func dockPreview(in size: CGSize) -> some View {
         let vertical = store.document.settings.position != .bottom
+        let position = store.document.settings.position
         let alignment: Alignment = switch store.document.settings.position {
         case .left: .leading
         case .bottom: .bottom
         case .right: .trailing
         }
+        let previewSize = DockPreviewLayout.frameSize(
+            containerSize: size,
+            position: position,
+            length: DockMetrics.length(for: store),
+            thickness: DockMetrics.thickness(for: store)
+        )
         return DockBar(vertical: vertical)
             .environment(store)
-            .frame(width: vertical ? 190 : min(size.width - 50, DockMetrics.length(for: store)),
-                   height: vertical ? min(size.height - 120, DockMetrics.length(for: store)) : DockMetrics.thickness(for: store))
+            .frame(width: previewSize.width, height: previewSize.height)
+            .clipShape(Rectangle())
             .padding(24)
+            .padding(.bottom, position == .bottom ? 90 : 0)
+            .padding(.vertical, vertical ? 70 : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
 }
@@ -110,6 +119,7 @@ struct DockBar: View {
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
                                                     iconStyle: store.appearance.iconStyle,
                                                     controller: store.minimizedWindowController,
+                                                    groupedByApplication: store.document.settings.minimizeWindowsIntoAppIcon,
                                                     enabled: isPanel && store.isDockVisible)
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
@@ -244,12 +254,16 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
                 if let folder = folderContentsItem {
-                    FolderContentsPopover(folder: folder) { child in
+                    FolderContentsPopover(folder: folder,
+                                           dockPosition: store.document.settings.position,
+                                           reduceMotion: store.appearance.reduceMotion || systemReduceMotion) { child in
                         folderContentsItem = nil
                         store.openItem(child)
                     } openInFinder: { folder in
                         store.clickItem(folder, modifiers: .command)
                         folderContentsItem = nil
+                    } updateDisplayStyle: { folder, style in
+                        store.updateFolderContentsDisplayStyle(style, for: folder.id)
                     }
                 }
             }
@@ -499,6 +513,17 @@ extension DockBar {
             entry.representedObject = action.perform
             menu.addItem(entry)
         }
+        if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
+            let windowMenu = NSMenuItem(title: "ウィンドウを前面に表示", action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+            let controller = DockApplicationWindowMenuController(
+                listing: { store.applicationWindowListing(for: item) },
+                activate: { windowID in store.activateApplicationWindow(windowID, for: item) })
+            submenu.delegate = controller
+            windowMenu.submenu = submenu
+            windowMenu.representedObject = controller
+            menu.addItem(windowMenu)
+        }
         let left = window.frame.minX + origin.x + itemFrame.minX
         let top = window.frame.maxY - (origin.y + itemFrame.minY)
         let point: NSPoint = switch store.document.settings.position {
@@ -514,6 +539,52 @@ extension DockBar {
 private final class DockMenuHandler: NSObject {
     static let shared = DockMenuHandler()
     @objc func run(_ sender: NSMenuItem) { (sender.representedObject as? () -> Void)?() }
+}
+
+@MainActor
+private final class DockApplicationWindowMenuController: NSObject, NSMenuDelegate {
+    private let listing: () -> ApplicationWindowListing
+    private let activate: (String) -> Void
+
+    init(listing: @escaping () -> ApplicationWindowListing, activate: @escaping (String) -> Void) {
+        self.listing = listing
+        self.activate = activate
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        switch listing() {
+        case .windows(let windows) where !windows.isEmpty:
+            var totals: [String: Int] = [:]
+            for window in windows { totals[window.title, default: 0] += 1 }
+            var titleCounts: [String: Int] = [:]
+            for window in windows {
+                titleCounts[window.title, default: 0] += 1
+                let duplicateNumber = titleCounts[window.title, default: 0]
+                let duplicateSuffix = (totals[window.title, default: 0] > 1) ? " (\(duplicateNumber))" : ""
+                let minimizedSuffix = window.isMinimized ? "（最小化）" : ""
+                let entry = NSMenuItem(title: "\(window.title)\(duplicateSuffix)\(minimizedSuffix)",
+                                       action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { [activate] in activate(window.id) }
+                menu.addItem(entry)
+            }
+        case .windows:
+            menu.addItem(disabledItem("開いているウィンドウはありません"))
+        case .applicationNotRunning:
+            menu.addItem(disabledItem("アプリは起動していません"))
+        case .accessibilityPermissionDenied:
+            menu.addItem(disabledItem("アクセシビリティ権限が必要です（システム設定で Dock Studio を許可）"))
+        case .failed:
+            menu.addItem(disabledItem("ウィンドウ一覧を取得できませんでした"))
+        }
+    }
+
+    private func disabledItem(_ title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        return item
+    }
 }
 
 enum DockDropInsertion {
@@ -758,6 +829,19 @@ enum DockMetrics {
         let maximum = enabled ? store.appearance.magnificationScale : 1
         return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) :
             barThickness(for: store, magnificationEnabled: enabled)
+    }
+}
+
+enum DockPreviewLayout {
+    static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat) -> CGSize {
+        let availableWidth = max(0, containerSize.width - 50)
+        let availableHeight = max(0, containerSize.height - 188)
+        if position == .bottom {
+            return CGSize(width: min(availableWidth, max(0, length)),
+                          height: min(availableHeight, max(0, thickness)))
+        }
+        return CGSize(width: min(190, availableWidth),
+                      height: min(availableHeight, max(0, length)))
     }
 }
 

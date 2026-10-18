@@ -55,6 +55,18 @@ struct SettingsPreview: View {
             }
             settingsGroup("Custom Dock の配置") {
                 HStack {
+                    Text("画面の選び方")
+                    Spacer()
+                    Picker("画面の選び方", selection: setting(\.displayMode)) {
+                        ForEach(DockDisplayMode.allCases) { Text($0.title).tag($0) }
+                    }.labelsHidden().pickerStyle(.segmented).frame(width: 210)
+                }
+                Text(store.document.settings.displayMode == .edgeFollowing
+                     ? "ポインタが各画面の Dock 側の端に入ると、その画面へ移動します。Dock は1つだけ表示します。"
+                     : "選択した画面に固定して表示します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                HStack {
                     Text("画面の位置")
                     Spacer()
                     Picker("画面の位置", selection: setting(\.position)) {
@@ -63,7 +75,7 @@ struct SettingsPreview: View {
                 }
                 Divider()
                 HStack {
-                    Text("表示先")
+                    Text(store.document.settings.displayMode == .edgeFollowing ? "戻り先" : "表示先")
                     Spacer()
                     Picker("表示先", selection: setting(\.displayID)) {
                         Text("メインディスプレイ").tag(Optional<UInt32>.none)
@@ -109,6 +121,11 @@ struct SettingsPreview: View {
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
+                Divider()
+                Toggle("最小化したウインドウをアプリアイコンにまとめる",
+                       isOn: setting(\.minimizeWindowsIntoAppIcon))
+                Text("有効にすると、アプリのアイコンのメニューから復元するウインドウを選べます。Apple Dock のシステム設定には影響しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("最近使ったアプリを表示", isOn: setting(\.showRecentApps))
                 Text("固定済みと実行中のアプリを除き、最近使ったアプリを最大3件表示します。オフにすると履歴を消去します。")

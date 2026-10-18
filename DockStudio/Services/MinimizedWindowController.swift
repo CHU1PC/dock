@@ -5,9 +5,36 @@ import SwiftUI
 
 struct MinimizedWindow: Identifiable {
     let id: String
+    let applicationIdentifier: String
     let title: String
     let applicationName: String
     let applicationIcon: NSImage?
+}
+
+struct MinimizedWindowGroup: Identifiable {
+    let id: String
+    let applicationName: String
+    let applicationIcon: NSImage?
+    let windows: [MinimizedWindow]
+}
+
+enum MinimizedWindowGrouping {
+    static func groups(_ windows: [MinimizedWindow]) -> [MinimizedWindowGroup] {
+        Dictionary(grouping: windows, by: \.applicationIdentifier).values
+            .compactMap { windows in
+                guard let first = windows.first else { return nil }
+                return MinimizedWindowGroup(id: first.applicationIdentifier,
+                                            applicationName: first.applicationName,
+                                            applicationIcon: first.applicationIcon,
+                                            windows: windows.sorted {
+                                                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+                                            })
+            }
+            .sorted {
+                let order = $0.applicationName.localizedStandardCompare($1.applicationName)
+                return order == .orderedSame ? $0.id < $1.id : order == .orderedAscending
+            }
+    }
 }
 
 enum MinimizedWindowState {
@@ -38,6 +65,7 @@ final class MinimizedWindowController {
     }
 
     var windows: [MinimizedWindow] { state.windows }
+    var applicationGroups: [MinimizedWindowGroup] { MinimizedWindowGrouping.groups(windows) }
 
     func refresh() {
         state = provider.snapshot()
@@ -82,7 +110,11 @@ final class AccessibilityMinimizedWindowProvider: MinimizedWindowProviding {
                 let title = (titleValue as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "名称未設定のウインドウ"
                 let id = "\(application.processIdentifier):\(index):\(title)"
                 elements[id] = element
-                windows.append(MinimizedWindow(id: id, title: title,
+                windows.append(MinimizedWindow(id: id,
+                                               applicationIdentifier: application.bundleIdentifier
+                                                ?? application.bundleURL?.path
+                                                ?? "pid:\(application.processIdentifier)",
+                                               title: title,
                                                applicationName: application.localizedName ?? "名称未設定のアプリ",
                                                applicationIcon: application.icon))
             }
@@ -110,6 +142,7 @@ struct MinimizedWindowsDockSection: View {
     let iconSize: Double
     let iconStyle: DockAppearance.IconStyle
     @Bindable var controller: MinimizedWindowController
+    let groupedByApplication: Bool
     let enabled: Bool
 
     var body: some View {
@@ -135,25 +168,32 @@ struct MinimizedWindowsDockSection: View {
                         .buttonStyle(.plain)
                         .accessibilityHint("システム設定のプライバシーとセキュリティを開きます")
                     case .available(let windows):
-                        ForEach(windows) { window in
-                            Button {
-                                controller.restore(windowID: window.id)
-                            } label: {
-                                Group {
-                                    if let icon = window.applicationIcon {
-                                        Image(nsImage: icon).resizable().interpolation(.high).scaledToFit()
-                                    } else {
-                                        Image(systemName: "macwindow")
-                                            .font(.system(size: iconSize * 0.5, weight: .medium))
-                                            .foregroundStyle(iconStyle == .original ? StudioColor.accent : .primary)
+                        if groupedByApplication {
+                            ForEach(controller.applicationGroups) { group in
+                                Menu {
+                                    ForEach(group.windows) { window in
+                                        Button(window.title) {
+                                            controller.restore(windowID: window.id)
+                                        }
                                     }
+                                } label: {
+                                    applicationIcon(group.applicationIcon)
                                 }
-                                .frame(width: iconSize, height: iconSize)
-                                .padding(vertical ? .vertical : .horizontal, 5)
+                                .menuStyle(.borderlessButton)
+                                .help("\(group.applicationName) — \(group.windows.count)個の最小化したウインドウ")
+                                .accessibilityLabel("\(group.applicationName)、最小化したウインドウ\(group.windows.count)個")
                             }
-                            .buttonStyle(.plain)
-                            .help("\(window.title) — \(window.applicationName)")
-                            .accessibilityLabel("\(window.title)、\(window.applicationName)")
+                        } else {
+                            ForEach(windows) { window in
+                                Button {
+                                    controller.restore(windowID: window.id)
+                                } label: {
+                                    applicationIcon(window.applicationIcon)
+                                }
+                                .buttonStyle(.plain)
+                                .help("\(window.title) — \(window.applicationName)")
+                                .accessibilityLabel("\(window.title)、\(window.applicationName)")
+                            }
                         }
                     }
                 }
@@ -166,5 +206,19 @@ struct MinimizedWindowsDockSection: View {
                 try? await Task.sleep(for: .seconds(2))
             }
         }
+    }
+
+    private func applicationIcon(_ icon: NSImage?) -> some View {
+        Group {
+            if let icon {
+                Image(nsImage: icon).resizable().interpolation(.high).scaledToFit()
+            } else {
+                Image(systemName: "macwindow")
+                    .font(.system(size: iconSize * 0.5, weight: .medium))
+                    .foregroundStyle(iconStyle == .original ? StudioColor.accent : .primary)
+            }
+        }
+        .frame(width: iconSize, height: iconSize)
+        .padding(vertical ? .vertical : .horizontal, 5)
     }
 }

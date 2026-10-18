@@ -31,6 +31,7 @@ final class DockStore {
         try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
     @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live
     private(set) var hiddenApplicationIdentities: Set<String> = []
@@ -372,6 +373,23 @@ final class DockStore {
         guard commit(candidate) else { return false }
         if wasShowingRecentApps && !settings.showRecentApps { clearRecentAppHistory() }
         if settings.mode == .native { isDockVisible = false }
+        return true
+    }
+
+    @discardableResult
+    func updateFolderContentsDisplayStyle(_ style: FolderContentsDisplayStyle, for itemID: UUID) -> Bool {
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == itemID }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderContentsDisplayStyle = style
+        guard commit(candidate) else { return false }
+        if var draft = drafts[candidate.activeProfileID],
+           let draftIndex = draft.items.firstIndex(where: { $0.id == itemID }) {
+            draft.items[draftIndex].folderContentsDisplayStyle = style
+            drafts[draft.id] = draft
+            persistDrafts()
+        }
         return true
     }
 
