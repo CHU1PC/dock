@@ -270,6 +270,8 @@ struct DockBar: View {
                         folderContentsItem = nil
                     } updateDisplayStyle: { folder, style in
                         store.updateFolderContentsDisplayStyle(style, for: folder.id)
+                    } onSortOrderChange: { order in
+                        store.setFolderSortOrder(order, for: folder.id)
                     }
                 }
             }

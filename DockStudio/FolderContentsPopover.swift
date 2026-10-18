@@ -7,19 +7,24 @@ struct FolderContentsPopover: View {
     let openItem: (DockItem) -> Void
     let openInFinder: (DockItem) -> Void
     let updateDisplayStyle: (DockItem, FolderContentsDisplayStyle) -> Bool
+    let onSortOrderChange: (FolderSortOrder) -> Void
 
     @State private var result: Result<[DockItem], Error>?
+    @State private var sortOrder: FolderSortOrder = .name
     @State private var displayStyle: FolderContentsDisplayStyle
 
     init(folder: DockItem, dockPosition: DockPosition, reduceMotion: Bool,
          openItem: @escaping (DockItem) -> Void, openInFinder: @escaping (DockItem) -> Void,
-         updateDisplayStyle: @escaping (DockItem, FolderContentsDisplayStyle) -> Bool) {
+         updateDisplayStyle: @escaping (DockItem, FolderContentsDisplayStyle) -> Bool,
+         onSortOrderChange: @escaping (FolderSortOrder) -> Void) {
         self.folder = folder
         self.dockPosition = dockPosition
         self.reduceMotion = reduceMotion
         self.openItem = openItem
         self.openInFinder = openInFinder
         self.updateDisplayStyle = updateDisplayStyle
+        self.onSortOrderChange = onSortOrderChange
+        _sortOrder = State(initialValue: folder.folderSortOrder ?? .name)
         _displayStyle = State(initialValue: folder.folderContentsDisplayStyle ?? .list)
     }
 
@@ -29,7 +34,15 @@ struct FolderContentsPopover: View {
                 Text(folder.name)
                     .font(.headline)
                     .lineLimit(1)
-                Spacer(minLength: 8)
+                Spacer(minLength: 4)
+                Picker("並べ替え", selection: $sortOrder) {
+                    ForEach(FolderSortOrder.allCases) { order in
+                        Text(order.title).tag(order)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                .onChange(of: sortOrder) { _, order in onSortOrderChange(order) }
                 Menu {
                     ForEach(FolderContentsDisplayStyle.allCases) { style in
                         Button {
@@ -88,13 +101,14 @@ struct FolderContentsPopover: View {
         .padding(12)
         .frame(width: 280)
         .transaction { if reduceMotion { $0.animation = nil } }
-        .task(id: folder.target) {
+        .task(id: "\(folder.target ?? "")-\(sortOrder.rawValue)") {
             guard let url = folder.targetURL, url.isFileURL else {
                 result = .failure(FolderContentsError.invalidFolder)
                 return
             }
+            let currentSortOrder = sortOrder
             result = await Task.detached(priority: .userInitiated) {
-                Result { try FolderContentsReader.read(at: url) }
+                Result { try FolderContentsReader.read(at: url, sortOrder: currentSortOrder) }
             }.value
         }
     }
