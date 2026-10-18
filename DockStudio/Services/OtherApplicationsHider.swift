@@ -12,7 +12,13 @@ protocol OtherApplicationsHideable {
 
 extension NSRunningApplication: OtherApplicationsHideable {
     var isRegularApplication: Bool { activationPolicy == .regular }
-    func activateApplication() -> Bool { activate() }
+    func activateApplication() -> Bool {
+        guard let url = bundleURL else { return false }
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+        return true
+    }
     func hideApplication() -> Bool { hide() }
 }
 
