@@ -161,12 +161,14 @@ final class LoginRestoreTests: XCTestCase {
         let store = makeStore(directory)
         var settings = store.document.settings
         settings.autoHide = true
+        settings.displayID = 202
         XCTAssertTrue(store.updateSettings(settings))
         store.activateProfile(store.document.profiles[1].id)
         store.isDockVisible = true
         let reloaded = makeStore(directory)
         XCTAssertTrue(reloaded.isDockVisible)
         XCTAssertTrue(reloaded.document.settings.autoHide)
+        XCTAssertEqual(reloaded.document.settings.displayID, 202)
         XCTAssertEqual(reloaded.document.activeProfileID, store.document.activeProfileID)
     }
 
