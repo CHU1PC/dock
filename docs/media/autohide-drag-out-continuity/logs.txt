@@ -1,0 +1,2 @@
+autoHide=false: items=Drag out continuity,Calculator,TextEdit, calc at 0,0
+after drag-out (no autohide): items=Drag out continuity,Calculator,TextEdit,
