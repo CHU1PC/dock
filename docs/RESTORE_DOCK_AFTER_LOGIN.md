@@ -61,7 +61,7 @@ Dock の表示状態（`DockStore.isDockVisible`）は、変更のたびに `lau
 2. 検証用データを `/tmp/dockstudio-61-data` に作る。`DOCKSTUDIO_DATA_DIR` に渡す。ディレクトリは空でよい（初回の起動で既定のプロファイルが作られる）。
 
 ```
-DOCKSTUDIO_DATA_DIR=/tmp/dockstudio-61-data open -a "/Applications/Dock Studio.app" --env DOCKSTUDIO_DATA_DIR=/tmp/dockstudio-61-data
+DOCKSTUDIO_DATA_DIR=/tmp/dockstudio-61-data "/Applications/Dock Studio.app/Contents/MacOS/Dock Studio"
 ```
 
 ログイン時の起動は環境変数を引き継がないため、手順 6 以降は、データの場所を既定（`~/Library/Application Support/DockStudio`）にして行う。
