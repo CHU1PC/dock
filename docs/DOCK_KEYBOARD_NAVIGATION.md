@@ -72,6 +72,18 @@ GUI は、macOS 26.6.2 の専用ヘッドレス VM で確認した。キーは�
 
 [stills-sequence.mp4](media/dock-keyboard-navigation/stills-sequence.mp4) は、上の静止画を 2 秒ずつ並べたスライドで、実時間の動画ではない。
 
+### 最終ビルドでの再確認（2026-10-18）
+
+コミット `b1dfe05` の Release ビルドを、同じ専用 VM（macOS 26.6.2）で確認した。実行ファイルの SHA-256 は、ホストとゲストで `7fa8f2da841b5feab8fafac12f603d1ea9c098959071a7ca72580da514a5d843` と一致した。キーはゲスト内の CGEvent で送り、フォーカスは `AXFocusedUIElement` で読んだ。ログは[focus-log.txt](media/dock-keyboard-navigation/final-build/focus-log.txt)にある。
+
+- 起動直後の最初の「Dock をキーボードで操作」で、フォーカスは先頭の Finder に当たった。前述の「起動直後の初回だけフォーカスが当たらない」問題は、この実行では再現しなかった（1 回のみの試行。再現性の判断はできない）。
+- Tab を 1 回ずつ押すと、Safari、Mail、Terminal、Calendar の順に、1 回ごとに 1 項目ずつ止まった。最終ビルドでの Tab の確認になる（[tab-focus-calendar.jpg](media/dock-keyboard-navigation/final-build/tab-focus-calendar.jpg)）。
+- 上キーで、Finder のメニュー（開く、Finder で表示、Dock から取り外す）が項目の上に出た（[up-key-menu-finder.jpg](media/dock-keyboard-navigation/final-build/up-key-menu-finder.jpg)）。右クリックでも同じ 3 項目が出た（[right-click-menu-finder.jpg](media/dock-keyboard-navigation/final-build/right-click-menu-finder.jpg)）。
+- Esc の 1 回目でメニューだけが閉じ、フォーカスは Finder に残った。2 回目でフォーカスが外れ、前面は、キーボード操作に入る前のアプリ（Calculator）に戻った。
+- 入力が欠落することがあった。1 回目の上キーは、メニューが出なかった（Calendar にフォーカスがあった状態で、直前の操作から約 1 秒後に送った）。Esc 後の右クリックも、1 回目はメニューが出ず、2 回目で出た。VNC の撮影の直後や、直前のコマンドの直後に送ったキーが欠落する、既知の検証環境の問題と同じに見える。アプリ側の不具合とは、断定できていない。
+- 動画は、今回も撮っていない。
+- 確認していない: 左配置と右配置のメニュー、項目の追加、Dock の隠しとの組み合わせ。
+
 ### 確認できなかったこと、不安定だったこと
 
 - **Escape の復帰が戻らなかった回は、検証環境の入力の欠落だった。** `logs/run3-bottom.log` では戻らなかったが、いずれも VNC で静止画を撮った直後のキーだった。VNC を使わずにキーだけを送ると、3 配置で 15 回、最終のビルドで 5 回、すべて戻った。アプリ側の欠陥は見つからなかった。VNC の接続後にゲストのキーが欠落する原因は、特定できていない。`leaveKeyboard()` は、保存したアプリを先に取り出してから `resignKey()` を呼び、`activate(from:)` で戻す。
