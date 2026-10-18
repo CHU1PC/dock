@@ -16,6 +16,7 @@ final class DockStore {
     var isDockVisible = false
     var runningItems: [DockItem] = []
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationHider = ApplicationHider.live
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
@@ -584,6 +585,23 @@ final class DockStore {
         case .notRunning: status = "\(item.name) は起動していません"
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
+        }
+    }
+
+    func applicationVisibility(_ item: DockItem) -> ApplicationVisibility? {
+        guard let identity = item.applicationIdentity,
+              runningItems.contains(where: { $0.applicationIdentity == identity }) else { return nil }
+        return applicationHider.visibility(of: item)
+    }
+
+    func toggleApplicationVisibility(_ item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        switch applicationHider.toggle(item) {
+        case .hidden: status = "\(item.name) を隠しました"
+        case .shown: status = "\(item.name) を表示しました"
+        case .notRunning: status = "\(item.name) は起動していません"
+        case .notHideable: errorMessage = "\(item.name) は Dock から隠せません。"
+        case .rejected: errorMessage = "\(item.name) の表示を切り替えられませんでした。"
         }
     }
 

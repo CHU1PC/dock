@@ -207,6 +207,9 @@ struct DockBar: View {
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
+                if let visibility = store.applicationVisibility(item) {
+                    Button(visibility == .hidden ? "表示" : "隠す") { store.toggleApplicationVisibility(item) }
+                }
                 if store.canQuitApplication(item) {
                     Button("終了") { store.quitApplication(item) }
                 }
@@ -221,6 +224,9 @@ struct DockBar: View {
                 Button("開く") { store.openItem(item) }
                 if let url = item.targetURL, url.isFileURL {
                     Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                }
+                if let visibility = store.applicationVisibility(item) {
+                    Button(visibility == .hidden ? "表示" : "隠す") { store.toggleApplicationVisibility(item) }
                 }
                 if store.canQuitApplication(item) {
                     Button("終了") { store.quitApplication(item) }
