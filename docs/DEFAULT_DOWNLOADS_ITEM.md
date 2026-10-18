@@ -66,3 +66,16 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-65 /path/to/DockStudio.app/Contents
 - `first-launch-downloads.jpg` に起動後の Dock を写す。
 - `open-downloads.mp4` に Downloads をクリックして Finder が開くまでを記録する。
 - 実環境で場所を移動できた場合は、`downloads-after-move.jpg` と移動後に開く操作を記録した `downloads-after-move.mp4` も保存する。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `a50ef1e` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `745d80f388b705c2edc8b3efab55180431dec4587cd944e1a9e28321f8f69f47` と一致した。ゲストの言語は日本語で、既定プロファイルの項目名は、アプリ名がゲストの表示言語になる（メール、ターミナル）。パネルは「設定」タブにした。ログは[logs.txt](media/default-downloads-item/logs.txt)にある。
+
+確認できたこと:
+- **初回起動の初期の Dock に Downloads の項目が出た。** 空の `DOCKSTUDIO_DATA_DIR` で起動すると、Finder、Safari、メール、ターミナル、Downloads、ゴミ箱の順に並んだ（[画像](media/default-downloads-item/first-launch-downloads.jpg)）。
+- Downloads をクリックすると、Finder の「Downloads」ウインドウが前面に開いた（`finder-windows` が「Downloads|Applications|Shared」に変わった。[画像](media/default-downloads-item/open-downloads-finder.jpg)、[動画](media/default-downloads-item/open-downloads.mp4)）。
+- 既存のプロファイル（Calculator だけの `profiles.json`）で起動すると、Downloads は足されなかった（Dock は Calculator とゴミ箱のみ。ファイルの Downloads は 0 件。[画像](media/default-downloads-item/existing-profile-no-downloads-full.jpg)）。
+
+確認できなかったこと:
+- **Downloads の場所を動かしたときの表示は、確認できなかった。** ゲストの `~/Downloads` は、macOS の保護により、`mv` が「Permission denied」で失敗した（動かせなかった）。移動後の再起動、フォルダが無いときの参照切れの表示は、未確認のままである。
+- 初回起動では `profiles.json` は、最初の編集まで書かれない（初期状態のファイルは作られなかった）。初期プロファイルの内容は、画面とアクセシビリティの項目で確認した。

@@ -1,0 +1,17 @@
+# 初回起動と項目（AX）
+Finder、起動中 / Safari / メール / ターミナル / Downloads / ゴミ箱
+
+# クリック
+before: front=Finder finder-windows=Applications|Shared|Shared|
+after click Downloads: front=Finder finder-windows=Downloads|Applications|Shared|
+
+# 場所を動かす・既存プロファイル
+## relaunch with moved Downloads
+mv: rename /Users/admin/Downloads to /Users/admin/Downloads-moved: Permission denied
+items:      Finder、起動中,     Safari,     メール,     ターミナル,     Downloads,     ゴミ箱,      ,      ,
+after click on missing Downloads: alerts=0
+mv: rename /Users/admin/Downloads-moved to /Users/admin/Downloads/Downloads-moved: No such file or directory
+/Users/admin/Downloads
+## existing profile (no Downloads) must not get one
+items:       ,      ,      ,      ,   ,   ,   ,
+0
