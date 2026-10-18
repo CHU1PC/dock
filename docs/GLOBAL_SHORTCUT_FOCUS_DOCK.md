@@ -103,3 +103,20 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-47 /path/to/DockStudio.app/Contents
 - 標準 Dock の比較記録: macOS のバージョン、解像度、Dock の配置と自動非表示設定、設定画面に表示された標準ショートカット、最初にフォーカスされる項目、矢印キーの移動順、Escape 後の前面アプリ、隠れていた Dock が表示されるか。
 
 設定画面を撮るときは、「Custom Dock」タブではなく「設定」タブを使う。プレビュー Dock とデスクトップの Dock が重なって見えるのを避ける。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `456d9c9` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `3e51e21a971d200a7135b095b2a1c22d9ce2d9e181e4afaa0019219c6d950754` と一致した。docs の `profiles.json`（Finder、Calculator、TextEdit、下配置、`dockFocusShortcut: controlOptionCommandD`）。キーは本物のキーダウンを先に送った。ログは[logs.txt](media/global-shortcut-focus-dock/logs.txt)にある。
+
+```
+before: front=Finder panel onscreen=false
+after Ctrl+Opt+Cmd+D: front=DockStudio panel onscreen=1 focused: role=AXScrollArea
+Right: focused: role=AXScrollArea
+Escape: front=Finder panel onscreen=1 focused: role=AXWindow
+(K へ変更後) D: front=Finder（反応なし）
+K: front=DockStudio onscreen=1
+```
+- Finder を前面にし、Dock を隠した状態で `Control+Option+Command+D` を押すと、Custom Dock が現れ、Dock Studio が前面になった。コマで、Finder の項目にフォーカス枠が当たり、右矢印で Calculator へ移った（[コマ](media/global-shortcut-focus-dock/shortcut-focus-escape-frames.png)、[動画](media/global-shortcut-focus-dock/shortcut-focus-escape.mp4)）。Escape で前面が Finder に戻った。
+- K への変更: 設定画面からの変更は撮れなかった（設定画面でショートカットの項目に到達できなかった）。代わりに `profiles.json` の `dockFocusShortcut` を `controlOptionCommandK` に書き換えて再起動した。D では反応せず、K で同じようにフォーカスされた（[画像](media/global-shortcut-focus-dock/shortcut-k-focus-full.jpg)）。設定画面のショートカット表示の画像は、撮れていない。
+- AX の `AXFocusedUIElement` は `AXScrollArea` を返した（画面の枠とは一致しない。#93 と同じ所見）。
+- 標準 Dock（macOS 26.6.2、1600x1000、下配置、自動非表示は無効にした）: Finder を前面にして、Control+F3 に当たるキー（keycode 99 に Control）を送ったが、フォーカス枠は現れず、標準 Dock の最初のフォーカス項目、矢印の順、Escape 後の前面は**確認できなかった**（合成キーが届かなかった可能性）。設定画面に表示された標準ショートカットの記録は撮っていない。撮影後、標準 Dock の設定は元に戻した。
