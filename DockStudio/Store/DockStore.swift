@@ -24,6 +24,9 @@ final class DockStore {
     @ObservationIgnored var trashInspector = TrashInspector()
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
+    @ObservationIgnored var trashItemMover: (URL) throws -> Void = { url in
+        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+    }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
     @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live

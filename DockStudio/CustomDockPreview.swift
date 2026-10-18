@@ -306,6 +306,21 @@ extension DockBar {
             Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
         })
         .onHover { if $0 { hovered = item.id } }
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            guard !providers.isEmpty else { return false }
+            Task { @MainActor in
+                var urls: [URL] = []
+                for provider in providers {
+                    let url: URL? = await withCheckedContinuation { continuation in
+                        _ = provider.loadObject(ofClass: URL.self) { url, _ in continuation.resume(returning: url) }
+                    }
+                    if let url, url.isFileURL { urls.append(url) }
+                }
+                guard !urls.isEmpty else { return }
+                store.moveDroppedItemsToTrash(urls)
+            }
+            return true
+        }
     }
 }
 
