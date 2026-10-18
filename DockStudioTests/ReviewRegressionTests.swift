@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 @testable import DockStudio
 
 @MainActor
@@ -157,6 +158,45 @@ final class ReviewRegressionTests: XCTestCase {
         XCTAssertEqual(DisplayOption.preferredID(selectedID: nil, availableIDs: [101, 202]), 101)
         XCTAssertEqual(DisplayOption.preferredID(selectedID: 202, availableIDs: [101, 202]), 202)
         XCTAssertEqual(DisplayOption.preferredID(selectedID: 303, availableIDs: [101, 202]), 101)
+    }
+
+    func testEdgeFollowingSelectsTheDisplayAtItsBottomEdgeAcrossDifferentLayouts() {
+        let screens = [
+            DockDisplayGeometry.Screen(id: 101, frame: NSRect(x: 0, y: 0, width: 1440, height: 900),
+                                       visibleFrame: NSRect(x: 0, y: 0, width: 1440, height: 878)),
+            DockDisplayGeometry.Screen(id: 202, frame: NSRect(x: -1280, y: 900, width: 1280, height: 1024),
+                                       visibleFrame: NSRect(x: -1280, y: 900, width: 1280, height: 1002))
+        ]
+        let size = NSSize(width: 600, height: 80)
+
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
+                                                            pointer: NSPoint(x: -640, y: 902), position: .bottom,
+                                                            panelSize: size), 202)
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .selectedDisplay,
+                                                            pointer: NSPoint(x: -640, y: 902), position: .bottom,
+                                                            panelSize: size), 101)
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 202, mode: .edgeFollowing,
+                                                            pointer: NSPoint(x: -640, y: 1200), position: .bottom,
+                                                            panelSize: size), 202)
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 303, mode: .edgeFollowing,
+                                                            pointer: NSPoint(x: 720, y: 2), position: .bottom,
+                                                            panelSize: size), 101)
+    }
+
+    func testEdgeFollowingUsesLeftAndRightEdgesOnTallAndWideDisplays() {
+        let screens = [
+            DockDisplayGeometry.Screen(id: 101, frame: NSRect(x: 0, y: 0, width: 1920, height: 1080),
+                                       visibleFrame: NSRect(x: 0, y: 0, width: 1920, height: 1058)),
+            DockDisplayGeometry.Screen(id: 202, frame: NSRect(x: 1920, y: -120, width: 900, height: 1600),
+                                       visibleFrame: NSRect(x: 1920, y: -120, width: 900, height: 1578))
+        ]
+
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
+                                                            pointer: NSPoint(x: 1922, y: 680), position: .left,
+                                                            panelSize: NSSize(width: 80, height: 900)), 202)
+        XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
+                                                            pointer: NSPoint(x: 2818, y: 680), position: .right,
+                                                            panelSize: NSSize(width: 80, height: 900)), 202)
     }
 
     func testAutoHideWaitsAfterEnablingAndAfterShowingAgain() {
