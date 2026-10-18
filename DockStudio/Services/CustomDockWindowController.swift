@@ -117,7 +117,9 @@ final class CustomDockWindowController {
         for name in [NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: panel, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
-                    if notification.name == NSWindow.didResignKeyNotification { self?.previousApp = nil }
+                    let isKey = notification.name == NSWindow.didBecomeKeyNotification
+                    self?.store.isDockPanelKey = isKey
+                    if !isKey { self?.previousApp = nil }
                     self?.updateAutoHide()
                 }
             })
@@ -256,7 +258,7 @@ final class CustomDockWindowController {
     private func leaveKeyboard() {
         let app = previousApp
         panel.resignKey()
-        if let app, !app.isTerminated { app.activate() }
+        if let app, !app.isTerminated { app.activate(from: NSRunningApplication.current) }
     }
 
     private func updatePointerPassThrough() {

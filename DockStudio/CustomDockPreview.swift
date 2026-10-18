@@ -68,7 +68,8 @@ struct DockBar: View {
     @FocusState private var focused: UUID?
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
-    @State private var focusFirstWhenKey = false
+    @State private var keyboardNavigating = false
+    @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
     let vertical: Bool
     var isPanel = false
@@ -125,15 +126,12 @@ struct DockBar: View {
             focus(DockKeyboardNavigation.indexAfterRemoval(at: removedIndex, entries: Self.entries(of: items)), in: items)
         }
         .onChange(of: focused) { if let focused { lastFocused = focused } }
-        .onChange(of: hovered) { if hovered != nil { lastFocused = nil } }
-        .onChange(of: controlActiveState) {
-            if controlActiveState != .key { focused = nil; lastFocused = nil }
-            else if focusFirstWhenKey { focusFirst(in: items) }
-        }
+        .onChange(of: hovered) { if hovered != nil { lastFocused = nil; keyboardNavigating = false } }
+        .onChange(of: controlActiveState) { if controlActiveState != .key { focused = nil; lastFocused = nil; keyboardNavigating = false } }
         .onChange(of: store.dockKeyboardFocusGeneration) {
             guard isPanel else { return }
-            focusFirstWhenKey = true
-            if controlActiveState == .key { focusFirst(in: items) }
+            keyboardNavigating = true
+            focusFirstItem()
         }
         .onChange(of: store.document.settings.position) { hovered = nil }
         .onHover { if !$0 { hovered = nil } }
@@ -147,7 +145,7 @@ struct DockBar: View {
                         presentMenu(for: item, itemFrame: geometry[anchor], origin: geometry.frame(in: .global).origin)
                     }
                 }
-                if let labelID = hovered ?? (controlActiveState == .key ? focused : nil), let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
+                if let labelID = hovered ?? (controlActiveState == .key && keyboardNavigating ? focused : nil), let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
                     let frame = geometry[anchor]
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
@@ -192,6 +190,7 @@ struct DockBar: View {
                 handleKey(key, items: store.displayedItems)
                 return .handled
             }
+            .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
@@ -238,11 +237,24 @@ extension DockBar {
         return result
     }
 
-    fileprivate func focusFirst(in items: [DockItem]) {
-        focusFirstWhenKey = false
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(150))
-            focus(DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: store.displayedItems), current: nil), in: store.displayedItems)
+    fileprivate func focusFirstItem() {
+        focusTask?.cancel()
+        focusTask = Task { @MainActor in
+            var assigned: UUID?
+            var count = 0
+            for _ in 0..<20 where !Task.isCancelled && count < 3 {
+                try? await Task.sleep(for: .milliseconds(150))
+                guard store.isDockPanelKey, focused == nil || focused == assigned,
+                      case .focus(let index) = DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: store.displayedItems), current: nil)
+                else { continue }
+                if assigned != nil {
+                    focused = nil
+                    try? await Task.sleep(for: .milliseconds(20))
+                }
+                assigned = store.displayedItems[index].id
+                focused = assigned
+                count += 1
+            }
         }
     }
 
@@ -261,6 +273,7 @@ extension DockBar {
     }
 
     fileprivate func handleKey(_ key: DockKeyboardNavigation.Key, items: [DockItem]) {
+        keyboardNavigating = true
         let entries = Self.entries(of: items)
         let current = focused.flatMap { id in items.firstIndex { $0.id == id } }
         let command: DockKeyboardNavigation.Command? = switch key {
