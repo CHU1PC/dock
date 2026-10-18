@@ -31,6 +31,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Dock Studio
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSAppleEventsUsageDescription: "Dock Studio は、ゴミ箱の項目数の表示や内容を空にするため Finder に操作を依頼します。"
+        INFOPLIST_KEY_NSFocusStatusUsageDescription: "他のアプリの注意要求によるバウンドを、集中モードが有効な間は抑制するために集中モードの状態を確認します。"
         CODE_SIGNING_ALLOWED: NO
   DockStudioTests:
     type: bundle.unit-test
