@@ -361,8 +361,8 @@ extension DockBar {
         case .hasItems: "trash.fill"
         case .unknown: "trash.slash"
         }
-        Rectangle().fill(.primary.opacity(0.45))
-            .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+        DockIconSizeResizeHandle(vertical: vertical)
+            .padding(5)
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
