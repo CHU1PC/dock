@@ -16,7 +16,7 @@
 
 ## 検証
 
-2026-10-18 にホストで、ビルドと単体テストだけを実行した。GUI は未検証になる。
+2026-10-18 にホストで、ビルドと単体テストを実行した。実画面の確認は次の「実画面の確認」の節に書く。
 
 | 項目 | 結果 |
 | --- | --- |
@@ -101,14 +101,34 @@ VoiceOver は有効にせず、`docs/REMOVE_DOCK_ITEM.md` と同じ AX API の�
 
 すべて `docs/media/keep-running-app/` に保存する。
 
-`before.png`、`menu-keep.png`、`menu-pinned.png`、`after-keep.png`、`after-relaunch.png`、`after-unkeep.png`、`ax-show-menu.png`、`ax-actions.txt`、`keep-running-app.mp4`。
+`before.jpg`、`menu-keep.jpg`、`menu-pinned.jpg`、`after-keep.jpg`、`after-relaunch.jpg`、`after-unkeep.jpg`、`ax-show-menu.jpg`、`ax-actions.txt`、`profiles-after-keep.txt`、`keep-running-app.mp4`。画像は JPEG で保存する。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `ae0a3ea` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `a6edef8e855fc7b4b83f43a28e7586190329f263b1788efa9937ecffda314b9f` と一致した。検証用データは `~/keep-data/profiles.json` に上の内容で置いた。ホストの画面には何も表示していない。
+
+確認できたこと:
+
+- 一時表示の Calculator を右クリックすると、メニューに「開く」「Finder で表示」「Dock に保持」が出た（[menu-keep.jpg](media/keep-running-app/menu-keep.jpg)）。保持済みの Finder では「開く」「Finder で表示」「Dock から取り外す」が出て、「Dock に保持」は出なかった（[menu-pinned.jpg](media/keep-running-app/menu-pinned.jpg)）。
+- 「Dock に保持」を選ぶと、状態に「Calculator を Dock に保持しました」が出た（[after-keep.jpg](media/keep-running-app/after-keep.jpg)）。保存ファイルには、`bundleIdentifier` が `com.apple.calculator`、`target` が `file:///System/Applications/Calculator.app/` の項目が追加された（[profiles-after-keep.txt](media/keep-running-app/profiles-after-keep.txt)）。保持後に Calculator を右クリックすると、「Dock から取り外す」が出た。
+- Calculator と DockStudio を終了し、同じデータで DockStudio を起動し直すと、Calculator が起動していない状態でも Dock に残った。起動中の点は付いていなかった（[after-relaunch.jpg](media/keep-running-app/after-relaunch.jpg)）。
+- Calculator を起動して「Dock から取り外す」を選ぶと、状態に「Calculator を Dock から取り外しました」が出て、Calculator は一時表示として残った（[after-unkeep.jpg](media/keep-running-app/after-unkeep.jpg)）。Calculator を終了すると、項目が Dock から消えた。
+- 操作の動画は[keep-running-app.mp4](media/keep-running-app/keep-running-app.mp4)に保存した。メニューを出す、保持する、保持済みのメニューを出す、取り外す、Calculator を終了して項目が消えるまでを含む。撮影時刻の間隔を維持して15fps に変換し、倍速にはしていない。画面の一部（Dock と状態の表示）に切り出している。VNC のフレームの取得に依存するため、実時間の描画の滑らかさを示すものではない。
+- VoiceOver 用アクションは、AX API の確認用ツールで確かめた。一時表示の Calculator は「Dock に保持」を持ち、「Dock から取り外す」は持たなかった。保持済みの Finder と Safari は逆だった。Calculator に対して `AXUIElementPerformAction` で「Dock に保持」を実行すると、結果が成功になり、保存ファイルに Calculator が追加された。実行後は、Calculator のアクションが「Dock から取り外す」に変わった（[ax-actions.txt](media/keep-running-app/ax-actions.txt)）。VoiceOver は有効にしていない。
+- `AXShowMenu` を実行すると、右クリックと同じメニューが開いた（[ax-show-menu.jpg](media/keep-running-app/ax-show-menu.jpg)）。ただしこの時点の Calculator は保持済みだったため、メニューに出たのは「Dock から取り外す」で、一時表示のときの「Dock に保持」は `AXShowMenu` では撮っていない。`AXShowMenu` の戻り値は、メニューが開いたにもかかわらず、`-25204`（cannot complete）だった。
+
+撮影手順との違い（結果への影響は小さい）:
+
+- Mail は、ゲストでアカウント追加のダイアログが前面に出て操作を妨げたため、ダイアログを閉じた時点で終了した。画像と動画に Mail は含まれない。手順 1 の「Calculator と Mail」は、Calculator だけで確認した。
+- ゲストに、別の作業で残った「Install Command Line Developer Tools」（python3 の呼び出しで出たインストーラー）が起動中で、一時表示として Dock に並んだ（[before.jpg](media/keep-running-app/before.jpg)）。確認の対象外であり、インストールはしていない。
+- メニュー項目は、AX の `AXPress` では押せなかったため、ゲスト内の CGEvent のクリックで選んだ。
 
 ## 未検証
 
 | 項目 | 状況 |
 | --- | --- |
-| 画面での右クリックメニューと保持の操作 | 未検証。上の撮影の手順で確認する |
-| VoiceOver のアクション「Dock に保持」 | 未検証 |
+| VoiceOver のアクション「Dock に保持」 | AX API では確認した。VoiceOver を有効にした実際の読み上げと操作は未検証 |
+| `AXShowMenu` で一時表示の項目のメニューを開いた画面 | 保持済みの項目で開いたことだけ撮影した |
+| Mail など複数の一時表示を並べた状態 | Calculator だけで確認した |
 | macOS 15〜25 | 未確認。VM は macOS 26.6.2 のみ |
-| アプリ再起動後の保持状態 | 単体テストでは再読込を確認した。実アプリの再起動は未検証 |
 | DMG や Gatekeeper の AppTranslocation で起動したアプリ | `bundleURL` が一時的なパスになり、保持した項目が再起動後に無効になる可能性がある。未確認 |
