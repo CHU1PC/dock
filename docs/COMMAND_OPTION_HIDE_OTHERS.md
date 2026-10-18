@@ -31,6 +31,26 @@
 - macOS 15 以降の差分。
 - 実際の Command+Option クリックで `NSEvent.modifierFlags` が期待どおりに取れること。
 
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `a4e9747` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `8826bfd9cc02f15be53b631d130ed2452ce41e1e6c5af7ca32874367fd11143b` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした（[操作前](media/command-option-hide-others/panel-settings-tab-before-full.jpg)）。キーは、ゲスト内の CGEvent で、Command のキーダウン、Option のキーダウンの順に送り、押したままクリックし、キーアップの順に送った。**撮影手順との違い**: Safari は、ゲストで起動すると全画面になり、Dock Studio のウィンドウと別の Space に出てしまったため、使わなかった。代わりに Terminal と TextEdit を起動し、Calculator は未起動のままにした。Safari の項目は、プロファイルにあるが、未起動のままである。操作の記録は[panel-cmd-opt-log.txt](media/command-option-hide-others/panel-cmd-opt-log.txt)にある。
+
+| 操作 | 結果 |
+| --- | --- |
+| 前面が Terminal の状態で、パネルの TextEdit を Command+Option クリック | **隠れず、TextEdit は前面にならなかった。** 「操作を完了できませんでした。TextEdit を前面にできませんでした。」のアラートが出た。前面は Dock Studio、どのアプリも隠れなかった（[画像](media/command-option-hide-others/panel-cmd-opt-front-other-app-alert-crop.jpg)） |
+| 前面が Dock Studio の状態で、パネルの TextEdit を Command+Option クリック | TextEdit が前面になり、Terminal、Calculator、Finder が隠れた。Dock Studio は隠れなかった。アラートなし。どのプロセスも残った（`pgrep` で全 pid を確認） |
+| 前面が Terminal の状態で、右クリックメニューの「ほかを隠す」を TextEdit に実行 | 隠れず、同じ「前面にできませんでした」のアラートが出た（前面は Terminal のまま） |
+| パネルの未起動の Calculator を Command+Option クリック | Calculator が起動し、ほかのアプリは隠れなかった |
+| Command+Option+Shift で Terminal をクリック | Terminal が前面になり、ほかは隠れなかった（通常のクリックと同じ） |
+| 修飾なしで TextEdit をクリック | TextEdit が前面になり、ほかは隠れなかった |
+| Command のみで TextEdit をクリック | Finder が前面に出た（#18 の動作。回帰なし） |
+| TextEdit の右クリックメニュー | 開く、Finder で表示、隠す、ほかを隠す、終了、強制終了…、Dock から取り外す の順に出た |
+
+**所見（コードは直していない）**
+- **他のアプリが前面（パネルが非アクティブ）のとき、Command+Option クリックと「ほかを隠す」は、対象を前面にできずに失敗し、何も隠れない。** Dock Studio が前面のときは動く。#18 と同じ、非アクティブなパネルからの前面化の問題と思われる（#18 では LaunchServices 経由に直した）。
+- **Finder が隠れた。** 仕様の撮影手順は「Dock Studio 自身と Finder は隠れない」を期待しているが、Finder が隠れた。docs の仕様は、隠す対象を「起動中の通常アプリ（`.regular`）で、対象と Dock Studio 自身を除く」としており、Finder は除外されていない。標準 Dock の Command+Option クリックは Finder を隠すかどうかは、この撮影では確認していない。
+- 動画は[panel-cmd-opt-click.mp4](media/command-option-hide-others/panel-cmd-opt-click.mp4)（8fps、第 1 回の操作のみ。アラートが出る場面を含む）。第 2 回（Dock Studio が前面のとき）は動画なし。
+
 ## 撮影の手順
 
 確認する OS は、macOS 26.6.2 の専用ヘッドレス VM だけになる。ホストの画面には何も表示しない。
