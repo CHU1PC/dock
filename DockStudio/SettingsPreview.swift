@@ -55,6 +55,16 @@ struct SettingsPreview: View {
             }
             settingsGroup("Custom Dock の配置") {
                 HStack {
+                    Text("項目の並び方")
+                    Spacer()
+                    Picker("項目の並び方", selection: setting(\.arrangement)) {
+                        ForEach(DockArrangement.allCases) { Text($0.title).tag($0) }
+                    }.labelsHidden().pickerStyle(.segmented).frame(width: 220)
+                }
+                Text("標準の区画では、アプリ、最近使ったアプリ、書類を分けます。保存済みの項目順は変更しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                HStack {
                     Text("画面の選び方")
                     Spacer()
                     Picker("画面の選び方", selection: setting(\.displayMode)) {

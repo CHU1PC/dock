@@ -97,7 +97,8 @@ struct DockBar: View {
     }
 
     var body: some View {
-        let items = store.displayedItems
+        let displayedLayout = store.displayedLayout
+        let items = displayedLayout.items
         let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
@@ -114,6 +115,11 @@ struct DockBar: View {
                                 .font(.callout).foregroundStyle(.secondary).padding(10)
                         }
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            if displayedLayout.dividerBefore.contains(index) {
+                                Rectangle().fill(.primary.opacity(0.45))
+                                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                                    .accessibilityHidden(true)
+                            }
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
@@ -264,6 +270,8 @@ struct DockBar: View {
                         folderContentsItem = nil
                     } updateDisplayStyle: { folder, style in
                         store.updateFolderContentsDisplayStyle(style, for: folder.id)
+                    } onSortOrderChange: { order in
+                        store.setFolderSortOrder(order, for: folder.id)
                     }
                 }
             }

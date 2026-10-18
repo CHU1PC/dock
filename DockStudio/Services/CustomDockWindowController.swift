@@ -287,7 +287,8 @@ final class CustomDockWindowController {
         visibility.update(visible: store.isDockEffectivelyVisible, autoHide: autoHideEnabled,
                           hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && interactionFrame.contains(point))),
                           interacting: trackingMenus > 0 || !store.activePopoverTokens.isEmpty
-                            || panel.isKeyWindow || store.dockKeyboardFocusRequested, now: .now)
+                            || panel.isKeyWindow || store.dockKeyboardFocusRequested
+                            || DockDragOutCancellation.shared.isDragging, now: .now)
     }
 
     private func update() {
@@ -352,8 +353,12 @@ final class CustomDockWindowController {
         let inside = !visibility.isCollapsed && interactionFrame.contains(NSEvent.mouseLocation)
         if store.isDockPointerInside != inside { store.isDockPointerInside = inside }
         updateTemporaryMagnification(NSEvent.modifierFlags)
-        panel.ignoresMouseEvents = !(visibility.isCollapsed ? revealFrame.contains(NSEvent.mouseLocation) : inside)
-            && trackingMenus == 0 && store.activePopoverTokens.isEmpty
+        let pointerIsInteractive = visibility.isCollapsed
+            ? revealFrame.contains(NSEvent.mouseLocation) : inside
+        panel.ignoresMouseEvents = DockDragOutRemoval.shouldIgnoreMouseEvents(
+            pointerIsInteractive: pointerIsInteractive, trackingMenus: trackingMenus > 0,
+            hasActivePopover: !store.activePopoverTokens.isEmpty,
+            isDragging: DockDragOutCancellation.shared.isDragging)
     }
 
     private func updateTemporaryMagnification(_ flags: NSEvent.ModifierFlags) {
