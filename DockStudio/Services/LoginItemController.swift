@@ -38,6 +38,10 @@ final class LoginItemController {
 
     var isOn: Bool { state == .enabled || state == .requiresApproval }
 
+    func openSystemSettings() {
+        SMAppService.openSystemSettingsLoginItems()
+    }
+
     func refresh() {
         state = LoginItemState(service.status)
         message = Self.notice(for: state)

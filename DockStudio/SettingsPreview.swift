@@ -1,4 +1,3 @@
-import ServiceManagement
 import SwiftUI
 
 struct SettingsPreview: View {
@@ -253,7 +252,7 @@ struct SettingsPreview: View {
                     Label(message, systemImage: "exclamationmark.triangle").font(.callout)
                 }
                 if store.loginItem.state == .requiresApproval {
-                    Button("システム設定を開く") { SMAppService.openSystemSettingsLoginItems() }
+                    Button("システム設定を開く") { store.loginItem.openSystemSettings() }
                 }
                 if let notice = store.launchStateNotice {
                     Label(notice, systemImage: "exclamationmark.triangle").font(.callout)
