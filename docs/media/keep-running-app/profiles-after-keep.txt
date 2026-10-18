@@ -1,0 +1,42 @@
+{
+  "activeProfileID" : "11111111-1111-1111-1111-111111111111",
+  "profiles" : [
+    {
+      "id" : "11111111-1111-1111-1111-111111111111",
+      "items" : [
+        {
+          "bundleIdentifier" : "com.apple.finder",
+          "id" : "22222222-2222-2222-2222-222222222222",
+          "kind" : "application",
+          "name" : "Finder",
+          "target" : "file:\/\/\/System\/Library\/CoreServices\/Finder.app"
+        },
+        {
+          "bundleIdentifier" : "com.apple.Safari",
+          "id" : "33333333-3333-3333-3333-333333333333",
+          "kind" : "application",
+          "name" : "Safari",
+          "target" : "file:\/\/\/Applications\/Safari.app"
+        },
+        {
+          "bundleIdentifier" : "com.apple.calculator",
+          "id" : "44691414-5674-4160-B66E-1FA4A0F154A2",
+          "kind" : "application",
+          "name" : "Calculator",
+          "target" : "file:\/\/\/System\/Applications\/Calculator.app\/"
+        }
+      ],
+      "name" : "Keep test"
+    }
+  ],
+  "schemaVersion" : 1,
+  "settings" : {
+    "autoHide" : false,
+    "iconSize" : 52,
+    "launchBounce" : true,
+    "mode" : "custom",
+    "position" : "bottom",
+    "revealAnimationDuration" : 0.22,
+    "showRunningApps" : true
+  }
+}
