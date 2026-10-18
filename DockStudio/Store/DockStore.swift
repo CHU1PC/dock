@@ -45,6 +45,9 @@ final class DockStore {
     @ObservationIgnored private var appearanceSaveTask: Task<Void, Never>?
     private(set) var isChoosingDockBackground = false
     var dockKeyboardFocusRequested = false
+    var dockKeyboardFocusGeneration = 0
+    var dockKeyboardExitRequested = false
+    var isDockPanelKey = false
     var isDockPointerInside = false
     var appearance: DockAppearance { transientAppearance ?? savedAppearance }
     private(set) var appearanceIsReadOnly = false
@@ -170,7 +173,10 @@ final class DockStore {
 
     func focusDock() {
         if !isDockEffectivelyVisible { toggleDockVisibility() }
-        if isDockEffectivelyVisible { dockKeyboardFocusRequested = true }
+        if isDockEffectivelyVisible {
+            dockKeyboardFocusRequested = true
+            dockKeyboardFocusGeneration += 1
+        }
     }
 
     func chooseDockBackground() {

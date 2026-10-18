@@ -75,6 +75,7 @@ final class CustomDockWindowController {
     private var trackingMenus = 0
     private var pointerMonitor: Any?
     private var localMonitor: Any?
+    private var previousApp: NSRunningApplication?
 
     init(store: DockStore) {
         self.store = store
@@ -114,8 +115,13 @@ final class CustomDockWindowController {
             }
         })
         for name in [NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification] {
-            observers.append(NotificationCenter.default.addObserver(forName: name, object: panel, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.updateAutoHide() }
+            observers.append(NotificationCenter.default.addObserver(forName: name, object: panel, queue: .main) { [weak self] notification in
+                MainActor.assumeIsolated {
+                    let isKey = notification.name == NSWindow.didBecomeKeyNotification
+                    self?.store.isDockPanelKey = isKey
+                    if !isKey { self?.previousApp = nil }
+                    self?.updateAutoHide()
+                }
             })
         }
         for name in [NSMenu.didBeginTrackingNotification, NSMenu.didEndTrackingNotification] {
@@ -138,7 +144,9 @@ final class CustomDockWindowController {
                     self.panel.makeKeyAndOrderFront(nil)
                 }
                 if event.type == .keyDown {
-                    if event.keyCode == 53, self?.panel.isKeyWindow == true, self?.trackingMenus == 0 { self?.panel.resignKey(); return true }
+                    if let self, self.panel.isKeyWindow, self.trackingMenus == 0 {
+                        if event.keyCode == 53 { self.leaveKeyboard(); return true }
+                    }
                 } else { self?.updateAutoHide(); self?.updatePointerPassThrough() }
                 return false
             }
@@ -203,7 +211,12 @@ final class CustomDockWindowController {
     private func update() {
         updateVisibility()
         panel.appearance = store.appearance.colorMode.nsAppearance
+        if store.dockKeyboardExitRequested {
+            store.dockKeyboardExitRequested = false
+            leaveKeyboard()
+        }
         guard store.isDockEffectivelyVisible, let screen = selectedScreen else {
+            if previousApp != nil { leaveKeyboard() }
             timer?.invalidate(); timer = nil
             panel.orderOut(nil)
             return
@@ -227,6 +240,9 @@ final class CustomDockWindowController {
         if !panel.isVisible { panel.orderFrontRegardless() }
         if store.dockKeyboardFocusRequested {
             store.dockKeyboardFocusRequested = false
+            if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+                previousApp = front
+            }
             NSApplication.shared.activate(ignoringOtherApps: true)
             panel.makeKeyAndOrderFront(nil)
         }
@@ -237,6 +253,12 @@ final class CustomDockWindowController {
             }
             if let timer { RunLoop.main.add(timer, forMode: .common) }
         } else if !autoHideEnabled { timer?.invalidate(); timer = nil }
+    }
+
+    private func leaveKeyboard() {
+        let app = previousApp
+        panel.resignKey()
+        if let app, !app.isTerminated { app.activate(from: NSRunningApplication.current) }
     }
 
     private func updatePointerPassThrough() {
