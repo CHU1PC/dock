@@ -38,8 +38,8 @@
 
 | 条件 | 状況 |
 | --- | --- |
-| 参照切れと一時的なボリューム未接続を区別して表示する | 満たした（アイコンと開く時のメッセージが異なる）。単体テストで判定を確認した。実画面は未検証 |
-| 再接続や再選択で状態を回復できる | 満たした（マウント通知と参照先の変更で再判定）。実際のボリュームの着脱は未検証 |
+| 参照切れと一時的なボリューム未接続を区別して表示する | 満たした（アイコンと開く時のメッセージが異なる）。単体テストで判定を確認し、実画面でも確認した |
+| 再接続や再選択で状態を回復できる | 満たした（マウント通知と参照先の変更で再判定）。ディスクイメージの着脱は実画面で確認した |
 | 起動前の検証を維持し、参照切れを勝手に別の対象へ結び付けない | 満たした（`ItemLaunchPolicy` は未変更。開く前に停止するだけで、参照先は書き換えない） |
 
 VoiceOver のラベルは、受け入れ条件にないため変更していない。
@@ -62,11 +62,34 @@ VoiceOver のラベルは、受け入れ条件にないため変更していな�
 
 ### 未検証
 
-- 実画面での代替アイコンの見え方と、Dock の各アイコンサイズでの表示
-- 実際の外付けボリュームの取り外しと再接続による表示の切替
+- Dock の各アイコンサイズでの表示（64だけ確認した）
+- 実物の外付けボリュームの着脱（ディスクイメージで代用した）
 - 移動した項目の検出（ブックマークを持たないため、移動は参照切れとして扱う）
 - macOS 15 以降での差異（VM が 26.6.2 のみで、未確認）
-- ポインタが Dock に入ったときの再判定の実画面での動作
+- 管理画面内のプレビューでの hover 開始時の再判定
+
+### 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `5aa873a` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `645cd8b095ff419001e667051a2316bddba5570b4a11a4880cbc080d727ef4ab` と一致した。`hdiutil` は、ゲストの中でだけ実行した。検証用データと手順は、上の「撮影の手順」のとおり（アイコンサイズは64）。確認は、デスクトップ用パネルで行い、ポインタの移動はゲスト内の CGEvent で合成した。
+
+確認できたこと:
+
+- 起動直後の Dock は、Calculator、Copied App が通常のアイコン、Removed Folder が疑問符の代替アイコン、Disk Project（ボリューム接続中）が通常のフォルダアイコンで表示された（[before.jpg](media/unavailable-item-display/before.jpg)）。
+- Copied.app を `mv` で動かし、ポインタを Dock の外へ出して入れ直すと、Copied App が疑問符のアイコンに変わった（[copied-app-missing.jpg](media/unavailable-item-display/copied-app-missing.jpg)）。ポインタが Dock に入ったときの再判定（`isDockPointerInside`）は、パネルで動いた。
+- 疑問符の Copied App をクリックすると、「Copied App は見つかりません。参照先が移動または削除された可能性があります。」のアラートが出て、何も起動せず、項目は Dock に残った（[copied-app-open-error.jpg](media/unavailable-item-display/copied-app-open-error.jpg)）。
+- Copied.app を元の場所へ戻し、ポインタを入れ直すと、通常のアイコンに戻った（[copied-app-restored.jpg](media/unavailable-item-display/copied-app-restored.jpg)、[動画](media/unavailable-item-display/file-removed-and-restored.mp4)）。
+- `hdiutil detach` で「Detached Disk」を取り外すと、数秒以内に、ポインタを Dock に入れ直さなくても、Disk Project が外付けドライブに×のアイコンへ変わった（マウント通知による更新。[volume-detached.jpg](media/unavailable-item-display/volume-detached.jpg)）。
+- Disk Project をクリックすると、「Disk Project があるボリュームが接続されていません。接続してからもう一度開いてください。」のアラートが出た。参照切れとは異なる文言だった（[volume-open-error.jpg](media/unavailable-item-display/volume-open-error.jpg)、[動画](media/unavailable-item-display/volume-detach-click-error.mp4)）。
+- `hdiutil attach` で再接続すると、Disk Project が通常のフォルダアイコンに戻った（[volume-reattached.jpg](media/unavailable-item-display/volume-reattached.jpg)、[動画](media/unavailable-item-display/volume-reattach-recovers.mp4)）。
+- プロファイル編集の一覧でも、同じ表示になった。ボリューム接続中は Removed Folder だけが疑問符、取り外し後は Disk Project が×つきのドライブのアイコンだった（[profile-list-attached.jpg](media/unavailable-item-display/profile-list-attached.jpg)、[profile-list-detached.jpg](media/unavailable-item-display/profile-list-detached.jpg)）。
+- 動画は撮影時刻の間隔を維持して12fps に変換し、倍速にはしていない。画面の一部に切り出している。VNC の取得に依存するため、描画性能の測定ではない。操作のログは[shell-log.txt](media/unavailable-item-display/shell-log.txt)にある。
+
+確認できなかったこと、手順との違い:
+
+- 管理画面内のプレビューでのポインタ再判定（hover の開始時）は、撮影していない。
+- 実物の外付けディスクの着脱（ゲストでは、ディスクイメージの着脱で代用した）。Dock の各アイコンサイズでの見え方は、64だけで確認した。
+- 動画のうち、エラーのアラートが出ている間のパネルは暗く表示される（アラートの表示中の通常の見え方）。
+- アラートは、AX の「閉じる」で閉じた。
 
 ## 撮影の手順
 
