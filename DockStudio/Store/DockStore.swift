@@ -15,6 +15,10 @@ final class DockStore {
     var status = ""
     var isDockVisible = false
     var runningItems: [DockItem] = []
+    var trashState = TrashState.unknown
+    @ObservationIgnored var trashInspector = TrashInspector()
+    @ObservationIgnored var trashMonitor: Task<Void, Never>?
+    @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
@@ -67,6 +71,7 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        startTrashMonitoring()
         if !isPreview { itemAvailability.startObserving() }
     }
 
