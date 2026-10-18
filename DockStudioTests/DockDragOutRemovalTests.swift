@@ -4,6 +4,29 @@ import XCTest
 final class DockDragOutRemovalTests: XCTestCase {
     private let margin = DockDragOutRemoval.margin
 
+    @MainActor
+    func testEscapeCancelsOnlyAnActiveDrag() {
+        let state = DockDragOutCancellation.shared
+        _ = state.finish()
+
+        XCTAssertFalse(state.cancelIfDragging())
+        state.begin()
+        XCTAssertTrue(state.cancelIfDragging())
+        XCTAssertTrue(state.finish())
+        XCTAssertFalse(state.isDragging)
+        XCTAssertFalse(state.isCancelled)
+    }
+
+    @MainActor
+    func testFinishingUncancelledDragAllowsOutsideRemoval() {
+        let state = DockDragOutCancellation.shared
+        _ = state.finish()
+        state.begin()
+
+        XCTAssertFalse(state.finish())
+        XCTAssertFalse(state.isDragging)
+    }
+
     func testBottomVisibleBoundsExcludeTransparentLabelArea() {
         // パネルの下配置: DockBar の高さは icon+65、見える背景は icon+30（icon=64）
         let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 400, height: 129), vertical: false, thickness: 94)
