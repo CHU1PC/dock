@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct CustomDockPreview: View {
     @Environment(DockStore.self) private var store
@@ -64,8 +65,14 @@ struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var hovered: UUID?
+    @State private var itemRects: [UUID: CGRect] = [:]
+    @State private var dropIndex: Int?
     let vertical: Bool
     var isPanel = false
+    private func refreshAvailability() {
+        Task { await store.itemAvailability.refreshAll(minInterval: 1) }
+    }
+
     private var motion: Animation? {
         store.appearance.reduceMotion || systemReduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82)
     }
@@ -88,18 +95,7 @@ struct DockBar: View {
                                 .font(.callout).foregroundStyle(.secondary).padding(10)
                         }
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            if item.kind == .spacer {
-                                Rectangle().fill(.primary.opacity(0.45))
-                                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
-                            } else if item.kind == .clock {
-                                ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
-                                    .onHover { if $0 { hovered = nil } }
-                            } else if item.kind == .focusTimer {
-                                FocusTimerTile(itemID: item.id, vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
-                                    .onHover { if $0 { hovered = nil } }
-                            } else {
-                                dockItem(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
-                            }
+                            barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
@@ -112,15 +108,23 @@ struct DockBar: View {
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
         }
+        .coordinateSpace(name: Self.space)
+        .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
+        .overlay { dropIndicator(items: items) }
+        .onDrop(of: [.fileURL], delegate: DockDropDelegate(
+            store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] },
+            isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
         .onChange(of: store.document.settings.position) { hovered = nil }
-        .onHover { if !$0 { hovered = nil } }
-        .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
+        .onHover { if $0 { refreshAvailability() } else { hovered = nil } }
+        .onChange(of: store.isDockPointerInside) {
+            if store.isDockPointerInside { refreshAvailability() }
+            if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let anchor = frames[labelID], let item = DockStore.hoverableItems(items).first(where: { $0.id == labelID }) {
-                    let frame = geometry[anchor]
+                if let labelID = hovered, let frame = frames[labelID], let item = DockStore.hoverableItems(items).first(where: { $0.id == labelID }) {
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
                     Text(item.name).font(.system(size: 12, weight: .medium))
@@ -135,6 +139,48 @@ struct DockBar: View {
         .modifier(DockColorSchemeOverride(mode: store.appearance.colorMode, isPanel: isPanel))
     }
 
+    @ViewBuilder
+    private func barElement(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
+        Group {
+            if item.kind == .spacer {
+                Rectangle().fill(.primary.opacity(0.45))
+                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+            } else if item.kind == .clock {
+                ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                    .onHover { if $0 { hovered = nil } }
+            } else if item.kind == .focusTimer {
+                FocusTimerTile(itemID: item.id, vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
+                    .onHover { if $0 { hovered = nil } }
+            } else {
+                dockItem(item, index: index, hoveredIndex: hoveredIndex, runningIdentities: runningIdentities)
+            }
+        }
+        .background(GeometryReader { proxy in
+            Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
+        })
+    }
+
+    private static let space = "dockBar"
+
+    @ViewBuilder
+    private func dropIndicator(items: [DockItem]) -> some View {
+        if let index = dropIndex {
+            let frames = items.compactMap { itemRects[$0.id] }
+            let mark = RoundedRectangle(cornerRadius: 1.5).fill(StudioColor.accent)
+            GeometryReader { geometry in
+                if let neighbor = frames.isEmpty ? nil : frames[min(index, frames.count - 1)] {
+                    let edge = index < frames.count ? (vertical ? neighbor.minY : neighbor.minX) : (vertical ? neighbor.maxY : neighbor.maxX)
+                    mark.frame(width: vertical ? neighbor.width : 3, height: vertical ? 3 : neighbor.height)
+                        .position(x: vertical ? neighbor.midX : edge, y: vertical ? edge : neighbor.midY)
+                } else {
+                    mark.frame(width: vertical ? store.effectiveIconSize : 3, height: vertical ? 3 : store.effectiveIconSize)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                }
+            }
+            .allowsHitTesting(false).accessibilityHidden(true)
+        }
+    }
+
     private func dockItem(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
         let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
@@ -144,6 +190,7 @@ struct DockBar: View {
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                                    availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
@@ -155,13 +202,20 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
+                if store.canQuitApplication(item) {
+                    Button("終了") { store.quitApplication(item) }
+                }
                 if store.isPinned(item) {
                     Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
+                }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
             .contextMenu {
@@ -169,8 +223,14 @@ struct DockBar: View {
                 if let url = item.targetURL, url.isFileURL {
                     Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
                 }
+                if store.canQuitApplication(item) {
+                    Button("終了") { store.quitApplication(item) }
+                }
                 if store.isPinned(item) {
                     Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
+                }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
@@ -179,7 +239,6 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
-        .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
         .onHover { if $0 { hovered = item.id } }
     }
 }
@@ -213,8 +272,56 @@ extension DockBar {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
-        .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
+        .background(GeometryReader { proxy in
+            Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
+        })
         .onHover { if $0 { hovered = item.id } }
+    }
+}
+
+enum DockDropInsertion {
+    static func index(at point: CGPoint, frames: [CGRect], vertical: Bool) -> Int {
+        frames.firstIndex { vertical ? point.y < $0.midY : point.x < $0.midX } ?? frames.count
+    }
+}
+
+private struct DockDropDelegate: DropDelegate {
+    let store: DockStore
+    let vertical: Bool
+    let frames: [CGRect]
+    let isMeasured: Bool
+    @Binding var index: Int?
+
+    func validateDrop(info: DropInfo) -> Bool {
+        !store.storageIsReadOnly && isMeasured && info.hasItemsConforming(to: [.fileURL])
+    }
+
+    func dropEntered(info: DropInfo) { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        if index != nil { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+        return DropProposal(operation: .copy)
+    }
+
+    func dropExited(info: DropInfo) { index = nil }
+
+    func performDrop(info: DropInfo) -> Bool {
+        let position = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical)
+        let providers = info.itemProviders(for: [.fileURL])
+        index = nil
+        guard !providers.isEmpty else { return false }
+        Task { @MainActor in
+            var urls: [URL] = []
+            for provider in providers {
+                let url: URL? = await withCheckedContinuation { continuation in
+                    _ = provider.loadObject(ofClass: URL.self) { url, _ in continuation.resume(returning: url) }
+                }
+                if let url { urls.append(url) }
+            }
+            store.addDroppedItems(urls, at: position)
+            index = nil
+        }
+        return true
     }
 }
 
@@ -262,8 +369,8 @@ private struct LaunchBounce: ViewModifier {
 }
 
 private struct DockItemFrames: PreferenceKey {
-    static var defaultValue: [UUID: Anchor<CGRect>] { [:] }
-    static func reduce(value: inout [UUID: Anchor<CGRect>], nextValue: () -> [UUID: Anchor<CGRect>]) {
+    static var defaultValue: [UUID: CGRect] { [:] }
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
         value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
@@ -289,6 +396,7 @@ struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
     var style: DockAppearance.IconStyle = .original
+    var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
     var symbol: String?
@@ -296,7 +404,14 @@ struct ItemIcon: View {
 
     var body: some View {
         Group {
-            if let url = item.targetURL, url.isFileURL {
+            if availability.isUnavailable {
+                Image(systemName: availability == .volumeNotMounted ? "externaldrive.badge.xmark" : "questionmark.square.dashed")
+                    .font(.system(size: size * 0.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: size, height: size)
+                    .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
+                    .opacity(0.75)
+            } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
