@@ -68,6 +68,7 @@ struct DockBar: View {
     @FocusState private var focused: UUID?
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
+    @State private var focusFirstWhenKey = false
     @State private var typeAhead = DockTypeAheadBuffer()
     let vertical: Bool
     var isPanel = false
@@ -125,9 +126,14 @@ struct DockBar: View {
         }
         .onChange(of: focused) { if let focused { lastFocused = focused } }
         .onChange(of: hovered) { if hovered != nil { lastFocused = nil } }
-        .onChange(of: controlActiveState) { if controlActiveState != .key { focused = nil; lastFocused = nil } }
+        .onChange(of: controlActiveState) {
+            if controlActiveState != .key { focused = nil; lastFocused = nil }
+            else if focusFirstWhenKey { focusFirst(in: items) }
+        }
         .onChange(of: store.dockKeyboardFocusGeneration) {
-            if isPanel { focus(DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: items), current: nil), in: items) }
+            guard isPanel else { return }
+            focusFirstWhenKey = true
+            if controlActiveState == .key { focusFirst(in: items) }
         }
         .onChange(of: store.document.settings.position) { hovered = nil }
         .onHover { if !$0 { hovered = nil } }
@@ -230,6 +236,14 @@ extension DockBar {
             result.append(DockItemAction(title: "Dock から取り外す", isDestructive: true) { store.removeFromActiveProfile(item) })
         }
         return result
+    }
+
+    fileprivate func focusFirst(in items: [DockItem]) {
+        focusFirstWhenKey = false
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            focus(DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: store.displayedItems), current: nil), in: store.displayedItems)
+        }
     }
 
     fileprivate func focus(_ index: Int?, in items: [DockItem]) {
