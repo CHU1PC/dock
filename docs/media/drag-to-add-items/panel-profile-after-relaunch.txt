@@ -1,0 +1,66 @@
+{
+  "activeProfileID" : "11111111-1111-1111-1111-111111111111",
+  "profiles" : [
+    {
+      "id" : "11111111-1111-1111-1111-111111111111",
+      "items" : [
+        {
+          "bundleIdentifier" : "com.apple.finder",
+          "id" : "22222222-2222-2222-2222-222222222222",
+          "kind" : "application",
+          "name" : "Finder",
+          "target" : "file:\/\/\/System\/Library\/CoreServices\/Finder.app"
+        },
+        {
+          "bundleIdentifier" : "com.apple.Safari",
+          "id" : "33333333-3333-3333-3333-333333333333",
+          "kind" : "application",
+          "name" : "Safari",
+          "target" : "file:\/\/\/Applications\/Safari.app"
+        },
+        {
+          "id" : "2B3E8462-2255-4CC8-9970-174D33314F54",
+          "kind" : "application",
+          "name" : "Calculator",
+          "target" : "file:\/\/\/Users\/admin\/Documents\/drop-src\/Calculator.app\/"
+        },
+        {
+          "id" : "B9715D67-67E1-4542-9A8E-3F4D1EB44B42",
+          "kind" : "file",
+          "name" : "plan.md",
+          "target" : "file:\/\/\/Users\/admin\/Documents\/drop-src\/plan.md"
+        },
+        {
+          "id" : "F7047E30-CA6B-43AA-A704-D2CBB5EB0482",
+          "kind" : "file",
+          "name" : "メモ.txt",
+          "target" : "file:\/\/\/Users\/admin\/Documents\/drop-src\/%E3%83%A1%E3%83%A2.txt"
+        },
+        {
+          "id" : "09C5A47E-1482-46BD-BD8C-F337964C200D",
+          "kind" : "folder",
+          "name" : "資料",
+          "target" : "file:\/\/\/Users\/admin\/Documents\/drop-src\/%E8%B3%87%E6%96%99\/"
+        },
+        {
+          "bundleIdentifier" : "com.apple.mail",
+          "id" : "44444444-4444-4444-4444-444444444444",
+          "kind" : "application",
+          "name" : "Mail",
+          "target" : "file:\/\/\/System\/Applications\/Mail.app"
+        }
+      ],
+      "name" : "Drop test"
+    }
+  ],
+  "schemaVersion" : 1,
+  "settings" : {
+    "autoHide" : false,
+    "iconSize" : 52,
+    "launchBounce" : true,
+    "mode" : "custom",
+    "position" : "bottom",
+    "revealAnimationDuration" : 0.22,
+    "showRunningApps" : false
+  }
+}

@@ -20,6 +20,7 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
@@ -474,6 +475,26 @@ final class DockStore {
         activeProfile.items.contains { $0.id == item.id }
     }
 
+    @discardableResult
+    func keepInActiveProfile(_ item: DockItem) -> Bool {
+        let profileID = document.activeProfileID
+        guard item.kind == .application, let identity = item.applicationIdentity,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        if document.profiles[profileIndex].items.contains(where: { $0.applicationIdentity == identity }) { return true }
+        do { _ = try ItemLaunchPolicy().validate(item) }
+        catch { errorMessage = "Dock に保持できませんでした。\n\(error.localizedDescription)"; return false }
+        var candidate = document
+        candidate.profiles[profileIndex].items.append(item)
+        guard commit(candidate) else { return false }
+        if var draft = drafts[profileID] {
+            if !draft.items.contains(where: { $0.applicationIdentity == identity }) { draft.items.append(item) }
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(item.name) を Dock に保持しました"
+        return true
+    }
+
     func removeFromActiveProfile(_ item: DockItem) {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
     }
@@ -493,6 +514,50 @@ final class DockStore {
         }
         status = "\(removed.name) を Dock から取り外しました"
         return true
+    }
+
+    @discardableResult
+    func addDroppedItems(_ urls: [URL], at index: Int) -> (added: Int, rejected: [String]) {
+        var items: [DockItem] = []
+        var rejected: [String] = []
+        for url in urls {
+            if let item = Self.droppedItem(from: url) { items.append(item) } else { rejected.append(url.lastPathComponent) }
+        }
+        var candidate = document
+        guard !items.isEmpty, let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+            reportDropFailure(rejected: rejected)
+            return (0, rejected)
+        }
+        let position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
+        candidate.profiles[profileIndex].items.insert(contentsOf: items, at: position)
+        guard commit(candidate) else { return (0, rejected) }
+        let profileID = candidate.profiles[profileIndex].id
+        if var draft = drafts[profileID] {
+            let anchor = position > 0 ? candidate.profiles[profileIndex].items[position - 1].id : nil
+            let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
+            draft.items.insert(contentsOf: items, at: draftPosition)
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(items.count) 個の項目を Dock に追加しました"
+        reportDropFailure(rejected: rejected)
+        return (items.count, rejected)
+    }
+
+    private func reportDropFailure(rejected: [String]) {
+        guard !rejected.isEmpty else { return }
+        errorMessage = "次の項目は Dock に追加できませんでした。\n\(rejected.joined(separator: "\n"))"
+    }
+
+    private static func droppedItem(from url: URL) -> DockItem? {
+        guard url.isFileURL,
+              let values = try? url.standardizedFileURL.resolvingSymlinksInPath().resourceValues(forKeys: [.isDirectoryKey])
+        else { return nil }
+        let isApplication = values.isDirectory == true && url.pathExtension.lowercased() == "app"
+        let kind: DockItemKind = isApplication ? .application : values.isDirectory == true ? .folder : .file
+        let item = DockItem(name: isApplication ? url.deletingPathExtension().lastPathComponent : url.lastPathComponent,
+                            kind: kind, target: url.absoluteString)
+        return (try? ItemLaunchPolicy().validate(item)) == nil ? nil : item
     }
 
     func undoRemoval() {
@@ -531,6 +596,22 @@ final class DockStore {
                 status = "Apple Dock の配置を読み取りました"
             }
         } catch { errorMessage = "Apple Dock の配置を読み込めませんでした。\n\(error.localizedDescription)" }
+    }
+
+    func canQuitApplication(_ item: DockItem) -> Bool {
+        guard applicationQuitter.quittableBundleIdentifier(for: item) != nil,
+              let identity = item.applicationIdentity else { return false }
+        return runningItems.contains { $0.applicationIdentity == identity }
+    }
+
+    func quitApplication(_ item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        switch applicationQuitter.quit(item) {
+        case .requested: status = "\(item.name) に終了を要求しました"
+        case .notRunning: status = "\(item.name) は起動していません"
+        case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
+        case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
+        }
     }
 
     func openItem(_ item: DockItem) {
