@@ -69,6 +69,10 @@ struct DockBar: View {
     @State private var dropIndex: Int?
     let vertical: Bool
     var isPanel = false
+    private func refreshAvailability() {
+        Task { await store.itemAvailability.refreshAll(minInterval: 1) }
+    }
+
     private var motion: Animation? {
         store.appearance.reduceMotion || systemReduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82)
     }
@@ -112,8 +116,11 @@ struct DockBar: View {
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
         .onChange(of: store.document.settings.position) { hovered = nil }
-        .onHover { if !$0 { hovered = nil } }
-        .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
+        .onHover { if $0 { refreshAvailability() } else { hovered = nil } }
+        .onChange(of: store.isDockPointerInside) {
+            if store.isDockPointerInside { refreshAvailability() }
+            if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
                 if let labelID = hovered, let frame = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
@@ -182,6 +189,7 @@ struct DockBar: View {
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                                    availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
@@ -193,6 +201,7 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
@@ -350,13 +359,21 @@ struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
     var style: DockAppearance.IconStyle = .original
+    var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Group {
-            if let url = item.targetURL, url.isFileURL {
+            if availability.isUnavailable {
+                Image(systemName: availability == .volumeNotMounted ? "externaldrive.badge.xmark" : "questionmark.square.dashed")
+                    .font(.system(size: size * 0.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: size, height: size)
+                    .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
+                    .opacity(0.75)
+            } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
