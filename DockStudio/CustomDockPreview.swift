@@ -505,6 +505,7 @@ extension DockBar {
                         store.errorMessage = "\(itemName) の「\(item.title)」を実行できませんでした。"
                         return
                     }
+                    store.status = "\(itemName) の「\(item.title)」を実行しました"
                 }
             } else {
                 let submenu = NSMenu()
