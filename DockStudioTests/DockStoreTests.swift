@@ -42,6 +42,18 @@ final class DockStoreTests: XCTestCase {
         XCTAssertFalse(store.hasUnsavedChanges)
     }
 
+    func testKeyboardMovePersistsActiveProfileOrder() throws {
+        let store = DockStore(persistence: persistence)
+        let original = store.activeProfile.items
+        let movedIndex = store.moveActiveItem(original[1].id, by: 1)
+
+        XCTAssertEqual(movedIndex, 2)
+        XCTAssertEqual(store.activeProfile.items[2].id, original[1].id)
+        XCTAssertEqual(try DockStore(persistence: persistence).activeProfile.items.map(\.id),
+                       store.activeProfile.items.map(\.id))
+        XCTAssertTrue(store.status.contains("3番目に移動しました"))
+    }
+
     func testSavingInactiveProfileDoesNotActivateIt() {
         let store = DockStore(persistence: persistence)
         let activeID = store.document.activeProfileID

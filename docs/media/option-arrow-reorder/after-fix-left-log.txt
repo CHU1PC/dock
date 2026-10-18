@@ -1,0 +1,11 @@
+## left (order by y)
+start: ui=Finder Calculator Safari  file=Option arrow demo,Finder,Calculator,
+Down (focus Calculator): ui=Finder Calculator Safari 
+Option+Up: ui=Calculator Finder Safari  file=Calculator,Finder,Safari,
+Option+Down (back): ui=Finder Calculator Safari  file=Finder,Calculator,Safari,
+Option+Down again (Calculator -> after Safari? expect Finder Safari Calculator): ui=Finder Safari Calculator  file=Finder,Safari,Calculator,
+Option+Down at end edge (expect ignored): ui=Finder Safari Calculator 
+Option+Left in left layout (orthogonal, expect ignored): ui=Finder Safari Calculator 
+Shift+Option+Up (expect ignored): ui=Finder Safari Calculator 
+pj-final=Finder,Safari,Calculator,
+AX announcement/focus: focused: role=AXButton title= desc=Calculator

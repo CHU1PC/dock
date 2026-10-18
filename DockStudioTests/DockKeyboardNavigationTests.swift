@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import DockStudio
 
 final class DockKeyboardNavigationTests: XCTestCase {
@@ -27,6 +28,32 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(Nav.command(for: .left, position: .right), .openMenu)
         XCTAssertNil(Nav.command(for: .left, position: .left))
         XCTAssertNil(Nav.command(for: .right, position: .right))
+    }
+
+    func testOptionArrowReordersAlongDockAndIgnoresOtherDirections() {
+        XCTAssertEqual(Nav.reorderOffset(for: .left, position: .bottom), -1)
+        XCTAssertEqual(Nav.reorderOffset(for: .right, position: .bottom), 1)
+        XCTAssertNil(Nav.reorderOffset(for: .up, position: .bottom))
+        XCTAssertNil(Nav.reorderOffset(for: .down, position: .bottom))
+        for position in [DockPosition.left, .right] {
+            XCTAssertEqual(Nav.reorderOffset(for: .up, position: position), -1)
+            XCTAssertEqual(Nav.reorderOffset(for: .down, position: position), 1)
+            XCTAssertNil(Nav.reorderOffset(for: .left, position: position))
+            XCTAssertNil(Nav.reorderOffset(for: .right, position: position))
+        }
+    }
+
+    func testOptionArrowIgnoresNonSemanticEventModifiers() {
+        let key = Nav.Key(key: .leftArrow, characters: "", modifiers: [.option, .numericPad, .function])
+
+        XCTAssertEqual(key, .reorder(.left))
+    }
+
+    func testOptionArrowRejectsAdditionalSemanticModifiers() {
+        for modifier: EventModifiers in [.shift, .control, .command] {
+            let key = Nav.Key(key: .leftArrow, characters: "", modifiers: [.option, modifier, .numericPad, .function])
+            XCTAssertNil(key, "Expected to reject modifier: \(modifier)")
+        }
     }
 
     func testNextAndPreviousSkipSpacers() {

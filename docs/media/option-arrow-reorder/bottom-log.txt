@@ -1,0 +1,21 @@
+## 01 right (focus Calculator)
+order: Finder Calculator Safari 
+## 02 Option+Left (Calculator moves before Finder)
+order: Finder Calculator Safari 
+## 03 Option+Right (Calculator moves back)
+order: Finder Calculator Safari 
+## 04 left to Finder (first item)
+order: Finder Calculator Safari 
+## 05 Option+Left on first item (expect ignored)
+order: Finder Calculator Safari 
+## 06 End to Safari (last item)
+order: Finder Calculator Safari 
+## 07 Option+Right on last item (expect ignored)
+order: Finder Calculator Safari 
+## 08 Home, right to Calculator, Option+Left again (for persistence)
+order: Finder Calculator Safari 
+profiles.json order (before restart):
+   "name": "Option arrow demo",
+     "name": "Finder",
+     "name": "Calculator",
+     "name": "Safari",

@@ -1,0 +1,14 @@
+## bottom
+start: ui=Finder Calculator Safari  file=Finder,Calculator,Safari,
+right (focus Calculator): ui=Finder Calculator Safari 
+Option+Left: ui=Calculator Finder Safari  file=Finder,Safari,Option arrow demo,
+Option+Right (back): ui=Finder Calculator Safari  file=Calculator,Safari,Option arrow demo,
+Left to first item (Finder); Option+Left at start edge:
+  ui=Finder Calculator Safari  file=Calculator,Safari,Option arrow demo,
+End to last item (Safari); Option+Right at end edge:
+  ui=Finder Calculator Safari  file=Calculator,Safari,Option arrow demo,
+Home, Right (Calculator); Shift+Option+Left (should NOT move):
+  ui=Finder Calculator Safari 
+Control+Option+Left (should NOT move):
+  ui=Finder Calculator Safari 
+Option+Left again: ui=Finder Safari Calculator  file=Safari,Calculator,Option arrow demo,

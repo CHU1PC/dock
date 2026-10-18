@@ -244,8 +244,7 @@ struct DockBar: View {
             .focused($focused, equals: item.id)
             .onKeyPress(phases: [.down, .repeat]) { press in
                 guard let key = DockKeyboardNavigation.Key(press) else { return .ignored }
-                handleKey(key, items: store.displayedItems)
-                return .handled
+                return handleKey(key, items: store.displayedItems) ? .handled : .ignored
             }
             .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
             .onKeyPress(.return) { store.openItem(item); return .handled }
@@ -395,14 +394,24 @@ extension DockBar {
         }
     }
 
-    fileprivate func handleKey(_ key: DockKeyboardNavigation.Key, items: [DockItem]) {
+    fileprivate func handleKey(_ key: DockKeyboardNavigation.Key, items: [DockItem]) -> Bool {
         keyboardNavigating = true
-        let entries = Self.entries(of: items)
         let current = focused.flatMap { id in items.firstIndex { $0.id == id } }
+        if case .reorder(let arrow) = key {
+            guard let offset = DockKeyboardNavigation.reorderOffset(for: arrow, position: store.document.settings.position),
+                  let current, store.isPinned(items[current]),
+                  let newIndex = store.moveActiveItem(items[current].id, by: offset) else { return false }
+            let name = items[current].name
+            NSAccessibility.post(element: NSApp.keyWindow ?? NSApp, notification: .announcementRequested,
+                                 userInfo: [.announcement: "\(name)、\(newIndex + 1)番目"])
+            return true
+        }
+        let entries = Self.entries(of: items)
         let command: DockKeyboardNavigation.Command? = switch key {
         case .home: .first
         case .end: .last
         case .arrow(let arrow): DockKeyboardNavigation.command(for: arrow, position: store.document.settings.position)
+        case .reorder: nil
         case .character: nil
         }
         if let command {
@@ -417,6 +426,7 @@ extension DockBar {
                 focused = items[index].id
             }
         }
+        return true
     }
 
     fileprivate func presentMenu(for item: DockItem, itemFrame: CGRect, origin: CGPoint) {
