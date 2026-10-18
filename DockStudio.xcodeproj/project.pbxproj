@@ -14,13 +14,16 @@
 		28356FA051FC37E8A9DAD64E /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91554E1AB52AFE75F21497E8 /* WorkspaceView.swift */; };
 		2A6BD4BCBC208A75043539B8 /* DockVisibilityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ADE6223768FD15BB95E9FA /* DockVisibilityState.swift */; };
 		323829CCA874716179B7818C /* ReviewRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A47BE7B777E2BCC8C022C1E /* ReviewRegressionTests.swift */; };
+		34221F28FDB55CEE67C23859 /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */; };
 		345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */; };
 		473340A70AD470B40AFA37D4 /* DockAppearancePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */; };
+		5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
 		66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */; };
 		6E86CB4559D851E7A44BC68D /* CustomDockWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */; };
 		7187D2A8A4A2E6697B6AD102 /* DockDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D9AF83EA901F0252C6A2A5 /* DockDocument.swift */; };
 		71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63433C32EE891D1543248B /* DockStoreTests.swift */; };
+		72424A2AD63E9103A58BAEED /* LoginRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */; };
 		79573FFB6A67D5D1587845C8 /* DockAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34683B59256856BB755CBF65 /* DockAppearance.swift */; };
 		8B121F3720AEE0D5FC07D09D /* DockAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */; };
 		8C9DA63FF1601ABC24F66CC0 /* ProfilePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */; };
@@ -52,6 +55,7 @@
 
 /* Begin PBXFileReference section */
 		08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockRevealDurationTests.swift; sourceTree = "<group>"; };
+		14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncProcessRunner.swift; sourceTree = "<group>"; };
 		19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockWindowController.swift; sourceTree = "<group>"; };
 		2255DDF17826ECD819C17196 /* CustomDockPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockPreview.swift; sourceTree = "<group>"; };
@@ -72,6 +76,7 @@
 		9A47BE7B777E2BCC8C022C1E /* ReviewRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewRegressionTests.swift; sourceTree = "<group>"; };
 		A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoveDockItemTests.swift; sourceTree = "<group>"; };
 		A3243251C3D1D413F413377E /* NativeDockReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockReader.swift; sourceTree = "<group>"; };
+		A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRestoreTests.swift; sourceTree = "<group>"; };
 		A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemLaunchPolicy.swift; sourceTree = "<group>"; };
 		B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileArchive.swift; sourceTree = "<group>"; };
 		BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorPreview.swift; sourceTree = "<group>"; };
@@ -82,6 +87,7 @@
 		D821980A359C628760823676 /* DockIconSizeRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSizeRangeTests.swift; sourceTree = "<group>"; };
 		DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileTests.swift; sourceTree = "<group>"; };
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRestorePersistence.swift; sourceTree = "<group>"; };
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
 		F60EB0DB463C5447E89F603D /* SettingsPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreview.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -112,6 +118,8 @@
 				BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */,
 				68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */,
 				A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */,
+				E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */,
+				14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */,
 				A3243251C3D1D413F413377E /* NativeDockReader.swift */,
 				43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */,
 				60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */,
@@ -130,6 +138,7 @@
 				08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */,
 				EF63433C32EE891D1543248B /* DockStoreTests.swift */,
 				48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */,
+				A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */,
 				238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */,
 				DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */,
 				A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */,
@@ -254,6 +263,7 @@
 				F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */,
 				71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */,
 				C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */,
+				72424A2AD63E9103A58BAEED /* LoginRestoreTests.swift in Sources */,
 				BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */,
 				345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */,
 				A90482099F2E73ED122C2AA9 /* RemoveDockItemTests.swift in Sources */,
@@ -278,6 +288,8 @@
 				2A6BD4BCBC208A75043539B8 /* DockVisibilityState.swift in Sources */,
 				B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */,
 				0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */,
+				5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */,
+				34221F28FDB55CEE67C23859 /* LoginItemController.swift in Sources */,
 				243B18C447B03FFBB600534D /* NativeDockReader.swift in Sources */,
 				FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */,
 				E2E1B7F75933FAFCC70FBCE4 /* NativeDockTilePreview.swift in Sources */,
