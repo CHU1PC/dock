@@ -88,6 +88,7 @@ final class DockStoreTests: XCTestCase {
         settings.position = .right
         settings.iconSize = 72
         settings.autoHide = true
+        settings.minimizeWindowsIntoAppIcon = true
         store.updateSettings(settings)
         XCTAssertEqual(DockStore(persistence: persistence).document.settings, settings)
     }

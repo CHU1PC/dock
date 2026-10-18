@@ -248,6 +248,28 @@ final class DockAppearanceTests: XCTestCase {
         }
     }
 
+    func testIconConversionResolutionTracksDisplayedSizeAndBackingScale() {
+        XCTAssertEqual(DockIconConversionPolicy.pixelSize(pointSize: 128, backingScaleFactor: 2), 256)
+        XCTAssertEqual(DockIconConversionPolicy.pixelSize(pointSize: 256, backingScaleFactor: 2), 512)
+        XCTAssertEqual(DockIconConversionPolicy.pixelSize(pointSize: 128, backingScaleFactor: 1), 256)
+        XCTAssertEqual(DockIconConversionPolicy.pixelSize(pointSize: 16.1, backingScaleFactor: 2), 33)
+    }
+
+    func testIconConversionCacheKeysSeparateStylesAndGlassSchemes() {
+        let darkGlass = DockIconConversionPolicy.cacheKey(path: "/Applications/Example.app", style: "glass", darkGlyphs: false)
+        let lightGlass = DockIconConversionPolicy.cacheKey(path: "/Applications/Example.app", style: "glass", darkGlyphs: true)
+        let monochrome = DockIconConversionPolicy.cacheKey(path: "/Applications/Example.app", style: "monochrome", darkGlyphs: false)
+        XCTAssertNotEqual(darkGlass, lightGlass)
+        XCTAssertNotEqual(darkGlass, monochrome)
+    }
+
+    func testIconConversionCacheLimitFitsMoreThanSixteenMaxSizeIcons() {
+        let maximumResolutionCost = DockIconConversionPolicy.cacheCost(pixels: 512)
+        XCTAssertEqual(maximumResolutionCost, 1_048_576)
+        XCTAssertGreaterThanOrEqual(DockIconConversionPolicy.cacheTotalCostLimit(), maximumResolutionCost * 17)
+        XCTAssertGreaterThanOrEqual(DockIconConversionPolicy.cacheCountLimit(), 17)
+    }
+
     func testRevealReachesPhysicalScreenEdgesAndKeepsOtherRegionsClear() {
         let screen = NSRect(x: -1920, y: -1080, width: 1920, height: 1080)
         let panel = NSRect(x: -1100, y: -1070, width: 350, height: 160)

@@ -13,6 +13,7 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
+    var dockFocusShortcutMessage: String?
     var isDockVisible = false {
         didSet { if oldValue != isDockVisible { saveLaunchState() } }
     }
@@ -20,6 +21,8 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored let minimizedWindowController: MinimizedWindowController
+    var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     @ObservationIgnored var trashInspector = TrashInspector()
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
@@ -69,12 +72,13 @@ final class DockStore {
     let isPreview: Bool
     @ObservationIgnored private(set) lazy var itemAvailability = ItemAvailabilityMonitor { [weak self] in
         guard let self else { return [] }
-        return self.document.profiles.flatMap(\.items) + self.drafts.values.flatMap(\.items)
+        return self.document.profiles.flatMap(\.items) + self.drafts.values.flatMap(\.items) + self.recentAppItems
     }
     private let persistence: ProfilePersistence?
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
          loginItem: LoginItemController? = nil) {
+        minimizedWindowController = MinimizedWindowController(provider: AccessibilityMinimizedWindowProvider())
         self.persistence = persistence
         self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
@@ -96,6 +100,7 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        restoreRecentAppHistory()
         restoreLaunchState()
         startTrashMonitoring()
         if !isPreview { itemAvailability.startObserving() }
@@ -109,6 +114,10 @@ final class DockStore {
 
     private var launchStateURL: URL? {
         persistence.map { LaunchRestorePersistence.url(besides: $0.fileURL) }
+    }
+
+    var recentAppHistoryURL: URL? {
+        persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("recent-apps.json")
     }
 
     private func restoreLaunchState() {
@@ -269,12 +278,17 @@ final class DockStore {
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
     var displayedItems: [DockItem] {
-        guard document.settings.showRunningApps else { return activeProfile.items }
         var seen = Set(activeProfile.items.compactMap(\.applicationIdentity))
-        return activeProfile.items + runningItems.filter { item in
+        let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
             return seen.insert(identity).inserted
-        }
+        } : []
+        let runningIdentities = document.settings.showRunningApps
+            ? Set(runningItems.compactMap(\.applicationIdentity)) : []
+        let recent = document.settings.showRecentApps
+            ? RecentAppHistory.visibleItems(recentAppItems, excluding: seen.union(runningIdentities))
+            : []
+        return activeProfile.items + running + recent
     }
 
     @discardableResult
@@ -352,9 +366,11 @@ final class DockStore {
 
     @discardableResult
     func updateSettings(_ settings: DockSettings) -> Bool {
+        let wasShowingRecentApps = document.settings.showRecentApps
         var candidate = document
         candidate.settings = settings
         guard commit(candidate) else { return false }
+        if wasShowingRecentApps && !settings.showRecentApps { clearRecentAppHistory() }
         if settings.mode == .native { isDockVisible = false }
         return true
     }
@@ -562,6 +578,20 @@ final class DockStore {
 
     func removeFromActiveProfile(_ item: DockItem) {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
+    }
+
+    func ejectVolume(_ item: DockItem) {
+        let ejector = VolumeEjector()
+        guard ejector.isEjectable(item), let url = item.targetURL else {
+            errorMessage = "\(item.name) は取り出し可能なディスクではありません。"
+            return
+        }
+        do {
+            try ejector.ejectVolume(at: url)
+            status = "\(item.name) を取り出しました"
+        } catch {
+            errorMessage = "\(item.name) を取り出せませんでした。使用中の項目を閉じてから、もう一度お試しください。\n\(error.localizedDescription)"
+        }
     }
 
     @discardableResult
