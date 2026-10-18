@@ -11,7 +11,7 @@
 - アプリ以外の項目（フォルダ、URL など）と、バンドル ID を持たない項目は、通常のクリックと同じ処理になる。
 - 通常のクリックと、Return、Space キーの動作は変えていない。
 
-修飾キーの判定は `DockClickAction.resolve(modifiers:)`、隠す処理は `ApplicationHider` に分けた。クリック処理は `DockStore.clickItem(_:modifiers:)` を経由する。
+修飾キーの判定は `ItemClickPolicy.isHideOthersClick`、隠す処理は `OtherApplicationsHider`（#17 の `ApplicationHider` とは別の型）に分けた。クリック処理は `DockStore.clickItem(_:modifiers:)` を経由する。Command のみは Finder 表示（#18）、Command+Option は他を隠す、Option のみは #19 が扱い、テストで重ならないことを確かめる。コンテキストメニューの「ほかを隠す」は `DockItemMenu.kinds` に載せた。
 
 ## 検証
 
