@@ -293,6 +293,9 @@ final class DockStore {
 
     var displayedLayout: DockSectionLayoutResult {
         let pinnedItems = FinderDockEntry.displayedItems(activeProfile.items, enabled: document.settings.finderEntryEnabled)
+            .compactMap { item in
+            item.kind == .applicationList ? ApplicationListEntry.currentItem(for: item) : item
+        }
         var seen = Set(pinnedItems.compactMap(\.applicationIdentity))
         let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
@@ -848,6 +851,19 @@ final class DockStore {
 
     func openItem(_ item: DockItem) {
         guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        if item.kind == .applicationList {
+            guard let entry = ApplicationListEntry.currentItem(for: item),
+                  let identifier = entry.bundleIdentifier,
+                  let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) else {
+                errorMessage = "この macOS ではアプリ一覧を利用できません。"
+                return
+            }
+            NSWorkspace.shared.openApplication(at: url, configuration: .init()) { [weak self] _, error in
+                guard let error else { return }
+                Task { @MainActor in self?.errorMessage = "アプリ一覧を開けませんでした。\n\(error.localizedDescription)" }
+            }
+            return
+        }
         let current = ItemAvailabilityChecker().check(item)
         itemAvailability.record(item, current)
         switch current {
