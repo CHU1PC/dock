@@ -145,7 +145,7 @@ struct DockBar: View {
         .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
         .overlay { dropIndicator(items: items) }
         .onDrop(of: [.fileURL], delegate: DockDropDelegate(
-            store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] },
+            store: store, items: items, vertical: vertical, frames: itemRects,
             isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { old, new in
@@ -617,28 +617,41 @@ enum DockDropInsertion {
     }
 }
 
+enum DockDropRouting {
+    static func applicationTarget(at point: CGPoint, items: [DockItem], frames: [UUID: CGRect]) -> DockItem? {
+        items.first { item in
+            item.kind == .application && frames[item.id]?.contains(point) == true
+        }
+    }
+}
+
 private struct DockDropDelegate: DropDelegate {
     let store: DockStore
+    let items: [DockItem]
     let vertical: Bool
-    let frames: [CGRect]
+    let frames: [UUID: CGRect]
     let isMeasured: Bool
     @Binding var index: Int?
 
+    private var orderedFrames: [CGRect] { items.compactMap { frames[$0.id] } }
+
     func validateDrop(info: DropInfo) -> Bool {
-        !store.storageIsReadOnly && isMeasured && info.hasItemsConforming(to: [.fileURL])
+        isMeasured && info.hasItemsConforming(to: [.fileURL]) &&
+            (applicationTarget(at: info.location) != nil || !store.storageIsReadOnly)
     }
 
-    func dropEntered(info: DropInfo) { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+    func dropEntered(info: DropInfo) { updateInsertionIndex(at: info.location) }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        if index != nil { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+        updateInsertionIndex(at: info.location)
         return DropProposal(operation: .copy)
     }
 
     func dropExited(info: DropInfo) { index = nil }
 
     func performDrop(info: DropInfo) -> Bool {
-        let position = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical)
+        let position = insertionIndex(at: info.location)
+        let applicationTarget = applicationTarget(at: info.location)
         let providers = info.itemProviders(for: [.fileURL])
         index = nil
         guard !providers.isEmpty else { return false }
@@ -650,10 +663,26 @@ private struct DockDropDelegate: DropDelegate {
                 }
                 if let url { urls.append(url) }
             }
-            store.addDroppedItems(urls, at: position)
+            if let applicationTarget {
+                store.openDroppedFiles(urls, with: applicationTarget)
+            } else {
+                store.addDroppedItems(urls, at: position)
+            }
             index = nil
         }
         return true
+    }
+
+    private func applicationTarget(at point: CGPoint) -> DockItem? {
+        DockDropRouting.applicationTarget(at: point, items: items, frames: frames)
+    }
+
+    private func insertionIndex(at point: CGPoint) -> Int {
+        DockDropInsertion.index(at: point, frames: orderedFrames, vertical: vertical)
+    }
+
+    private func updateInsertionIndex(at point: CGPoint) {
+        index = applicationTarget(at: point) == nil ? insertionIndex(at: point) : nil
     }
 }
 
