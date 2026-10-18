@@ -67,6 +67,22 @@ Dock の項目を Command だけを押しながらクリックすると、対象
 - 結論: パネルの Command クリックは、**他のアプリが前面（パネルが非アクティブ）のときは Finder 表示にならず、Dock Studio が前面のときは動く**。どちらの場合も Calculator は起動していない（通常のクリックとしては扱われていない）。1 つめの条件で、`NSEvent.modifierFlags` が Command を返していないか、Finder 表示は実行されても前面化されないかは、切り分けていない。Dock Studio が前面のときは同じ操作で成功するため、前面化の処理ではなく、非アクティブなときの修飾キーの取得が疑わしい。
 - 画像と動画: [textedit-front-full](media/command-click-reveal/panel-cmd-click-textedit-front-full.jpg)、[crop](media/command-click-reveal/panel-cmd-click-textedit-front-crop.jpg)、[動画（TextEdit が前面。Finder は出ない）](media/command-click-reveal/panel-cmd-click-textedit-front.mp4)、[Dock Studio が前面の Calculator](media/command-click-reveal/panel-cmd-click-studio-front-calculator-full.jpg)、[同じ Demo File](media/command-click-reveal/panel-cmd-click-studio-front-demofile-full.jpg)、[動画（Dock Studio が前面）](media/command-click-reveal/panel-cmd-click-studio-front.mp4)、[修飾なしの回帰](media/command-click-reveal/panel-plain-click-calculator-full.jpg)、[操作前の全体](media/command-click-reveal/panel-settings-tab-before-full.jpg)。動画は 10fps で、撮影時刻の間隔を維持し、倍速にはしていない。
 
+### 再々撮影: LaunchServices 経由の前面化の修正後（コミット `c56a253`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `0e878ec58c9c0f2fbb47fd78d06f255a1bd7fd1d8e397ddfcbb6f10f2bb139fa` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした（[操作前](media/command-click-reveal/fixed-panel-settings-tab-before-full.jpg)）。TextEdit を前面にした状態から、毎回 `open -a TextEdit` で前面に戻して、5 通りの操作を行った。「Finder のウインドウ」は、Finder の AX のウインドウ名を並べたものである（先頭が前面側）。操作の記録は[fixed-panel-cmd-click-log.txt](media/command-click-reveal/fixed-panel-cmd-click-log.txt)にある。
+
+| 操作（TextEdit が前面） | Calculator | 前面 | Finder の前面のウインドウ |
+| --- | --- | --- | --- |
+| A 本物の Command 押下（キーダウン、押したままクリック、キーアップ）で、パネルの Calculator をクリック | 起動せず | Finder | Applications |
+| B 同じく Demo File | 起動せず | Finder | Demo Folder |
+| C `.maskCommand` だけの合成クリックで Calculator | 起動せず | Finder | Applications |
+| D `.maskCommand` だけの合成クリックで Demo File | 起動せず | Finder | Demo Folder |
+| E 修飾なしクリックで Calculator | 起動した | Calculator | （変化なし） |
+
+- 結論: **修正が効いた。** 本物の Command 押下でも、`.maskCommand` だけの合成でも、非アクティブなパネルから Finder が前面に出て、Applications で Calculator.app、Demo Folder で note.txt が開く（Finder のウインドウ名が切り替わった）。Calculator は起動していない。修飾なしクリックで Calculator が起動する回帰もない。前回の「Command が取れていない」疑いは、前面化の問題だったことになる。
+- 画像と動画: [動画](media/command-click-reveal/panel-cmd-click-fixed.mp4)（8fps、撮影時刻の間隔を維持。A から E までの全操作）、フレーム画像 [A](media/command-click-reveal/fixed-panel-frame-real-cmd-calculator-full.jpg)、[B](media/command-click-reveal/fixed-panel-frame-real-cmd-demofile-full.jpg)、[後半](media/command-click-reveal/fixed-panel-frame-flag-only-or-later-full.jpg)（各 `-crop` あり）。VNC の取得が遅れるため、フレームの時刻と操作の対応は、ログのほうが正確である。
+- 確認していない: Note.txt が選択状態になっていること（画像では、Demo Folder のウィンドウに note.txt が青く表示されているが、選択かどうかは AX で読んでいない）、Removed Folder のアラート、Example Link。
+
 ## 撮影の手順
 
 撮影は、専用ヘッドレス VM のゲストの中だけで行う。
