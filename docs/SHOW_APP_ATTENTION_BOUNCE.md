@@ -14,7 +14,7 @@
 
 | 項目 | 結果 |
 | --- | --- |
-| 自動テスト | 351件すべて成功（`/private/tmp/cw/run-check.sh 132 test`、最新 main とのマージ後） |
+| 自動テスト | 365件すべて成功（`/private/tmp/cw/run-check.sh 132 test`、最新 main とのマージ後） |
 | Release ビルド | `BUILD SUCCEEDED`（最新 main とのマージ後） |
 | build-for-testing | `TEST BUILD SUCCEEDED`（最初の push 前、最新 main とのマージ前。テストは343件） |
 
