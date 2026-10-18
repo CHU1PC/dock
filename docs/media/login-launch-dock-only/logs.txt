@@ -1,0 +1,23 @@
+f90f503d5dce3ca71e46f94350a9fe89ecad7ef032815b210743b8955f2c57a2  /Users/admin/dw86/DockStudio.app/Contents/MacOS/DockStudio
+## 1 normal launch (first run, creates profiles)
+normal: windows:
+layer=21 onscreen=1 x537 y846 w525 h157
+layer=0 onscreen=1 x260 y122 w1080 h850
+{"dockVisible":true}## 2 login-item style launch (kAEOpenApplication + keyAELaunchedAsLogInItem), dock state visible
+launched pid=39723 err=nil
+login-launch: windows:
+layer=0 onscreen=false x0 y0 w0 h0
+
+launched pid=39789 err=nil
+t~2s: layer=0 onscreen=false x0 y0 w0 h0;
+t~4s: layer=0 onscreen=false x0 y0 w0 h0;
+t~6s: layer=0 onscreen=false x0 y0 w0 h0;
+t~10s: layer=0 onscreen=false x0 y0 w0 h0;
+t~15s: layer=0 onscreen=false x0 y0 w0 h0;
+
+     AXMenuItem Custom Dock の表示を切り替える valu
+     AXMenuItem Custom Dock を隠す value nil pos Optional
+     AXMenuItem Dock を管理… value nil pos Optional(<AX
+Press Dock を管理… result 0
+layer=21 onscreen=1 x537 y846 w525 h157
+layer=0 onscreen=1 x260 y122 w1080 h850

@@ -22,7 +22,24 @@ final class TrashItemTests: XCTestCase {
         return url
     }
 
-    private func state(_ urls: [URL]) -> TrashState { TrashInspector(locations: { urls }).state() }
+    private func state(_ urls: [URL]) -> TrashState {
+        TrashInspector(finderItemCount: { nil }, locations: { urls }).state()
+    }
+
+    func testFinderItemCountMapsToTrashState() {
+        XCTAssertEqual(TrashInspector.state(forFinderItemCount: 0), .empty)
+        XCTAssertEqual(TrashInspector.state(forFinderItemCount: 1), .hasItems)
+        XCTAssertEqual(TrashInspector.state(forFinderItemCount: 42), .hasItems)
+        XCTAssertNil(TrashInspector.state(forFinderItemCount: nil))
+        XCTAssertNil(TrashInspector.state(forFinderItemCount: -1))
+    }
+
+    func testFinderStateTakesPrecedenceOverFilesystemFallback() {
+        let inspector = TrashInspector(finderItemCount: { 0 }, locations: {
+            [URL(fileURLWithPath: "/unreadable")]
+        })
+        XCTAssertEqual(inspector.state(), .empty)
+    }
 
     func testEmptyAndMissingDirectoriesAreEmpty() throws {
         let empty = try directory("empty", files: [".DS_Store"])
@@ -54,7 +71,7 @@ final class TrashItemTests: XCTestCase {
     func testRefreshReflectsChanges() async throws {
         let trash = try directory("trash")
         let store = DockStore(persistence: nil)
-        store.trashInspector = TrashInspector(locations: { [trash] })
+        store.trashInspector = TrashInspector(finderItemCount: { nil }, locations: { [trash] })
         await store.refreshTrash()
         XCTAssertEqual(store.trashState, .empty)
         try Data().write(to: trash.appendingPathComponent("a.txt"))

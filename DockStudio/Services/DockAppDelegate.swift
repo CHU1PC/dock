@@ -1,17 +1,45 @@
 import AppKit
+import Carbon
 
 @MainActor
 final class DockAppDelegate: NSObject, NSApplicationDelegate {
     weak var store: DockStore?
+    weak var loginLaunchState: LoginLaunchState?
+    private var dockController: CustomDockWindowController?
     private var nativeTile: NativeDockTileController?
     var tileOnly = false
     var tileNotice = ""
 
+    func observeLoginLaunchEvents() {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleOpenApplication(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kCoreEventClass),
+            andEventID: AEEventID(kAEOpenApplication)
+        )
+    }
+
+    @objc private func handleOpenApplication(
+        _ event: NSAppleEventDescriptor,
+        withReplyEvent replyEvent: NSAppleEventDescriptor
+    ) {
+        loginLaunchState?.recordOpenApplicationEvent(event)
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        guard tileOnly, let store else { return }
-        let controller = NativeDockTileController(store: store, notice: tileNotice)
-        nativeTile = controller
-        controller.start()
+        guard let store else { return }
+        if tileOnly {
+            let controller = NativeDockTileController(store: store, notice: tileNotice)
+            nativeTile = controller
+            controller.start()
+        } else {
+            // SwiftUI が起動時の Window scene を確定してからパネルを作る。
+            Task { @MainActor [weak self] in
+                await Task.yield()
+                guard let self, let store = self.store else { return }
+                self.dockController = CustomDockWindowController(store: store)
+            }
+        }
     }
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
