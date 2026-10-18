@@ -109,13 +109,14 @@ struct DockSettings: Codable, Equatable {
     var showRunningApps = false
     var showRecentApps = false
     var displayID: UInt32?
+    var dockFocusShortcut: DockFocusShortcut = .controlOptionCommandD
 }
 
 extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID
+        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
@@ -129,6 +130,7 @@ extension DockSettings {
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
         showRecentApps = try values.decodeIfPresent(Bool.self, forKey: .showRecentApps) ?? false
         displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
+        dockFocusShortcut = try values.decodeIfPresent(DockFocusShortcut.self, forKey: .dockFocusShortcut) ?? .controlOptionCommandD
     }
 }
 

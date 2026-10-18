@@ -13,6 +13,7 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
+    var dockFocusShortcutMessage: String?
     var isDockVisible = false {
         didSet { if oldValue != isDockVisible { saveLaunchState() } }
     }
