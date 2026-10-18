@@ -48,6 +48,15 @@ Dock の表示状態（`DockStore.isDockVisible`）は、変更のたびに `lau
 
 `LoginRestoreTests` は、`SMAppService` の代わりに記録用の偽物を使い、`register` と `unregister` の呼び出し回数、失敗時のメッセージ、`requiresApproval` の案内、`notFound` を警告なしの未登録として扱うこと、`register` が失敗したときだけ警告が出ること、外部変更の反映を確かめる。保存は、再起動後の復元（表示と非表示）、自動非表示とアクティブなプロファイルの保持、ファイルなし、壊れたファイル、書き込めない保存先、`profiles.json` を書き換えないことを確かめる。**ホストでは `register()` を実行していない。**
 
+### 修正後の再確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `a9334d1` の Release ビルドを同じ専用 VM（macOS 26.6.2）で撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `76bc597aa22b7801f0f7d20d52f793fa40adfa3783cca2d67df30e1a3011086e` と一致した。署名は付いていない。
+
+- 初期状態（一度もスイッチを操作していない）で「一般」を開くと、スイッチは切れていて、警告は出なかった（[01-initial-settings.jpg](media/restore-dock-after-login/01-initial-settings.jpg)。前回の警告の画像を置き換えた）。
+- スイッチを入れると、入ったままで、メッセージは出なかった（[09](media/restore-dock-after-login/09-switch-on-after-fix.jpg)）。切ると切れ、メッセージは出なかった（[10](media/restore-dock-after-login/10-switch-off-after-fix.jpg)）。もう一度入れても同じだった。
+- 登録失敗でだけ警告が出る場合は、再現できなかった。`/Applications` の外（ゲストのホーム直下のディレクトリ）に置いたアプリでも、`register()` は成功し、警告は出なかった（[11](media/restore-dock-after-login/11-switch-on-outside-applications.jpg)）。失敗時の警告の表示は、単体テストの確認にとどまる。
+- 撮影後、スイッチを切って登録を解除し、ゲストのアプリと検証用データを削除した。ログアウトと再ログインは、今回も行っていない。
+
 ### 未検証
 
 - 実際のログインでの自動起動と、ログインで起動したアプリの Dock の復元（アプリの再起動での復元は、実画面で確認した）。
@@ -71,7 +80,7 @@ Dock の表示状態（`DockStore.isDockVisible`）は、変更のたびに `lau
 確認できなかったこと、見つかったこと:
 
 - **実際のログインでの自動起動と、ログインで起動したアプリの Dock の復元は、未検証のまま。** ログアウトと再ログインを行っていない。`launch-state.json` の保存と、アプリの再起動での復元だけを確認した。
-- **不具合（修正済み。修正後の画面は未撮影）**: 一度もスイッチを操作していない初期状態で、「一般」を開くと、スイッチが切れたまま「このビルドはログイン項目として登録できません。/Applications などに置いたアプリで試してください。」の警告が出ていた（[01-initial-settings.jpg](media/restore-dock-after-login/01-initial-settings.jpg)）。アプリは `/Applications` に置いてあり、実際には `register()` が成功した。未登録の `SMAppService.mainApp.status` が `notFound` を返すためと思われる。`notFound` を「登録できないビルド」と解釈する条件が、未登録の状態と区別できていない。再現手順は、署名なしの `DockStudio.app` を `/Applications` に置き、ログイン項目に登録していない状態で、設定の「一般」を開くことである。
+- **不具合（修正済み。修正後の画面は、「修正後の再確認」に撮り直した）**: 一度もスイッチを操作していない初期状態で、「一般」を開くと、スイッチが切れたまま「このビルドはログイン項目として登録できません。/Applications などに置いたアプリで試してください。」の警告が出ていた（[01-initial-settings.jpg](media/restore-dock-after-login/01-initial-settings.jpg)）。アプリは `/Applications` に置いてあり、実際には `register()` が成功した。未登録の `SMAppService.mainApp.status` が `notFound` を返すためと思われる。`notFound` を「登録できないビルド」と解釈する条件が、未登録の状態と区別できていない。再現手順は、署名なしの `DockStudio.app` を `/Applications` に置き、ログイン項目に登録していない状態で、設定の「一般」を開くことである。
 - `requiresApproval` の表示、システム設定でユーザーが無効化した後の画面への反映（手順 6）は、撮影していない。登録解除後のシステム設定の画面は、システム設定のウインドウが前面に出ず、撮影できなかった。解除は、アプリの画面（スイッチ OFF）で確認した。
 - 動画は撮っていない。静止画と `launch-state.json` の内容で記録した。
 - 撮影後、ゲストのアプリ（`/Applications/DockStudio.app`）と検証用データは削除した。ログイン項目は、アプリの画面から解除してから削除した。システム設定で、解除後の一覧は確認していない。
