@@ -62,6 +62,22 @@ final class ApplicationQuitTests: XCTestCase {
         XCTAssertEqual(quitter([stubborn]).quit(app("com.example.calc")), .rejected)
     }
 
+    func testEveryInstanceWithSameBundleIdentifierIsTerminated() {
+        let first = FakeApplication("com.example.calc")
+        let second = FakeApplication("com.example.calc")
+        XCTAssertEqual(quitter([first, second]).quit(app("com.example.calc")), .requested)
+        XCTAssertEqual(first.terminateCalls, 1)
+        XCTAssertEqual(second.terminateCalls, 1)
+    }
+
+    func testOneAcceptedInstanceIsEnoughForRequested() {
+        let refusing = FakeApplication("com.example.calc", accepts: false)
+        let accepting = FakeApplication("com.example.calc")
+        XCTAssertEqual(quitter([refusing, accepting]).quit(app("com.example.calc")), .requested)
+        XCTAssertEqual(refusing.terminateCalls, 1)
+        XCTAssertEqual(accepting.terminateCalls, 1)
+    }
+
     func testStoreShowsQuitOnlyForRunningItems() {
         let store = DockStore(persistence: ProfilePersistence(fileURL: FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString).appendingPathComponent("profiles.json")))
