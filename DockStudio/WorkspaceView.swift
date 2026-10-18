@@ -58,6 +58,10 @@ struct PreviewWorkspace: View {
         )) {
             Button("閉じる", role: .cancel) { store.errorMessage = nil }
         } message: { Text(store.errorMessage ?? "") }
+        .onAppear {
+            if store.settingsWindowRequested > 0 { selection = .settings }
+        }
+        .onChange(of: store.settingsWindowRequested) { _, _ in selection = .settings }
     }
 }
 

@@ -365,6 +365,7 @@ extension DockBar {
         }
         DockIconSizeResizeHandle(vertical: vertical)
             .padding(5)
+            .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,

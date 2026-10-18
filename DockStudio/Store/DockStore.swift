@@ -62,6 +62,7 @@ final class DockStore {
     var dockKeyboardFocusRequested = false
     var dockKeyboardFocusGeneration = 0
     var dockKeyboardExitRequested = false
+    var settingsWindowRequested = 0
     var isDockPanelKey = false
     var isDockPointerInside = false
     var appearance: DockAppearance { transientAppearance ?? savedAppearance }
