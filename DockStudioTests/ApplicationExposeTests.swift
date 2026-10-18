@@ -25,6 +25,11 @@ final class ApplicationExposeTests: XCTestCase {
         XCTAssertFalse(StandardDockExposeMenu.matches(title: "Show All Windows Now", languageCode: "en"))
     }
 
+    func testAppExposeActionIsLabeledSeparatelyFromIndividualWindowList() {
+        XCTAssertEqual(DockItemMenu.Kind.showAllWindows.title, "全ウィンドウを表示")
+        XCTAssertNotEqual(DockItemMenu.Kind.showAllWindows.title, "ウィンドウを前面に表示")
+    }
+
     func testPassesRequestedApplicationURLAndResultThroughAccessLayer() {
         let provider = FakeApplicationExposer()
         let access = ApplicationExposeAccess(provider: provider)
