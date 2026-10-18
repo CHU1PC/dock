@@ -3,33 +3,64 @@ import SwiftUI
 import ImageIO
 import OSLog
 
+enum DockIconConversionPolicy {
+    static func cacheTotalCostLimit() -> Int { 32 * 1024 * 1024 }
+    static func cacheCountLimit() -> Int { 128 }
+
+    static func pixelSize(pointSize: Double, backingScaleFactor: Double) -> Int {
+        let safePointSize = pointSize.isFinite ? max(1, pointSize) : 1
+        let safeScale = backingScaleFactor.isFinite ? max(2, backingScaleFactor) : 2
+        return Int(ceil(safePointSize * safeScale))
+    }
+
+    static func cacheKey(path: String, style: String, darkGlyphs: Bool) -> NSString {
+        "\(path)|\(style)|\(darkGlyphs)" as NSString
+    }
+
+    static func cacheCost(pixels: Int) -> Int {
+        let side = max(0, pixels)
+        let (pixelCount, pixelOverflow) = side.multipliedReportingOverflow(by: side)
+        let (byteCount, byteOverflow) = pixelCount.multipliedReportingOverflow(by: 4)
+        return pixelOverflow || byteOverflow ? Int.max : byteCount
+    }
+}
+
 @MainActor
 enum DockIconRenderer {
     private static let cache: NSCache<NSString, NSImage> = {
         let cache = NSCache<NSString, NSImage>()
-        cache.totalCostLimit = 16 * 1024 * 1024
-        cache.countLimit = 128
+        cache.totalCostLimit = DockIconConversionPolicy.cacheTotalCostLimit()
+        cache.countLimit = DockIconConversionPolicy.cacheCountLimit()
         return cache
     }()
 
-    static func image(url: URL, style: DockAppearance.IconStyle, scheme: ColorScheme = .dark) -> NSImage {
-        let key = "\(url.path)|\(style.rawValue)|\(style == .glass ? scheme == .light : false)" as NSString
-        if let image = cache.object(forKey: key) { return image }
+    static func image(url: URL, style: DockAppearance.IconStyle, pointSize: Double,
+                      scheme: ColorScheme = .dark) -> NSImage {
+        let darkGlyphs = style == .glass && scheme == .light
+        let key = DockIconConversionPolicy.cacheKey(path: url.path, style: style.rawValue, darkGlyphs: darkGlyphs)
+        let pixels = DockIconConversionPolicy.pixelSize(
+            pointSize: pointSize,
+            backingScaleFactor: Double(NSScreen.screens.map(\.backingScaleFactor).max() ?? 2)
+        )
+        if let image = cache.object(forKey: key), style == .original || image.size.width >= CGFloat(pixels) {
+            return image
+        }
         let original = NSWorkspace.shared.icon(forFile: url.path)
         if style == .original {
-            cache.setObject(original, forKey: key, cost: 512 * 512 * 4)
+            cache.setObject(original, forKey: key, cost: DockIconConversionPolicy.cacheCost(pixels: 512))
             return original
         }
-        let pixels = Int(ceil(76 * 2 * max(2, NSScreen.screens.map(\.backingScaleFactor).max() ?? 2)))
-        let image = render(original, style: style, pixels: pixels, darkGlyphs: style == .glass && scheme == .light)
-        cache.setObject(image, forKey: key, cost: pixels * pixels * 4)
+        let image = render(original, style: style, pixels: pixels, darkGlyphs: darkGlyphs)
+        cache.setObject(image, forKey: key, cost: DockIconConversionPolicy.cacheCost(pixels: pixels))
         return image
     }
 
     static func invalidate(url: URL) {
         for style in DockAppearance.IconStyle.allCases {
             for darkGlyphs in [false, true] {
-                cache.removeObject(forKey: "\(url.path)|\(style.rawValue)|\(darkGlyphs)" as NSString)
+                cache.removeObject(forKey: DockIconConversionPolicy.cacheKey(
+                    path: url.path, style: style.rawValue, darkGlyphs: darkGlyphs
+                ))
             }
         }
     }

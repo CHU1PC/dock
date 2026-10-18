@@ -17,6 +17,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Dock Studio
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: "Dock Studio は、ゴミ箱の項目数を表示するため Finder に問い合わせます。"
         CODE_SIGNING_ALLOWED: NO
   DockStudioTests:
     type: bundle.unit-test

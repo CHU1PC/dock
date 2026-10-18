@@ -48,6 +48,31 @@ enum DockInteractionGeometry {
     }
 }
 
+struct DockDisplayGeometry {
+    struct Screen: Equatable {
+        let id: UInt32
+        let frame: NSRect
+        let visibleFrame: NSRect
+    }
+
+    static func targetDisplayID(screens: [Screen], selectedID: UInt32?, mode: DockDisplayMode,
+                                pointer: NSPoint, position: DockPosition, panelSize: NSSize) -> UInt32? {
+        guard !screens.isEmpty else { return nil }
+        if mode == .edgeFollowing {
+            for screen in screens {
+                let available = screen.visibleFrame.insetBy(dx: 10, dy: 10)
+                let origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: available,
+                                                                  size: panelSize, position: position)
+                let panel = NSRect(origin: origin, size: panelSize)
+                if DockInteractionGeometry.reveal(screen: screen.frame, panel: panel, position: position).contains(pointer) {
+                    return screen.id
+                }
+            }
+        }
+        return DisplayOption.preferredID(selectedID: selectedID, availableIDs: screens.map(\.id))
+    }
+}
+
 @MainActor
 @Observable
 final class DockPanelLayout {
@@ -71,6 +96,7 @@ final class CustomDockWindowController {
     private let store: DockStore
     private let panel: NSPanel
     private let layout = DockPanelLayout()
+    private let globalFocusShortcut: GlobalDockFocusShortcutController
     private var observers: [NSObjectProtocol] = []
     private var timer: Timer?
     private var visibility = DockVisibilityState()
@@ -83,6 +109,7 @@ final class CustomDockWindowController {
 
     init(store: DockStore) {
         self.store = store
+        globalFocusShortcut = GlobalDockFocusShortcutController(store: store)
         panel = DockPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "Dock Studio — Custom Dock"
         panel.isFloatingPanel = true
@@ -97,12 +124,21 @@ final class CustomDockWindowController {
         panel.isReleasedWhenClosed = false
         panel.contentView = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
         refreshRunningApps()
-        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification,
+        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didActivateApplicationNotification,
+                     NSWorkspace.didTerminateApplicationNotification,
                      NSWorkspace.didHideApplicationNotification, NSWorkspace.didUnhideApplicationNotification] {
             observers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
                 MainActor.assumeIsolated {
                     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-                       let url = app.bundleURL { DockIconRenderer.invalidate(url: url) }
+                       let url = app.bundleURL {
+                        DockIconRenderer.invalidate(url: url)
+                        if name == NSWorkspace.didLaunchApplicationNotification || name == NSWorkspace.didActivateApplicationNotification,
+                           app.activationPolicy == .regular, app.bundleIdentifier != Bundle.main.bundleIdentifier {
+                            self?.store.recordRecentApp(DockItem(name: app.localizedName ?? url.deletingPathExtension().lastPathComponent,
+                                                                 kind: .application, target: url.absoluteString,
+                                                                 bundleIdentifier: app.bundleIdentifier))
+                        }
+                    }
                     self?.refreshRunningApps()
                 }
             })
@@ -205,11 +241,18 @@ final class CustomDockWindowController {
 
     private var selectedScreen: NSScreen? {
         let screens = NSScreen.screens
-        let selectedID = DisplayOption.preferredID(selectedID: store.document.settings.displayID,
-                                                  availableIDs: DisplayOption.current.map(\.id))
-        return screens.first {
-            $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32 == selectedID
-        } ?? screens.first
+        let candidates = screens.compactMap { screen -> (NSScreen, DockDisplayGeometry.Screen)? in
+            guard let id = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32 else { return nil }
+            return (screen, DockDisplayGeometry.Screen(id: id, frame: screen.frame, visibleFrame: screen.visibleFrame))
+        }
+        let settings = store.document.settings
+        let fallbackID = settings.displayMode == .edgeFollowing
+            ? panel.screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32 ?? settings.displayID
+            : settings.displayID
+        let targetID = DockDisplayGeometry.targetDisplayID(
+            screens: candidates.map(\.1), selectedID: fallbackID, mode: settings.displayMode,
+            pointer: NSEvent.mouseLocation, position: settings.position, panelSize: panel.frame.size)
+        return candidates.first { $0.1.id == targetID }?.0 ?? screens.first
     }
 
     private var revealFrame: NSRect {
@@ -248,6 +291,7 @@ final class CustomDockWindowController {
     }
 
     private func update() {
+        globalFocusShortcut.update(shortcut: store.document.settings.dockFocusShortcut)
         updateVisibility()
         panel.appearance = store.appearance.colorMode.nsAppearance
         if store.dockKeyboardExitRequested {
@@ -330,8 +374,10 @@ final class CustomDockWindowController {
     private func updateAutoHide() {
         guard store.isDockEffectivelyVisible else { return }
         let oldValue = visibility.isCollapsed
+        let oldScreenID = panel.screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32
+        let targetScreenID = selectedScreen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32
         updateVisibility()
-        if oldValue != visibility.isCollapsed { update() }
+        if oldValue != visibility.isCollapsed || oldScreenID != targetScreenID { update() }
     }
 
     private func refreshRunningApps() {
