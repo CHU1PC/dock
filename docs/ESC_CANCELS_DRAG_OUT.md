@@ -81,3 +81,21 @@ Esc の監視は Dock Studio 内のローカルキーイベントに限る。ド
 - 動画: 取り外し予告が出た状態から Esc で消え、その後外で離しても項目が残るまで。
 - 動画: 標準 Dock で Esc により取り外しをキャンセルし、項目が元の位置に残るまで。
 - 画像または動画: ドラッグ中でない Esc の挙動。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `39b38fa` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `5340f0c4b8692bde8bd15489629d7221e76280c44097424dd59389bfa45c2670` と一致した。docs の `profiles.json`（Calculator 1 項目、下配置）を使い、管理ウィンドウは「設定」タブにした。ドラッグはゲスト内の CGEvent で、Esc はドラッグ中のキー送信で行った（Esc の後 1.5 秒待ち、少しポインタを動かしてから、外で離した）。ログは[logs.txt](media/esc-cancels-drag-out/logs.txt)にある。
+
+確認できたこと（Custom Dock のパネル）:
+
+| 操作 | 結果 |
+| --- | --- |
+| Calculator を外へドラッグし、保持したまま Esc、外で離す | **項目は残った**（`profiles.json` に Calculator、パネルにボタンが残る）。予告と半透明の項目は消えた |
+| ドラッグせずに Esc | 前面アプリは変わらず（`front` は DockStudio のまま）、項目も変わらない |
+| Esc を押さずに外で離す（回帰） | 従来どおり取り外された（`profiles.json` から Calculator が消えた） |
+
+画像と動画: [コマ](media/esc-cancels-drag-out/custom-dock-esc-cancel-frames.png)、[動画](media/esc-cancels-drag-out/custom-dock-esc-cancel.mp4)（8fps。取り外し予告、Esc、残る、Esc なしで取り外し、まで）。
+
+標準 Dock の同じ操作: [動画](media/esc-cancels-drag-out/standard-dock-drag-out-esc.mp4)、[コマ](media/esc-cancels-drag-out/standard-dock-frames.png)に、Safari を標準 Dock から外へドラッグして Esc を押す操作と、Esc なしで離す操作を撮った。ただし `defaults read` による確認（項目数）は、検索の記述の誤りで、値が取れなかった（0 のまま）。コマの目視では、Safari は持ち上がるが、2 回の操作の結果（残ったか消えたか）を、どのコマがどちらの操作かを含めて、確定できなかった。**標準 Dock の Esc の挙動は、確認できなかったものとして扱う。** 撮影後、標準 Dock の設定は `defaults import` で元に戻した。
+
+確認していない: 「使用していないときに隠す」の組み合わせ、左右配置。
