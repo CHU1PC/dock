@@ -1,0 +1,11 @@
+D1 Option click on front Calculator (prev TextEdit)
+  -> front=TextEdit | TextEdit=true Calculator=false Finder=true  | pids TextEdit=32545 Calculator=32547
+D2 Option click on NON-front Calculator (TextEdit front)  expect TextEdit=false Calculator=true
+  -> front=Calculator | TextEdit=false Calculator=true Finder=true  | pids TextEdit=32545 Calculator=32547
+D3 plain click on front Calculator
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true  | pids TextEdit=32545 Calculator=32547
+D4 Command click on Calculator (Finder reveal)
+  -> front=Finder | TextEdit=true Calculator=true Finder=true  | pids TextEdit=32545 Calculator=32547
+D5 Calculator quit; pid=
+D5 Option click on NOT-running Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true  | pids TextEdit=32545 Calculator=32696

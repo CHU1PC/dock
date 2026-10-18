@@ -40,6 +40,9 @@ struct ItemClickPolicy {
 
 extension DockStore {
     func clickItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if OptionClickPolicy.isOptionOnly(modifiers), !isPreview, item.kind == .application,
+           let url = item.targetURL, url.isFileURL,
+           OptionClickPolicy.perform(applicationAt: url, flags: modifiers) { return }
         if ItemClickPolicy.isHideOthersClick(modifiers) { hideOthers(of: item); return }
         let reveal = ItemClickPolicy.isRevealClick(modifiers)
         guard reveal else { openItem(item); return }

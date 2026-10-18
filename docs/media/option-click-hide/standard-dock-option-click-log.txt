@@ -1,0 +1,8 @@
+S1 STANDARD Dock: plain click on front Calculator (prev TextEdit)
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true  | pids TextEdit=31637 Calculator=31639
+S2 STANDARD Dock: Option click on front Calculator (prev TextEdit)
+  -> front=TextEdit | TextEdit=true Calculator=false Finder=true  | pids TextEdit=31637 Calculator=31639
+S3 STANDARD Dock: Option click on non-front Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=false Calculator=true Finder=true  | pids TextEdit=31637 Calculator=31639
+S4 STANDARD Dock: plain click on non-front Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true  | pids TextEdit=31637 Calculator=31639
