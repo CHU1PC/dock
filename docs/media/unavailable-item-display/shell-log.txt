@@ -1,0 +1,4 @@
+# ゲストでの操作（撮影ログ。時刻はホストの JST）
+Copied.app: mv /Users/Shared/dockstudio-46/Copied.app /tmp/Copied.app.moved → ポインタを Dock の外へ出して入れ直す → 疑問符 → クリックでエラー → mv で戻す → ポインタを入れ直す → 通常のアイコン
+Disk: hdiutil detach "/Volumes/Detached Disk" → "disk8" ejected. → ドライブ×のアイコン（ポインタ入れ直しなしで切替）→ クリックでエラー
+      hdiutil attach /tmp/detached.dmg → /dev/disk9s1 ... /Volumes/Detached Disk → 通常のフォルダアイコンへ回復
