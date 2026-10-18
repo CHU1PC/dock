@@ -356,11 +356,13 @@ struct DockBar: View {
             .accessibilityActions {
                 ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
                     Button(action.title, action: action.perform)
+                        .disabled(!action.isEnabled)
                 }
             }
             .contextMenu {
                 ForEach(actions(for: item)) { action in
                     Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
+                        .disabled(!action.isEnabled)
                 }
                 if supportsApplicationDockMenu(item) {
                     Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
@@ -495,8 +497,10 @@ extension DockBar {
 private struct DockItemAction: Identifiable {
     let kind: DockItemMenu.Kind
     let perform: () -> Void
+    var isEnabled = true
+    var titleOverride: String?
     var id: DockItemMenu.Kind { kind }
-    var title: String { kind.title }
+    var title: String { titleOverride ?? kind.title }
     var isDestructive: Bool { kind == .remove || kind == .forceQuit }
     var isAccessibilityAction: Bool { kind.isAccessibilityAction }
 }
@@ -514,11 +518,15 @@ extension DockBar {
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
                                        folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
                                        isApplication: item.kind == .application)
-        return kinds.map { kind in
-            DockItemAction(kind: kind) {
+        let appExposeAction = item.kind == .application && item.targetURL?.isFileURL == true
+            ? [DockItemMenu.Kind.showAllWindows]
+            : []
+        return (kinds + appExposeAction).map { kind in
+            DockItemAction(kind: kind, perform: {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .showAllWindows: store.showAllWindows(for: item)
                 case .spacesAssignmentGuide: showingSpacesAssignmentGuide = true
                 case .openLoginItemsSettings: store.loginItem.openSystemSettings()
                 case .hide, .show: store.toggleApplicationVisibility(item)
@@ -532,7 +540,8 @@ extension DockBar {
                 case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
                 case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
-            }
+            }, isEnabled: kind == .showAllWindows ? store.canShowAllWindows(for: item) : true,
+               titleOverride: kind == .showAllWindows ? store.showAllWindowsActionTitle(for: item) : nil)
         }
     }
 

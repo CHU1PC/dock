@@ -36,6 +36,8 @@ final class DockStore {
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
+    @ObservationIgnored var applicationExposeAccess = ApplicationExposeAccess.live
+    var failedApplicationExposePaths: Set<String> = []
     @ObservationIgnored var applicationDockMenuAccess = ApplicationDockMenuAccess.live
     @ObservationIgnored var recentDocumentAccess = RecentDocumentAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
