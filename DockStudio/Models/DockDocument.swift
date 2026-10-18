@@ -126,6 +126,7 @@ enum DockDisplayMode: String, Codable, CaseIterable, Identifiable {
 
 struct DockSettings: Codable, Equatable {
     var mode: DockMode = .both
+    var arrangement: DockArrangement = .free
     var position: DockPosition = .bottom
     var displayMode: DockDisplayMode = .selectedDisplay
     var iconSize = 52.0
@@ -143,12 +144,13 @@ extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
+        case mode, arrangement, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         mode = try values.decode(DockMode.self, forKey: .mode)
+        arrangement = try values.decodeIfPresent(DockArrangement.self, forKey: .arrangement) ?? .free
         position = try values.decode(DockPosition.self, forKey: .position)
         displayMode = try values.decodeIfPresent(DockDisplayMode.self, forKey: .displayMode) ?? .selectedDisplay
         iconSize = try values.decode(Double.self, forKey: .iconSize)
@@ -160,6 +162,18 @@ extension DockSettings {
         showRecentApps = try values.decodeIfPresent(Bool.self, forKey: .showRecentApps) ?? false
         displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
         dockFocusShortcut = try values.decodeIfPresent(DockFocusShortcut.self, forKey: .dockFocusShortcut) ?? .controlOptionCommandD
+    }
+}
+
+enum DockArrangement: String, Codable, CaseIterable, Identifiable {
+    case free, standardSections
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .free: "自由配置"
+        case .standardSections: "標準の区画"
+        }
     }
 }
 
