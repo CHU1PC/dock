@@ -3,22 +3,29 @@ import XCTest
 
 private final class FakeApplication: QuittableApplication {
     let bundleIdentifier: String?
+    let bundleURL: URL? = URL(fileURLWithPath: "/Applications/Fake.app")
     var isTerminated: Bool
     let accepts: Bool
     private(set) var terminateCalls = 0
+    private(set) var activateCalls = 0
     private(set) var forceTerminateCalls = 0
     init(_ id: String, isTerminated: Bool = false, accepts: Bool = true) {
         bundleIdentifier = id; self.isTerminated = isTerminated; self.accepts = accepts
     }
     func terminate() -> Bool { terminateCalls += 1; return accepts }
+    func activate() { activateCalls += 1 }
     func forceTerminate() -> Bool { forceTerminateCalls += 1; return accepts }
 }
 
 @MainActor
 final class ApplicationQuitTests: XCTestCase {
-    private func quitter(_ apps: [FakeApplication]) -> ApplicationQuitter {
+    private func quitter(
+        _ apps: [FakeApplication],
+        schedule: @escaping (@escaping @MainActor () -> Void) -> Void = { _ in }
+    ) -> ApplicationQuitter {
         ApplicationQuitter(runningApplications: { id in apps.filter { $0.bundleIdentifier == id } },
-                           excludedBundleIdentifiers: ["com.apple.finder", "com.example.self"])
+                           excludedBundleIdentifiers: ["com.apple.finder", "com.example.self"],
+                           scheduleActivation: schedule)
     }
 
     private func app(_ id: String) -> DockItem {
@@ -62,6 +69,49 @@ final class ApplicationQuitTests: XCTestCase {
     func testRejectedTerminateIsReported() {
         let stubborn = FakeApplication("com.example.calc", accepts: false)
         XCTAssertEqual(quitter([stubborn]).quit(app("com.example.calc")), .rejected)
+        XCTAssertEqual(stubborn.activateCalls, 0)
+    }
+
+    func testSentTerminateRequestSchedulesActivation() {
+        let calculator = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([calculator]) { scheduled.append($0) }
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        XCTAssertEqual(scheduled.count, 1)
+        XCTAssertEqual(calculator.activateCalls, 0)
+        scheduled[0]()
+        XCTAssertEqual(calculator.activateCalls, 1)
+    }
+
+    func testOnlyInstancesWithSentRequestsAreActivated() {
+        let unsent = FakeApplication("com.example.calc", accepts: false)
+        let sent = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([unsent, sent]) { scheduled.append($0) }
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        XCTAssertEqual(unsent.activateCalls, 0)
+        XCTAssertEqual(sent.activateCalls, 0)
+        XCTAssertEqual(scheduled.count, 1)
+        scheduled[0]()
+        XCTAssertEqual(unsent.activateCalls, 0)
+        XCTAssertEqual(sent.activateCalls, 1)
+    }
+
+    func testApplicationThatExitsDuringDelayIsNotActivated() {
+        let calculator = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([calculator]) { scheduled.append($0) }
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        calculator.isTerminated = true
+        scheduled[0]()
+        XCTAssertEqual(calculator.activateCalls, 0)
+    }
+
+    func testActivationPolicyRequiresARequestAndRunningApplication() {
+        XCTAssertEqual(ApplicationQuitActivationPolicy.delay, .milliseconds(750))
+        XCTAssertTrue(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: true, isTerminated: false))
+        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: false, isTerminated: false))
+        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: true, isTerminated: true))
     }
 
     func testEveryInstanceWithSameBundleIdentifierIsTerminated() {
@@ -122,6 +172,7 @@ final class ApplicationQuitTests: XCTestCase {
         XCTAssertEqual(quitter([calculator]).forceQuit(app("com.example.calc")), .requested)
         XCTAssertEqual(calculator.forceTerminateCalls, 1)
         XCTAssertEqual(calculator.terminateCalls, 0)
+        XCTAssertEqual(calculator.activateCalls, 0)
     }
 
     func testNormalQuitDoesNotForceTerminate() {
