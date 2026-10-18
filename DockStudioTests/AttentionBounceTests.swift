@@ -1,6 +1,17 @@
 import XCTest
 @testable import DockStudio
 
+private final class FakeFocusStatusProvider: FocusStatusProviding {
+    var authorization: FocusStatusAuthorization = .notDetermined
+    var isFocused: Bool?
+    private(set) var authorizationRequests = 0
+
+    func requestAuthorization(completion: @escaping (FocusStatusAuthorization) -> Void) {
+        authorizationRequests += 1
+        completion(authorization)
+    }
+}
+
 final class AttentionBounceTests: XCTestCase {
     func testSettingDefaultsToEnabledAndRoundTrips() throws {
         let settings = DockSettings()
@@ -59,5 +70,49 @@ final class AttentionBounceTests: XCTestCase {
         XCTAssertTrue(AttentionBouncePolicy.shouldDisplay(isBounce: true, accessibilityTrusted: true,
                                                             isObservable: true, launchedAt: nil,
                                                             lastDisplayedAt: now.addingTimeInterval(-11), now: now))
+    }
+
+    func testSuppressesBounceOnlyWhenFocusStatusIsAuthorizedAndFocused() {
+        let provider = FakeFocusStatusProvider()
+        let focusStatus = AttentionBounceFocusStatus(provider: provider)
+
+        provider.authorization = .authorized
+        provider.isFocused = true
+        XCTAssertTrue(focusStatus.shouldSuppressBounce)
+
+        provider.isFocused = false
+        XCTAssertFalse(focusStatus.shouldSuppressBounce)
+        provider.isFocused = nil
+        XCTAssertFalse(focusStatus.shouldSuppressBounce)
+        provider.authorization = .denied
+        provider.isFocused = true
+        XCTAssertFalse(focusStatus.shouldSuppressBounce)
+        provider.authorization = .unavailable
+        XCTAssertFalse(focusStatus.shouldSuppressBounce)
+    }
+
+    func testRequestsFocusAuthorizationOnceWhenStatusIsUndetermined() {
+        let provider = FakeFocusStatusProvider()
+        let focusStatus = AttentionBounceFocusStatus(provider: provider)
+
+        focusStatus.requestAuthorizationIfNeeded()
+        focusStatus.requestAuthorizationIfNeeded()
+
+        XCTAssertEqual(provider.authorizationRequests, 1)
+    }
+
+    func testDeniedOrUnavailableFocusStatusKeepsBounceDisplayEnabled() {
+        let now = Date()
+        let provider = FakeFocusStatusProvider()
+        let focusStatus = AttentionBounceFocusStatus(provider: provider)
+
+        for authorization in [FocusStatusAuthorization.denied, .unavailable] {
+            provider.authorization = authorization
+            provider.isFocused = true
+            XCTAssertTrue(AttentionBouncePolicy.shouldDisplay(isBounce: true, accessibilityTrusted: true,
+                                                                isObservable: true, launchedAt: nil,
+                                                                lastDisplayedAt: nil, now: now,
+                                                                suppressForFocus: focusStatus.shouldSuppressBounce))
+        }
     }
 }
