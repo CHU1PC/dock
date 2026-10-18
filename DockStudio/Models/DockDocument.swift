@@ -28,6 +28,24 @@ enum DockItemKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum FolderDisplayMode: String, Codable, CaseIterable, Identifiable {
+    case list, grid
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .list: "リスト"
+        case .grid: "グリッド"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .list: "list.bullet"
+        case .grid: "square.grid.2x2"
+        }
+    }
+}
+
 struct DockItem: Codable, Equatable, Identifiable {
     static let downloadsLocationTarget = "dockstudio://system-location/downloads"
 
@@ -37,6 +55,7 @@ struct DockItem: Codable, Equatable, Identifiable {
     var target: String?
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
+    var folderDisplayMode: FolderDisplayMode?
 
     var targetURL: URL? { resolvedTargetURL() }
 

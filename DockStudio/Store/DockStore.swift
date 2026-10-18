@@ -544,6 +544,17 @@ final class DockStore {
     }
 
     @discardableResult
+    func setFolderDisplayMode(_ mode: FolderDisplayMode, forItem id: UUID) -> Bool {
+        guard !storageIsReadOnly else { return false }
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderDisplayMode = mode
+        return commit(candidate)
+    }
+
+    @discardableResult
     func removeSavedItem(_ id: UUID, fromProfile profileID: UUID) -> Bool {
         var candidate = document
         guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == profileID }),

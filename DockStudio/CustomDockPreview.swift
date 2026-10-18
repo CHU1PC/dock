@@ -70,6 +70,7 @@ struct DockBar: View {
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
     @State private var folderContentsItem: DockItem?
+    @State private var folderDisplayMode: FolderDisplayMode = .list
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
@@ -240,7 +241,13 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
                 if let folder = folderContentsItem {
-                    FolderContentsPopover(folder: folder) { child in
+                    FolderContentsPopover(folder: folder, displayMode: $folderDisplayMode) { mode in
+                        if store.setFolderDisplayMode(mode, forItem: folder.id) {
+                            var updated = folder
+                            updated.folderDisplayMode = mode
+                            folderContentsItem = updated
+                        }
+                    } openItem: { child in
                         folderContentsItem = nil
                         store.openItem(child)
                     } openInFinder: { folder in
@@ -306,6 +313,7 @@ struct DockBar: View {
            !ItemClickPolicy.isRevealClick(modifiers),
            !ItemClickPolicy.isHideOthersClick(modifiers) {
             folderContentsItem = item
+            folderDisplayMode = item.folderDisplayMode ?? .list
         } else {
             store.clickItem(item, modifiers: modifiers)
         }
@@ -314,6 +322,7 @@ struct DockBar: View {
     private func activateDockItem(_ item: DockItem) {
         if item.kind == .folder {
             folderContentsItem = item
+            folderDisplayMode = item.folderDisplayMode ?? .list
         } else {
             store.openItem(item)
         }
