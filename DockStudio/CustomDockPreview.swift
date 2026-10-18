@@ -209,6 +209,7 @@ struct DockBar: View {
             .accessibilityActions {
                 if store.canQuitApplication(item) {
                     Button("終了") { store.quitApplication(item) }
+                    Button("強制終了…") { store.forceQuitApplication(item) }
                 }
                 if store.isPinned(item) {
                     Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
@@ -224,6 +225,7 @@ struct DockBar: View {
                 }
                 if store.canQuitApplication(item) {
                     Button("終了") { store.quitApplication(item) }
+                    Button("強制終了…", role: .destructive) { store.forceQuitApplication(item) }
                 }
                 if store.isPinned(item) {
                     Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }

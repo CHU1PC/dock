@@ -16,6 +16,15 @@ final class DockStore {
     var isDockVisible = false
     var runningItems: [DockItem] = []
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var confirmForceQuit: (DockItem) -> Bool = { item in
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "「\(item.name)」を強制終了しますか？"
+        alert.informativeText = ForceQuitConfirmation.informativeText
+        alert.addButton(withTitle: "強制終了")
+        alert.addButton(withTitle: "キャンセル")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
@@ -584,6 +593,17 @@ final class DockStore {
         case .notRunning: status = "\(item.name) は起動していません"
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
+        }
+    }
+
+    func forceQuitApplication(_ item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        guard canQuitApplication(item), confirmForceQuit(item) else { return }
+        switch applicationQuitter.forceQuit(item) {
+        case .requested: status = "\(item.name) に強制終了を要求しました"
+        case .notRunning: status = "\(item.name) は起動していません"
+        case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
+        case .rejected: errorMessage = "\(item.name) を強制終了できませんでした。"
         }
     }
 
