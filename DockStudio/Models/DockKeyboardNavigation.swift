@@ -108,14 +108,16 @@ extension DockKeyboardNavigation.Key {
 
 enum DockItemMenu {
     enum Kind {
-        case open, reveal, showAllWindows, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep
+        case open, reveal, showAllWindows, spacesAssignmentGuide, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep
         case finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon
     }
+
+    static let spacesAssignmentGuideMessage = "標準 Dock のアプリアイコンを Control キーを押しながらクリックし、「オプション」>「割り当て先」から設定してください。Spaces が2つ以上あると選択肢が表示されます。標準 Dock にアプリアイコンがない場合は、先にそのアプリを標準 Dock に追加してください。"
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
                       folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {
-        let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings] : []
+        let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings, .spacesAssignmentGuide] : []
         if isFinder {
             let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds
             guard !finderEntryEnabled else { return actions }
@@ -138,6 +140,7 @@ extension DockItemMenu.Kind {
         case .open: "開く"
         case .reveal: "Finder で表示"
         case .showAllWindows: "全ウィンドウを表示"
+        case .spacesAssignmentGuide: "Spaces への割り当て方法"
         case .openLoginItemsSettings: "システム設定のログイン項目を開く"
         case .hide: "隠す"
         case .show: "表示"

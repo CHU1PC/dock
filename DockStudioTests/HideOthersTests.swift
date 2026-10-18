@@ -53,10 +53,21 @@ final class HideOthersTests: XCTestCase {
         XCTAssertEqual(DockItemMenu.Kind.hideOthers.title, "ほかを隠す")
     }
 
+    func testApplicationMenuIncludesSpacesAssignmentGuide() {
+        XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: true, isApplication: true),
+                       [.open, .reveal, .openLoginItemsSettings, .spacesAssignmentGuide, .remove])
+        XCTAssertFalse(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: true).contains(.spacesAssignmentGuide))
+        XCTAssertEqual(DockItemMenu.Kind.spacesAssignmentGuide.title, "Spaces への割り当て方法")
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("Control キーを押しながらクリック"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("「オプション」>「割り当て先」"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("Spaces が2つ以上"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("標準 Dock にアプリアイコンがない場合"))
+    }
+
     func testLoginItemsSettingsIsOnlyOfferedForApplicationItems() {
         let applicationKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
                                                   isApplication: true)
-        XCTAssertEqual(applicationKinds, [.open, .reveal, .openLoginItemsSettings, .keep])
+        XCTAssertEqual(applicationKinds, [.open, .reveal, .openLoginItemsSettings, .spacesAssignmentGuide, .keep])
         XCTAssertEqual(DockItemMenu.Kind.openLoginItemsSettings.title, "システム設定のログイン項目を開く")
         XCTAssertFalse(DockItemMenu.Kind.openLoginItemsSettings.isAccessibilityAction)
 

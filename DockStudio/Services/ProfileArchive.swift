@@ -34,7 +34,8 @@ struct ProfileArchive: Codable {
                     relative = String(url.standardizedFileURL.path.dropFirst(prefix.count))
                 }
                 return ArchivedItem(name: item.name, kind: item.kind,
-                                    bundleIdentifier: item.kind == .application ? url.flatMap { Bundle(url: $0)?.bundleIdentifier } ?? item.bundleIdentifier : nil,
+                                    bundleIdentifier: [.application, .applicationList].contains(item.kind)
+                                        ? url.flatMap { Bundle(url: $0)?.bundleIdentifier } ?? item.bundleIdentifier : nil,
                                     homeRelativePath: relative,
                                     webURL: item.kind == .link ? item.target : nil)
             })
