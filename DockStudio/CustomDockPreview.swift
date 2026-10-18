@@ -198,8 +198,14 @@ struct DockBar: View {
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
+                if store.canQuitApplication(item) {
+                    Button("終了") { store.quitApplication(item) }
+                }
                 if store.isPinned(item) {
                     Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
+                }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
             .contextMenu {
@@ -207,8 +213,14 @@ struct DockBar: View {
                 if let url = item.targetURL, url.isFileURL {
                     Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
                 }
+                if store.canQuitApplication(item) {
+                    Button("終了") { store.quitApplication(item) }
+                }
                 if store.isPinned(item) {
                     Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
+                }
+                if !store.isPinned(item) {
+                    Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))

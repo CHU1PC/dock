@@ -1,0 +1,12 @@
+# AXUIElementCopyActionNames の出力（AX API の確認用ツール）。Dock Studio 内の Dock の項目だけを抜粋。
+
+## Calculator 起動中（一時表示）、TextEdit は保持済みで未起動
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "TextEdit" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Calculator、起動中" actions=["AXShowMenu", "AXPress", "Name:終了\nTarget:0x0\nSelector:(null)"]
+
+## TextEdit 起動中（保持を外して一時表示になった後）
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari" actions=["AXShowMenu", "AXPress", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)"]
+AXButton "TextEdit、起動中" actions=["AXShowMenu", "AXPress", "Name:終了\nTarget:0x0\nSelector:(null)"]
