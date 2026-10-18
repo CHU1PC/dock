@@ -37,6 +37,9 @@ struct DockItem: Codable, Equatable, Identifiable {
     var target: String?
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
+    var folderDisplayStyle: FolderDisplayStyle?
+
+    var effectiveFolderDisplayStyle: FolderDisplayStyle { folderDisplayStyle ?? .folder }
 
     var targetURL: URL? { resolvedTargetURL() }
 
@@ -60,6 +63,10 @@ struct DockItem: Codable, Equatable, Identifiable {
         }
         return bundleIdentifier.map { "bundle:\($0)" }
     }
+}
+
+enum FolderDisplayStyle: String, Codable {
+    case folder, stack
 }
 
 struct DockProfile: Codable, Equatable, Identifiable {

@@ -107,11 +107,18 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep }
+    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, setFolderIcon, setStackIcon }
 
-    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false, canQuit: Bool, isPinned: Bool) -> [Kind] {
+    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
+                      canQuit: Bool, isPinned: Bool, folderDisplayStyle: FolderDisplayStyle? = nil) -> [Kind] {
         let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
-        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
+        let folderKinds: [Kind] = switch folderDisplayStyle {
+        case .folder: [.setStackIcon]
+        case .stack: [.setFolderIcon]
+        case nil: []
+        }
+        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + folderKinds
+            + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
 }
 
@@ -127,6 +134,8 @@ extension DockItemMenu.Kind {
         case .forceQuit: "強制終了…"
         case .remove: "Dock から取り外す"
         case .keep: "Dock に保持"
+        case .setFolderIcon: "フォルダとして表示"
+        case .setStackIcon: "Stack として表示"
         }
     }
 

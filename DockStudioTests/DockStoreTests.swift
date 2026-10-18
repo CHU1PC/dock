@@ -54,6 +54,24 @@ final class DockStoreTests: XCTestCase {
         XCTAssertTrue(store.status.contains("3番目に移動しました"))
     }
 
+    func testFolderDisplayStylePersistsOnOnlyTheSelectedFolder() throws {
+        let store = DockStore(persistence: persistence)
+        store.addItem(DockItem(name: "Second Folder", kind: .folder, target: "file:///tmp/Second%20Folder/"))
+        XCTAssertTrue(store.saveProfile(activate: true))
+        let folders = store.activeProfile.items.filter { $0.kind == .folder }
+        let selected = try XCTUnwrap(folders.first)
+        let other = try XCTUnwrap(folders.dropFirst().first)
+        store.editorProfile.name = "Pending profile edit"
+
+        XCTAssertTrue(store.setFolderDisplayStyle(.stack, for: selected.id))
+        XCTAssertTrue(store.saveProfile(activate: true))
+
+        let reloaded = try XCTUnwrap(DockStore(persistence: persistence).activeProfile.items.first { $0.id == selected.id })
+        let unchanged = try XCTUnwrap(DockStore(persistence: persistence).activeProfile.items.first { $0.id == other.id })
+        XCTAssertEqual(reloaded.effectiveFolderDisplayStyle, .stack)
+        XCTAssertEqual(unchanged.effectiveFolderDisplayStyle, .folder)
+    }
+
     func testSavingInactiveProfileDoesNotActivateIt() {
         let store = DockStore(persistence: persistence)
         let activeID = store.document.activeProfileID

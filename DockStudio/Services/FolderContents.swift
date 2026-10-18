@@ -18,6 +18,26 @@ enum FolderContentsModel {
     }
 }
 
+enum FolderStackIconModel {
+    static let previewLimit = 3
+
+    enum State: Equatable {
+        case loading, empty, failed
+        case preview([DockItem])
+    }
+
+    static func previewItems(from contents: [DockItem]) -> [DockItem] {
+        Array(contents.prefix(previewLimit))
+    }
+
+    static func state(contents: [DockItem]?, failedToRead: Bool) -> State {
+        if failedToRead { return .failed }
+        guard let contents else { return .loading }
+        let items = previewItems(from: contents)
+        return items.isEmpty ? .empty : .preview(items)
+    }
+}
+
 enum FolderContentsReader {
     static func read(at url: URL, fileManager: FileManager = .default) throws -> [DockItem] {
         let children = try fileManager.contentsOfDirectory(
