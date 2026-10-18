@@ -61,6 +61,26 @@ Custom Dock で、実行中のアプリのアイコンを Option キーだけを
 - 標準 Dock のクリックで隠れる対象は、前面だったアプリの 1 つだけを確認した。3 つ以上のアプリでの動作は、撮影していない。
 - 標準 Dock の画像は、操作前の 1 枚のみ（[standard-dock-before-crop.jpg](media/option-click-hide/standard-dock-before-crop.jpg)）。結果は、ログと動画による。
 
+### 再撮影: 非前面アプリの Option クリックの修正後（コミット `ac235cf`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `b7ac5f218befdc3b48820b300c0ae1c4c693443d20ae70c9fac00d4b6f1f3327` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした。Option は本物のキー押下で、アイコンの座標は AX で測った。ログは[fixed-panel-option-click-log.txt](media/option-click-hide/fixed-panel-option-click-log.txt)にあり、動画は[panel-option-click-fixed.mp4](media/option-click-hide/panel-option-click-fixed.mp4)（8fps、D1 から D5 の全操作）。
+
+```
+D1 Option click on front Calculator (prev TextEdit)
+  -> front=TextEdit | TextEdit=true Calculator=false Finder=true
+D2 Option click on NON-front Calculator (TextEdit front)  expect TextEdit=false Calculator=true
+  -> front=Calculator | TextEdit=false Calculator=true Finder=true
+D3 plain click on front Calculator
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true
+D4 Command click on Calculator (Finder reveal)
+  -> front=Finder | TextEdit=true Calculator=true Finder=true
+D5 Option click on NOT-running Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=true Calculator=true Finder=true   (Calculator が起動。pid は新しい値)
+```
+- D2: 非前面の Calculator を Option クリックすると、Calculator が前面になり、それまで前面だった TextEdit が隠れた（`TextEdit=false Calculator=true`）。標準 Dock の S3 と一致した。
+- D1: 前面アプリの Option クリックは、隠れて直前へ戻る。D3（修飾なし）、D4（Command）は回帰なし。D5: 未起動のアプリの Option クリックは、Calculator を起動し、TextEdit は隠れなかった。プロセスはどれも終了していない（TextEdit の pid は変わらない）。
+- 標準 Dock の S3 の再測（Option クリック後の画像）: `front=Calculator | TextEdit=false Calculator=true`（[画像](media/option-click-hide/standard-dock-after-option-click-full.jpg)、[ログ](media/option-click-hide/standard-dock-option-click-log-2.txt)）。画像には、Calculator が前面で、TextEdit のウィンドウが隠れ、Finder のウィンドウが残っている様子が写る。
+
 ## 撮影の手順
 
 撮影は専任の担当が、専用のヘッドレス VM のゲストで行う。ホストでは行わない。

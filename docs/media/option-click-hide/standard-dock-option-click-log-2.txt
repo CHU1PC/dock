@@ -1,0 +1,2 @@
+S3 STANDARD Dock: Option click on non-front Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=false Calculator=true Finder=true  | pids TextEdit=32545 Calculator=32696
