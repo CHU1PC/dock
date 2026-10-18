@@ -173,7 +173,7 @@ struct DockBar: View {
         .alert("Spaces への割り当て", isPresented: $showingSpacesAssignmentGuide) {
             Button("閉じる", role: .cancel) {}
         } message: {
-            Text("標準 Dock のアプリアイコンを Control キーを押しながらクリックし、「オプション」>「割り当て先」から設定してください。Spaces が2つ以上あると選択肢が表示されます。標準 Dock にアプリアイコンがない場合は、先にそのアプリを標準 Dock に追加してください。")
+            Text(DockItemMenu.spacesAssignmentGuideMessage)
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in

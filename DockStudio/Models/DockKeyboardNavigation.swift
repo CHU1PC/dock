@@ -109,6 +109,8 @@ extension DockKeyboardNavigation.Key {
 enum DockItemMenu {
     enum Kind { case open, reveal, spacesAssignmentGuide, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon }
 
+    static let spacesAssignmentGuideMessage = "標準 Dock のアプリアイコンを Control キーを押しながらクリックし、「オプション」>「割り当て先」から設定してください。Spaces が2つ以上あると選択肢が表示されます。標準 Dock にアプリアイコンがない場合は、先にそのアプリを標準 Dock に追加してください。"
+
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
                       folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {

@@ -58,6 +58,10 @@ final class HideOthersTests: XCTestCase {
                        [.open, .reveal, .spacesAssignmentGuide, .remove])
         XCTAssertFalse(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: true).contains(.spacesAssignmentGuide))
         XCTAssertEqual(DockItemMenu.Kind.spacesAssignmentGuide.title, "Spaces への割り当て方法")
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("Control キーを押しながらクリック"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("「オプション」>「割り当て先」"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("Spaces が2つ以上"))
+        XCTAssertTrue(DockItemMenu.spacesAssignmentGuideMessage.contains("標準 Dock にアプリアイコンがない場合"))
     }
 
     func testFolderMenuOffersOnlyTheAlternateDisplayStyle() {
