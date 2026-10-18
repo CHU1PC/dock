@@ -107,6 +107,10 @@ struct DockBar: View {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
+                                                    iconStyle: store.appearance.iconStyle,
+                                                    controller: store.minimizedWindowController,
+                                                    enabled: isPanel && store.isDockVisible)
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
                 }
@@ -737,7 +741,8 @@ enum DockMetrics {
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
+        let minimizedWindows = Double(store.minimizedWindowController.windows.count) * (10 + store.effectiveIconSize)
+        let total = itemsTotal + minimizedWindows + (10 + 11) + (10 + store.effectiveIconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
