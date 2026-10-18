@@ -442,6 +442,30 @@ final class DockStore {
         activeProfile.items.contains { $0.id == item.id }
     }
 
+    func canKeepInDock(_ item: DockItem) -> Bool {
+        item.kind == .application && !isPinned(item)
+    }
+
+    @discardableResult
+    func keepInActiveProfile(_ item: DockItem) -> Bool {
+        let profileID = document.activeProfileID
+        guard item.kind == .application, let identity = item.applicationIdentity,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == profileID }) else { return false }
+        if document.profiles[profileIndex].items.contains(where: { $0.applicationIdentity == identity }) { return true }
+        do { _ = try ItemLaunchPolicy().validate(item) }
+        catch { errorMessage = error.localizedDescription; return false }
+        var candidate = document
+        candidate.profiles[profileIndex].items.append(item)
+        guard commit(candidate) else { return false }
+        if var draft = drafts[profileID] {
+            if !draft.items.contains(where: { $0.applicationIdentity == identity }) { draft.items.append(item) }
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(item.name) を Dock に保持しました"
+        return true
+    }
+
     func removeFromActiveProfile(_ item: DockItem) {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
     }
