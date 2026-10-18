@@ -1,0 +1,31 @@
+locked
+Press Dock をキーボードで操作 result 0
+first-entry: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+second-entry: focus role=AXButton label=Finder、起動中
+01 down attempt=1 focus role=AXButton label=Safari
+02 down attempt=1 focus role=AXButton label=Mail
+03 end attempt=1 focus role=AXButton label=Downloads
+04 up attempt=1 focus role=AXButton label=Downloads
+04 up attempt=2 focus role=AXButton label=Downloads
+04 up attempt=3 focus role=AXButton label=Downloads
+05 home attempt=1 focus role=AXButton label=Downloads
+05 home attempt=2 focus role=AXButton label=Finder、起動中
+06 m attempt=1 focus role=AXButton label=Finder、起動中
+06 m attempt=2 focus role=AXButton label=Finder、起動中
+06 m attempt=3 focus role=AXButton label=Finder、起動中
+07 s attempt=1 focus role=AXButton label=Safari
+08 right attempt=1 focus role=AXButton label=Safari
+09 esc attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+10 right attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+11 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+12 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+13 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+14 return attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+14 return attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+14 return attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+15 end attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+15 end attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+15 end attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+done
+released
