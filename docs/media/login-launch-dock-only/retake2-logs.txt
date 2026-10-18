@@ -1,0 +1,19 @@
+## 再撮影 2（コミット dd9924a の Release、ゲスト macOS 26.6.2、2026-10-18）
+ホストとゲストの SHA-256: 039e0ecbd149d21d3b24c010c42c9255b8ff6459f56c4a0b530c587873e5373c（一致）
+ログイン項目風の起動は /tmp/guest-loginlaunch（kAEOpenApplication に keyAELaunchedAsLogInItem を付ける）。guest-windows の抜粋（Dock Studio のウィンドウ、h30 のメニューバー用は除外）。
+
+### A ログイン風、dockVisible=true（3 回とも同じ）
+09:16:33 launched
+09:16:35 から 09:16:48: layer=0 onscreen=false w0 h0 のみ（パネルも Studio も無い）
+09:16:50: layer=21 onscreen=1 x208 y829 w1184 h174 と layer=0 onscreen=1 x260 y122 w1080 h850 が同時に出た
+（09:15:00 の別の起動でも、10 秒後には両方あり。5 秒後は無し）
+
+### B ログイン風、dockVisible=false
+09:23:34 launched
+09:23:36 から 09:23:48: layer=0 onscreen=false w0 h0 のみ
+09:23:51: layer=21 onscreen=false x0 y920 w220 h80（パネル非表示）と layer=0 onscreen=1 x260 y122 w1080 h850（Studio ウィンドウが表示された）
+
+### C 通常起動（open -n）、dockVisible=true
+09:23:00 start
+09:23:02 から 09:23:15: layer=0 onscreen=false w0 h0 のみ
+09:23:17: layer=21 onscreen=1 と layer=0 onscreen=1 が出た（A と同じ形、同じ約 16 秒の遅れ）
