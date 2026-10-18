@@ -51,10 +51,31 @@ Dock の表示状態（`DockStore.isDockVisible`）は、変更のたびに `lau
 
 ### 未検証
 
-- 実際のログインと再起動での自動起動と、Dock の表示の復元。
-- `SMAppService.mainApp` の実際の登録、解除、`requiresApproval` の表示。署名なしのビルド（`CODE_SIGNING_ALLOWED=NO`）で登録が成功するかは未確認。
+- 実際のログインでの自動起動と、ログインで起動したアプリの Dock の復元（アプリの再起動での復元は、実画面で確認した）。
+- `requiresApproval` の表示。署名なしのビルドでの登録の成功は、実画面で確認した。
 - ログインで起動した際に、スタジオのウィンドウが開くこと。Custom Dock のウィンドウ制御は、スタジオのウィンドウの `.task` で作られるため、ウィンドウが開かない起動の形にすると Dock が出ない。現在のウィンドウは自動で開く設定のため、動くはずだが、実機では確認していない。
 - macOS 15 から 25 での挙動。
+
+### 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `b9fed8c` の Release ビルドを macOS 26.6.2、1600×1000の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `85d76ca6b94a0894fac10026558d6202dc38e3d9b198fa58abb5bc3bc9174741` と一致した。署名は付いていない（`CODE_SIGNING_ALLOWED=NO` のまま。ad-hoc 署名もしていない）。ゲストの `/Applications/DockStudio.app` に置き、`DOCKSTUDIO_DATA_DIR=/Users/admin/dock61-data` で起動した。**ログアウトと再ログインは行っていない**（共有 VM のセッションを切らないため）。再起動は、アプリを終了して `open -n` で起動し直す形で確認した。操作の記録は[launch-state-log.txt](media/restore-dock-after-login/launch-state-log.txt)にある。
+
+確認できたこと:
+
+- **署名なしのビルドで `register()` が成功した。** 「一般」のスイッチを入れると、スイッチは入ったままで、エラーのメッセージは出なかった（[02-switch-on-registered.jpg](media/restore-dock-after-login/02-switch-on-registered.jpg)）。システムに「Login Item Added。"DockStudio" will open automatically when you log in.」の通知が出て、システム設定の「ログイン項目と機能拡張」の「ログイン時に開く」に DockStudio が現れた（[03-system-settings-login-items.jpg](media/restore-dock-after-login/03-system-settings-login-items.jpg)）。結果は「成功」で、未許可（`requiresApproval`）や失敗の表示にはならなかった。
+- アプリを終了して起動し直した後も、スイッチは入ったままだった（`status` を読み直した結果。[07-broken-launch-state.jpg](media/restore-dock-after-login/07-broken-launch-state.jpg)）。スイッチを切ると、`unregister()` が成功し、スイッチが切れた（[08-switch-off-unregistered.jpg](media/restore-dock-after-login/08-switch-off-unregistered.jpg)）。
+- Dock を表示すると `launch-state.json` が `{"dockVisible":true}` になり（[04](media/restore-dock-after-login/04-panel-visible-before-restart.jpg)）、アプリを終了して起動し直すと、Dock は表示のまま復元された（[05](media/restore-dock-after-login/05-after-relaunch-visible.jpg)）。
+- 「デスクトップの Dock を隠す」で隠すと `{"dockVisible":false}` になり、起動し直すと隠れたままだった（[06](media/restore-dock-after-login/06-after-relaunch-hidden.jpg)）。
+- `launch-state.json` を `not json` に壊して起動すると、Dock は隠れ、「一般」に「前回の Dock の表示状態を読み込めなかったため、非表示で起動しました。」と OS のエラー文が出た（[07](media/restore-dock-after-login/07-broken-launch-state.jpg)）。
+- 設定画面のスイッチと、システム設定を開く操作は、上のとおり。「システム設定を開く」ボタンの案内は、`requiresApproval` にならなかったため、表示されなかった。
+
+確認できなかったこと、見つかったこと:
+
+- **実際のログインでの自動起動と、ログインで起動したアプリの Dock の復元は、未検証のまま。** ログアウトと再ログインを行っていない。`launch-state.json` の保存と、アプリの再起動での復元だけを確認した。
+- **不具合の疑い（コードは直していない）**: 一度もスイッチを操作していない初期状態で、「一般」を開くと、スイッチが切れたまま「このビルドはログイン項目として登録できません。/Applications などに置いたアプリで試してください。」の警告が出た（[01-initial-settings.jpg](media/restore-dock-after-login/01-initial-settings.jpg)）。アプリは `/Applications` に置いてあり、実際には `register()` が成功した。未登録の `SMAppService.mainApp.status` が `notFound` を返すためと思われる。`notFound` を「登録できないビルド」と解釈する条件が、未登録の状態と区別できていない。再現手順は、署名なしの `DockStudio.app` を `/Applications` に置き、ログイン項目に登録していない状態で、設定の「一般」を開くことである。
+- `requiresApproval` の表示、システム設定でユーザーが無効化した後の画面への反映（手順 6）は、撮影していない。登録解除後のシステム設定の画面は、システム設定のウインドウが前面に出ず、撮影できなかった。解除は、アプリの画面（スイッチ OFF）で確認した。
+- 動画は撮っていない。静止画と `launch-state.json` の内容で記録した。
+- 撮影後、ゲストのアプリ（`/Applications/DockStudio.app`）と検証用データは削除した。ログイン項目は、アプリの画面から解除してから削除した。システム設定で、解除後の一覧は確認していない。
 
 ## 撮影の手順
 
