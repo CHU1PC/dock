@@ -38,6 +38,23 @@ GitHub issue #16 の実装になる。通常終了（#15、`docs/QUIT_APP_FROM_M
 
 未検証: 実画面でのメニューの見え方、確認ダイアログの表示、実際のアプリが強制終了する挙動、VoiceOver のアクション。
 
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `e2ba034` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `6235a06f96033701e64719a1eb2b90c4473c12903a0282a1f2a773edc077cea9` と一致した。強制終了の対象は、ゲストの Calculator と TextEdit（未保存の書類つき）だけにした。メニューは `AXShowMenu` で開き、項目とダイアログのボタンは AX の押下で選んだ。
+
+確認できたこと:
+
+- 起動中の Calculator のメニューに「開く」「Finder で表示」「終了」「強制終了…」「Dock に保持」が出た（[menu-items.txt](media/force-quit-from-menu/menu-items.txt)、[menu-open-calculator.jpg](media/force-quit-from-menu/menu-open-calculator.jpg)）。
+- 「強制終了…」を選ぶと、AX に確認のダイアログ（「キャンセル」「強制終了」のボタン）が現れた（[dialog-buttons.txt](media/force-quit-from-menu/dialog-buttons.txt)）。
+- 「キャンセル」を選ぶと、Calculator は残った（[force-quit-log.txt](media/force-quit-from-menu/force-quit-log.txt)）。もう一度「強制終了…」から「強制終了」を選ぶと、Calculator は終了して Dock から消え、状態に「Calculator に強制終了を要求しました」が出た（[force-quit-calculator-status.jpg](media/force-quit-from-menu/force-quit-calculator-status.jpg)）。
+- TextEdit（未保存の書類つき）は、通常の「終了」ではプロセスが残り、保存確認のシートが出た（AX に確認のボタンがあった）。続けて「強制終了…」を選ぶと、保存確認を経ずに TextEdit が終了し、状態に「TextEdit に強制終了を要求しました」が出た（[force-quit-textedit-status.jpg](media/force-quit-from-menu/force-quit-textedit-status.jpg)）。
+
+確認できなかったこと、見つかったこと:
+
+- **確認ダイアログの画面を撮れなかった。** AX にはダイアログのウィンドウとボタンがあったが、VNC のフレームには映らなかった（マウスを動かしても変わらなかった）。見出しと本文の文言は、画像では確認していない。ダイアログがウィンドウの背後や画面外に出ている可能性があるが、未確認である。
+- Finder のメニューに「強制終了…」が出ないことは、確認できていない（Finder のメニューを開けず、直前のメニューが残っていた可能性がある）。未起動のアプリのメニューも、撮っていない。
+- 動画は撮っていない。
+
 ## 撮影の手順
 
 撮影は専任の担当が、専用のヘッドレス VM のゲストで行う。ホストでは行わない。強制終了そのものは、テスト用のアプリだけを対象にする。
