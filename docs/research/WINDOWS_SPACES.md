@@ -1,12 +1,12 @@
 # ウィンドウ・Spaces まわりの Dock 互換の調査
 
-Issue #22、#25、#28、#55、#54 の調査結果をまとめる。調査日は 2026-10-17 から 18 で、DockStudio の現状は main の `5d761de` を Release ビルドして確認した。
+Issue #22、#25、#28、#55、#54 の調査結果と、2026-10-18 のコード監査をまとめる。GUI の既存記録は 2026-10-17 から 18 に main の `5d761de` で作られた。今回のコード監査は main の `8df58b6` を対象にした。
 
 ## 調査の範囲と限界
 
 公開 API の有無は、Xcode 同梱の macOS SDK のヘッダと、Apple の公式サポートページで確かめた。ホストの macOS は 26.5.2 になる。
 
-実機に近い挙動は、専用ヘッドレス VM（`dockstudio-verification`）で確認した。ホストの画面には何も表示していない。
+下表と各 issue の GUI 観察は、前回調査時に記録された結果になる。今回の監査では VM を使わず、アプリも起動していない。#54 と #55 の新たな GUI 観察は未実施として扱い、後半に再確認の手順を記録する。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -15,7 +15,7 @@ Issue #22、#25、#28、#55、#54 の調査結果をまとめる。調査日は 
 | 撮影 | VNC のスクリーンショットを JPEG に縮小して保存した。動画は撮っていない |
 | DockStudio | `5d761de` の Release ビルド（署名なし）。実行ファイルの SHA-256 は `5c83f53e3722056ad7f74faadf69ef6e252fa25a3c24d533cf87fbfcfefabfe8` |
 
-次の項目は、今回の範囲に含まれない。各 issue の「残る未確認」にも書いた。
+前回調査で次の項目は範囲に含まれなかった。各 issue の「残る未確認」にも書いた。
 
 - macOS 15 での確認（VM は 26.6.2 のみ）。
 - 複数ディスプレイ（ゲストは1画面）。
@@ -44,6 +44,8 @@ Issue #22、#25、#28、#55、#54 の調査結果をまとめる。調査日は 
 | #55 表示領域の予約 | 公開 API では不可 | ヘッダに予約する API がない。VM で、Fill とタイルは標準 Dock の領域だけを避けた。Custom Dock のパネルは領域を予約せず、Fill した窓の上に重なった |
 | #54 フルスクリーン・Spaces・Mission Control | 一部を確認。Split View、クリック透過、デスクトップ表示、macOS 15、複数画面は未確認 | 現在の設定のまま、フルスクリーンの Space、Space の切替、Stage Manager でパネルが表示された。Mission Control の間はパネルが隠れた。`CanJoinAllApplications` は今回のケースでは不要だった |
 
+今回の監査では #54 と #55 の GUI 条件を再観察していない。上の結果は前回の記録であり、今回の確認結果ではない。手順は各節の「今回の未実施と再確認手順」に記載した。
+
 ## 共通の事実
 
 ### Custom Dock の現在の設定
@@ -55,7 +57,7 @@ panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.dockWindow)) + 1
 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
 ```
 
-VM で表示したパネルは、`CGWindowList` で layer 21（Dock のレベル 20 に 1 を足した値）、483×157 になり、画面の下端近くに置かれた。
+前回の VM 観察では、表示したパネルは `CGWindowList` で layer 21（Dock のレベル 20 に 1 を足した値）、483×157 になり、画面の下端近くに置かれた。現在の main でも `CustomDockWindowController.swift:92` に同じ level と collection behavior がある。
 
 ### collectionBehavior の意味
 
@@ -69,7 +71,7 @@ SDK の `NSWindow.h`（106〜126行目）に、次の説明がある。
  * @const NSWindowCollectionBehaviorCanJoinAllApplications Marks a window as able to join all applications, allowing it to join other apps' sets and full screen spaces when eligible. This collection behavior should commonly be used for floating windows and system overlays.
 ```
 
-Custom Dock のパネルはレベルが通常より上なので、既定で Transient になり、Exposé と Mission Control で隠れる側の扱いになる。VM の結果（#54）もこの説明と合っていた。
+Custom Dock のパネルはレベルが通常より上なので、既定で Transient になり、Exposé と Mission Control で隠れる側の扱いになる。前回の VM 結果（#54）はこの説明と合っていた。今回の監査では画面上の挙動を再確認していない。
 
 ### 非公開のシンボルについて
 
@@ -98,6 +100,14 @@ _CGSMoveWindowsToManagedSpace
 ### 標準 Dock の Accessibility ツリー
 
 ゲストで、標準 Dock（`com.apple.dock`）の Accessibility ツリーを取得した。アプリのアイコンは `AXApplicationDockItem`（`AXRoleConstants.h:435` に定義がある）、最小化したウィンドウは `AXMinimizedWindowDockItem`（同438行目）になる。アイコンに `AXShowMenu`（`AXActionConstants.h:114`）を実行すると、メニューは、アイコンの子ではなく、Dock の `AXList` の子の `AXMenu` として現れた。このツリーの構造は Apple が文書化していないので、macOS の更新で変わる可能性がある。
+
+### 2026-10-18 の main コード監査
+
+- `DockStudio/Services/CustomDockWindowController.swift:92` では、パネルの level と `.canJoinAllSpaces`、`.fullScreenAuxiliary`、`.ignoresCycle` を設定している。Spaces への参加方法は今回の GUI 監査では試していない。
+- 同ファイルの `:275` では、自分のパネルの位置計算に `screen.visibleFrame` を使っている。これは他アプリの利用可能領域を予約する処理ではない。
+- `DockStudio/` を `miniaturize`、`deminiaturize`、`kAXMinimized`、`Show All Windows`、`Assign To` で検索したが、該当する実装は見つからなかった。したがって #22、#25、#28 の案内や操作は未実装になる。
+- `git log origin/main --oneline -- DockStudio/Services/CustomDockWindowController.swift` では、前回調査後に一時拡大とグローバルショートカットなどの変更が入っている。今回の関連箇所で確認した差分はパネルの level、collection behavior、`visibleFrame` の利用を変えていない。
+- PR #117 のマージ後（main `8df58b6`）に追加されたのは、アプリの起動・アクティブ化から最近使ったアプリを記録する処理になる。今回の関連コードの検索と差分確認では、#22、#25、#28、#54、#55 の実装に関わる変更は見つからなかった。
 
 ## #22 Show All Windows で App Exposé を呼び出す方法
 
@@ -140,10 +150,14 @@ _CGSMoveWindowsToManagedSpace
 - macOS 15 での挙動。
 - トラックパッドからの入口。
 
+今回の再確認も未実施になる。後続の実機確認では、Force click と長押しをそれぞれ標準 Dock のアプリアイコン上で試し、メニューまたは App Exposé が開く条件を記録する。
+
 ### 実装する場合の方針と工数の見立て
 
 - 方針は、Accessibility の許可がある場合だけ「全ウィンドウを表示」を Custom Dock のメニューに出す。実行は `AXShowMenu` と `AXPress` を第一候補、キー合成を第二候補とする。許可がない場合は、許可の案内を出す。
 - 工数は2〜3日の見立てになる。許可の案内の画面、メニュー項目の探し方（言語差）、許可がない場合の表示が含まれる。macOS 15 での確認は別になる。
+
+今回の main コード監査では、前回の `5d761de` から App Exposé 呼び出しは追加されていない。#21 はウィンドウ一覧から選ぶ別の機能になるため、標準 Dock の「Show All Windows」を呼ぶ実装課題は別途切り出す候補になる。
 
 ## #25 Genie・Scale 最小化効果との連携可否
 
@@ -178,6 +192,8 @@ _CGSMoveWindowsToManagedSpace
 - 方針は、最小化の効果を Dock Studio では扱わず、システム設定に委ねる。設定画面に「最小化の効果は、システム設定の Desktop & Dock で変更する」という案内を置く。
 - 最小化されたウィンドウの表示と復元を Custom Dock に載せる場合は、Accessibility の許可を要する。別の項目として検討する。
 - 案内文だけなら半日の見立てになる。見た目の確認のために、動画を撮る検証で1日を見込む。
+
+今回の main コード監査では、最小化の実行や効果選択を扱うコードは見つからなかった。既存の #23 は最小化ウィンドウの表示と復元を扱い、システム設定の効果案内とは別になる。
 
 ## #28 Options から Spaces へアプリを割り当てる方法
 
@@ -222,6 +238,8 @@ _CGSMoveWindowsToManagedSpace
 - 制約は、標準 Dock が起動していて、そのアプリのアイコンが標準 Dock に出ている場合に限る点になる。
 - 案内文だけなら半日の見立てになる。Accessibility で代行する場合は、標準 Dock の構造への依存があるので、別途検討する。
 
+今回の main コード監査では、Spaces の割当を変更するコードも案内も見つからなかった。割当を直接変更するより、標準 Dock の Options に案内する実装を別途切り出す候補になる。
+
 ## #55 Dock 表示領域とウィンドウの最大化・タイル配置の共存
 
 **結論: 公開 API では不可。** 他のアプリの配置のために画面の利用可能領域を予約する公開 API は、見つからなかった。標準 Dock が領域を決め、Custom Dock のパネルは領域を予約しない。
@@ -261,6 +279,17 @@ _CGSMoveWindowsToManagedSpace
 - 方針の案は、標準 Dock を併用することを前提にして、Custom Dock の領域を予約しない。Custom Dock は自動非表示を既定とし、重なりは利用者が許容する構成にする。標準 Dock の設定を Dock Studio が書き換えることはしない。
 - もう1つの案は、標準 Dock を残してサイズを最小にし、予約領域を狭く保つ案になる。
 - 領域の予約そのものは実装できないので、表示と案内だけなら半日の見立てになる。
+
+### 今回の未実施と再確認手順
+
+今回、Dock 表示領域と Fill・タイル配置の GUI 観察は未実施になる。前回の測定値は上に残したが、この監査で再現していない。後続の検証では専用 macOS VM または検証用 Mac を使い、次の手順を記録する。
+
+1. 画面解像度とメニューバーの高さを記録し、標準 Dock を下側で常時表示にする。
+2. Safari などのウィンドウで Window > Fill と Window > Move & Resize > Left を選び、ウィンドウの座標と大きさを記録する。
+3. Dock を自動非表示にし、切替後に数秒待って同じ操作と測定を行う。
+4. Custom Dock のパネルを表示し、Fill したウィンドウとの重なりを画面キャプチャで記録する。
+5. Dock を左右へ移し、"Tiled windows have margins" の設定を切り替えて繰り返す。複数画面でも各画面の `visibleFrame` と結果を記録する。
+6. 画面、OS バージョン、Dock の位置と表示状態、ウィンドウ座標を結果に添える。今回の作業では、この手順を実行していない。
 
 ## #54 フルスクリーン・Spaces・Mission Control での Dock 互換性の検証
 
@@ -308,17 +337,30 @@ _CGSMoveWindowsToManagedSpace
 - 未確認の項目の検証に、2日を見込む。macOS 15 の環境と複数ディスプレイは、別に用意が要る。
 - 不足が見つかったら、`CanJoinAllApplications` の追加、`level` の調整、クリック透過の見直しなどを、個別の Issue に分ける。
 
+### 今回の未実施と再確認手順
+
+今回、フルスクリーン、Spaces、Mission Control、Stage Manager などの GUI 観察は未実施になる。前回の観察結果は上に残したが、この監査で再現していない。後続の検証では専用 macOS VM または検証用 Mac で、次の手順を実施して動画または画面記録を残す。
+
+1. 通常のデスクトップで Custom Dock のパネルを表示し、パネル上と透明部分をクリックして背面アプリへ入力が通るか確認する。
+2. Safari などをフルスクリーンにし、画面端から標準 Dock と Custom Dock がそれぞれ表示・退避する操作を確認する。
+3. Split View にして、同じ端操作とパネルの重なりを確認する。
+4. Mission Control を開閉し、Stage Manager をオン・オフし、F11 のデスクトップ表示と複数 Space の切替を試す。各状態でパネルの位置、表示、クリック透過を記録する。
+5. 同じ項目を macOS 15 と 26 で行い、1画面と複数画面で比較する。各 OS と画面構成で不足があれば個別の実装 Issue に分ける。
+6. 今回の作業ではアプリを起動せず、これらの手順を実行していない。
+
 ## 実装に進める項目
 
-公開 API だけで、追加の許可なしに完結する項目は見つからなかった。条件付きで進められる候補は次のとおり。
+公開 API だけで、追加の許可なしに完結する項目は見つからなかった。既存 Issue の調査結果を受けた実装候補は次のとおり。GUI の観察を要する実装は、別途検証する。
 
 | 項目 | 内容 | 条件 |
 | --- | --- | --- |
-| #22 | 「全ウィンドウを表示」を、Accessibility またはイベント送信の許可がある場合だけ出す | 許可の案内、言語差の対応。macOS 15 は未確認 |
-| #25 | 最小化の効果の案内文 | 見た目の確認は未了 |
-| #28 | Spaces の割当の案内文 | 標準 Dock が使えるとき |
-| #55 | 標準 Dock 併用を前提にした案内と既定値 | なし |
-| #54 | 現状の設定のまま | 未確認の項目の追加検証 |
+| #22 | 「全ウィンドウを表示」を、Accessibility またはイベント送信の許可がある場合だけ出す | 許可の案内、言語差の対応。macOS 15 は未確認。実装 Issue #118 |
+| #25 | 最小化の効果の案内文 | 見た目の確認は未了。実装 Issue #119 |
+| #28 | Spaces の割当の案内文 | 標準 Dock が使えるとき。実装 Issue #120 |
+| #55 | 標準 Dock 併用を前提にした案内と既定値 | なし。実装 Issue #121 |
+| #54 | 現状の設定のまま | 未確認の項目の追加検証。今回は実装 Issue なし |
+
+候補の重複調査では、#22 の App Exposé 呼び出し、#25 の最小化効果の案内、#28 の Spaces 割当の案内、#55 の標準 Dock 併用時の表示と案内について、同じ実装を扱う既存の Open Issue は見つからなかった。#23 は最小化ウィンドウの表示と復元、#21 は独自のウィンドウ一覧であり、これらとは機能が異なる。#54 は現行設定の変更が必要という結論ではないため、今回の調査から実装 Issue は作らない。
 
 ## 検証の記録
 
