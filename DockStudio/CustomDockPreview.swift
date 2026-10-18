@@ -346,6 +346,9 @@ struct DockBar: View {
                 ForEach(actions(for: item)) { action in
                     Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
                 }
+                if supportsApplicationDockMenu(item) {
+                    Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
+                }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
                 .frame(width: 4, height: 4).opacity(running ? 1 : 0)
@@ -516,6 +519,45 @@ extension DockBar {
         }
     }
 
+    fileprivate func supportsApplicationDockMenu(_ item: DockItem) -> Bool {
+        item.kind == .application && item.targetURL?.isFileURL == true
+    }
+
+    fileprivate func showApplicationDockMenu(for item: DockItem) {
+        guard let applicationURL = item.targetURL,
+              let items = store.applicationDockMenuAccess.menu(for: applicationURL), !items.isEmpty else {
+            store.errorMessage = "\(item.name) のアプリ固有メニューを取得できませんでした。アクセシビリティ権限と標準 Dock への登録を確認してください。"
+            return
+        }
+        let menu = NSMenu()
+        appendApplicationDockMenuItems(items, to: menu, applicationURL: applicationURL, itemName: item.name)
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+    }
+
+    fileprivate func appendApplicationDockMenuItems(_ items: [ApplicationDockMenuItem], to menu: NSMenu,
+                                                      applicationURL: URL, itemName: String) {
+        for item in items {
+            let entry = NSMenuItem(title: item.title, action: nil, keyEquivalent: "")
+            if item.children.isEmpty {
+                entry.action = #selector(DockMenuHandler.run(_:))
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { [store] in
+                    guard store.applicationDockMenuAccess.perform(itemID: item.id, for: applicationURL) else {
+                        store.errorMessage = "\(itemName) の「\(item.title)」を実行できませんでした。"
+                        return
+                    }
+                    store.status = "\(itemName) の「\(item.title)」を実行しました"
+                }
+            } else {
+                let submenu = NSMenu()
+                appendApplicationDockMenuItems(item.children, to: submenu, applicationURL: applicationURL,
+                                               itemName: itemName)
+                entry.submenu = submenu
+            }
+            menu.addItem(entry)
+        }
+    }
+
     fileprivate func focusFirstItem() {
         focusTask?.cancel()
         focusTask = Task { @MainActor in
@@ -595,6 +637,13 @@ extension DockBar {
             entry.target = DockMenuHandler.shared
             entry.representedObject = action.perform
             menu.addItem(entry)
+        }
+        if supportsApplicationDockMenu(item) {
+            let appMenu = NSMenuItem(title: "アプリ固有メニュー…", action: #selector(DockMenuHandler.run(_:)),
+                                     keyEquivalent: "")
+            appMenu.target = DockMenuHandler.shared
+            appMenu.representedObject = { showApplicationDockMenu(for: item) }
+            menu.addItem(appMenu)
         }
         let recentDocuments = store.recentDocuments(for: item)
         if !recentDocuments.isEmpty {

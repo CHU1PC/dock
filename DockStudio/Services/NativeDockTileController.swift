@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import SwiftUI
+import ServiceManagement
 
 @MainActor
 @Observable
@@ -86,6 +87,7 @@ final class NativeDockTileController: NSObject {
     fileprivate let store: DockStore
     let notice: String
     private let tile: NSDockTile
+    private let openLoginItemsSettings: () -> Void
     private var timer: Timer?
     private var detailWindow: NSWindow?
     private var content: NativeDockTileView?
@@ -94,10 +96,12 @@ final class NativeDockTileController: NSObject {
     private var activity: NSObjectProtocol?
     private(set) var isStarted = false
 
-    init(store: DockStore, tile: NSDockTile? = nil, notice: String = "サンプルの試用です。Dock の配置は変更しません。") {
+    init(store: DockStore, tile: NSDockTile? = nil, notice: String = "サンプルの試用です。Dock の配置は変更しません。",
+         openLoginItemsSettings: @escaping () -> Void = { SMAppService.openSystemSettingsLoginItems() }) {
         self.store = store
         self.tile = tile ?? NSApplication.shared.dockTile
         self.notice = notice
+        self.openLoginItemsSettings = openLoginItemsSettings
         super.init()
     }
 
@@ -176,6 +180,11 @@ final class NativeDockTileController: NSObject {
         menu.addItem(profiles)
         menu.addItem(NSMenuItem(title: "標準 Dock の配置は変更しません", action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
+        add("バックグラウンド実行を設定…", action: #selector(openBackgroundActivitySettings), to: menu)
+        menu.addItem(NSMenuItem(title: "システム設定 > 一般 > ログイン項目と機能拡張 > バックグラウンドでのアプリのアクティビティ", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "同期や自動更新が止まる場合があります", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Stop Running in Background は通常終了や強制終了とは異なる設定です", action: nil, keyEquivalent: ""))
+        menu.addItem(.separator())
         add("Dock Studio を終了", action: #selector(quit), to: menu)
         activeMenu = menu
         refresh()
@@ -221,6 +230,8 @@ final class NativeDockTileController: NSObject {
         return error
     }
     @objc private func quit() { NSApplication.shared.terminate(nil) }
+
+    @objc private func openBackgroundActivitySettings() { openLoginItemsSettings() }
 
     @objc func showDetails() {
         if detailWindow == nil {
