@@ -64,7 +64,7 @@ Dock のゴミ箱にファイルやフォルダをドロップすると、ドロ
 
 ## 実画面の確認（専用ヘッドレス VM）
 
-2026-10-18 に、コミット `5de43cc` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `2b91d6ad75d2f1c1251f8ddc0fe7886dea44755344400d26eb934f9a7b634ce5` と一致した。ゲストの `~/dockstudio-drop-to-trash` に `single.txt`、`multi-a.txt`、`multi-b.txt`、ロック済みの `locked.txt`（`chflags uchg`）を作り、Finder の窓から、パネルのゴミ箱へドラッグした（ゲスト内の CGEvent の合成ドラッグ）。パネルは「設定」タブで撮影し、ゴミ箱の状態は Full Disk Access がないため「空」と「項目あり」が AX の値に出た（#95 の「確認できない」は、このビルドでは出なかった。TCC の確認は、実装の `trashDirectory` の前回の VM の結果と食い違うため、別途の確認が必要）。ログは[drop-logs.txt](media/drop-to-trash/drop-logs.txt)にある。
+2026-10-18 に、コミット `5de43cc` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `2b91d6ad75d2f1c1251f8ddc0fe7886dea44755344400d26eb934f9a7b634ce5` と一致した。ゲストの `~/dockstudio-drop-to-trash` に `single.txt`、`multi-a.txt`、`multi-b.txt`、ロック済みの `locked.txt`（`chflags uchg`）を作り、Finder の窓から、パネルのゴミ箱へドラッグした（ゲスト内の CGEvent の合成ドラッグ）。パネルは「設定」タブで撮影し、ゴミ箱の状態は Full Disk Access がないため「空」と「項目あり」が AX の値に出た（#95 の「確認できない」は、このビルドでは出なかった。#37 の撮影では、Full Disk Access なしで「確認できない」になったため、結果が食い違う。原因は未確認）。ログは[drop-logs.txt](media/drop-to-trash/drop-logs.txt)にある。
 
 確認できたこと:
 - **単一ファイル**: `single.txt` をゴミ箱へドロップすると、元のディレクトリから消え、ゲストの `~/.Trash` に `single.txt` が現れた。ゴミ箱の AX の値は「空」から「項目あり」に変わった（[画像](media/drop-to-trash/after-single-drop-full.jpg)、[動画](media/drop-to-trash/single-drop.mp4)）。
