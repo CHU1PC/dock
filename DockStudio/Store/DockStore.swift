@@ -21,6 +21,7 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored let minimizedWindowController: MinimizedWindowController
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     @ObservationIgnored var trashInspector = TrashInspector()
@@ -77,6 +78,7 @@ final class DockStore {
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
          loginItem: LoginItemController? = nil) {
+        minimizedWindowController = MinimizedWindowController(provider: AccessibilityMinimizedWindowProvider())
         self.persistence = persistence
         self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
@@ -555,6 +557,20 @@ final class DockStore {
 
     func removeFromActiveProfile(_ item: DockItem) {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
+    }
+
+    func ejectVolume(_ item: DockItem) {
+        let ejector = VolumeEjector()
+        guard ejector.isEjectable(item), let url = item.targetURL else {
+            errorMessage = "\(item.name) は取り出し可能なディスクではありません。"
+            return
+        }
+        do {
+            try ejector.ejectVolume(at: url)
+            status = "\(item.name) を取り出しました"
+        } catch {
+            errorMessage = "\(item.name) を取り出せませんでした。使用中の項目を閉じてから、もう一度お試しください。\n\(error.localizedDescription)"
+        }
     }
 
     @discardableResult
