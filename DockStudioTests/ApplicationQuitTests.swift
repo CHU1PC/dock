@@ -4,6 +4,7 @@ import XCTest
 private final class FakeApplication: QuittableApplication {
     let bundleIdentifier: String?
     let bundleURL: URL? = URL(fileURLWithPath: "/Applications/Fake.app")
+    let processIdentifier: pid_t = 123
     var isTerminated: Bool
     let accepts: Bool
     private(set) var terminateCalls = 0
@@ -17,14 +18,22 @@ private final class FakeApplication: QuittableApplication {
     func forceTerminate() -> Bool { forceTerminateCalls += 1; return accepts }
 }
 
+private struct FakeQuitPromptDetector: QuitPromptDetecting {
+    let result: QuitPromptDetection
+
+    func detection(for application: any QuittableApplication) -> QuitPromptDetection { result }
+}
+
 @MainActor
 final class ApplicationQuitTests: XCTestCase {
     private func quitter(
         _ apps: [FakeApplication],
-        schedule: @escaping (@escaping @MainActor () -> Void) -> Void = { _ in }
+        schedule: @escaping (@escaping @MainActor () -> Void) -> Void = { _ in },
+        promptDetection: QuitPromptDetection = .detected
     ) -> ApplicationQuitter {
         ApplicationQuitter(runningApplications: { id in apps.filter { $0.bundleIdentifier == id } },
                            excludedBundleIdentifiers: ["com.apple.finder", "com.example.self"],
+                           promptDetector: FakeQuitPromptDetector(result: promptDetection),
                            scheduleActivation: schedule)
     }
 
@@ -107,11 +116,39 @@ final class ApplicationQuitTests: XCTestCase {
         XCTAssertEqual(calculator.activateCalls, 0)
     }
 
-    func testActivationPolicyRequiresARequestAndRunningApplication() {
+    func testApplicationWithoutPromptIsNotActivated() {
+        let stubborn = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([stubborn], schedule: { scheduled.append($0) }, promptDetection: .notDetected)
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        scheduled[0]()
+        XCTAssertEqual(stubborn.activateCalls, 0)
+    }
+
+    func testApplicationWithPromptIsActivated() {
+        let calculator = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([calculator], schedule: { scheduled.append($0) }, promptDetection: .detected)
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        scheduled[0]()
+        XCTAssertEqual(calculator.activateCalls, 1)
+    }
+
+    func testMissingAccessibilityPermissionFallsBackToPreviousBehavior() {
+        let calculator = FakeApplication("com.example.calc")
+        var scheduled: [@MainActor () -> Void] = []
+        let q = quitter([calculator], schedule: { scheduled.append($0) }, promptDetection: .unavailable)
+        XCTAssertEqual(q.quit(app("com.example.calc")), .requested)
+        scheduled[0]()
+        XCTAssertEqual(calculator.activateCalls, 1)
+    }
+
+    func testActivationPolicyRequiresRunningApplicationAndPromptOrFallback() {
         XCTAssertEqual(ApplicationQuitActivationPolicy.delay, .milliseconds(750))
-        XCTAssertTrue(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: true, isTerminated: false))
-        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: false, isTerminated: false))
-        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(requestWasSent: true, isTerminated: true))
+        XCTAssertTrue(ApplicationQuitActivationPolicy.shouldActivate(isTerminated: false, promptDetection: .detected))
+        XCTAssertTrue(ApplicationQuitActivationPolicy.shouldActivate(isTerminated: false, promptDetection: .unavailable))
+        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(isTerminated: false, promptDetection: .notDetected))
+        XCTAssertFalse(ApplicationQuitActivationPolicy.shouldActivate(isTerminated: true, promptDetection: .detected))
     }
 
     func testEveryInstanceWithSameBundleIdentifierIsTerminated() {
