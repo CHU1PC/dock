@@ -115,7 +115,7 @@ struct FolderContentsPopover: View {
         self.updateDisplayStyle = updateDisplayStyle
         self.onSortOrderChange = onSortOrderChange
         _sortOrder = State(initialValue: folder.folderSortOrder ?? .name)
-        _displayStyle = State(initialValue: folder.folderContentsDisplayStyle ?? .list)
+        _displayStyle = State(initialValue: folder.effectiveFolderContentsDisplayStyle)
     }
 
     var body: some View {
@@ -126,26 +126,6 @@ struct FolderContentsPopover: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Picker("表示形式", selection: $displayMode) {
-                    ForEach(FolderDisplayMode.allCases) { mode in
-                        Image(systemName: mode.symbol)
-                            .accessibilityLabel(mode.title)
-                            .tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .fixedSize()
-                .accessibilityLabel("表示形式")
-                .onChange(of: displayMode) {
-                    onDisplayModeChange(displayMode)
-                    if displayMode == .grid {
-                        if displayStyle == .fan { setDisplayStyle(.list) }
-                        if case .success(let items) = result { focusedGridItemID = items.first?.id }
-                    } else if displayStyle == .fan {
-                        setDisplayStyle(.list)
-                    }
-                }
                 Spacer(minLength: 4)
                 Picker("並べ替え", selection: $sortOrder) {
                     ForEach(FolderSortOrder.allCases) { order in
@@ -227,17 +207,19 @@ struct FolderContentsPopover: View {
                 Result { try FolderContentsReader.read(at: url, sortOrder: currentSortOrder) }
             }.value
             result = loaded
-            if displayMode == .grid, case .success(let items) = loaded {
-                focusedGridItemID = items.first?.id
+            if case .success(let items) = loaded {
+                updateResolvedDisplayMode(for: items)
+                if displayMode == .grid { focusedGridItemID = items.first?.id }
             }
         }
     }
 
     @ViewBuilder
     private func contents(_ items: [DockItem]) -> some View {
-        if displayMode == .grid {
+        let style = resolvedStyle(itemCount: items.count)
+        if style == .grid {
             grid(items)
-        } else if displayStyle == .fan && dockPosition == .bottom
+        } else if style == .fan && dockPosition == .bottom
                     && items.count <= FolderFanLayout.maximumItemCount {
             fan(items)
         } else {
@@ -359,10 +341,27 @@ struct FolderContentsPopover: View {
     private func setDisplayStyle(_ style: FolderContentsDisplayStyle) {
         guard updateDisplayStyle(folder, style) else { return }
         displayStyle = style
-        if displayMode != .list {
-            displayMode = .list
-            onDisplayModeChange(.list)
+        if case .success(let items) = result {
+            updateResolvedDisplayMode(for: items)
+            if displayMode == .grid { focusedGridItemID = items.first?.id }
+        } else {
+            updateDisplayMode(.list)
         }
+    }
+
+    private func resolvedStyle(itemCount: Int) -> FolderContentsDisplayStyle {
+        guard displayStyle == .automatic else { return displayStyle }
+        return FolderContentsAutomaticStyle.resolve(itemCount: itemCount, position: dockPosition)
+    }
+
+    private func updateResolvedDisplayMode(for items: [DockItem]) {
+        updateDisplayMode(resolvedStyle(itemCount: items.count) == .grid ? .grid : .list)
+    }
+
+    private func updateDisplayMode(_ mode: FolderDisplayMode) {
+        guard displayMode != mode else { return }
+        displayMode = mode
+        onDisplayModeChange(mode)
     }
 }
 

@@ -47,12 +47,14 @@ enum FolderDisplayMode: String, Codable, CaseIterable, Identifiable {
 }
 
 enum FolderContentsDisplayStyle: String, Codable, CaseIterable, Identifiable {
-    case list, fan
+    case automatic, list, grid, fan
 
     var id: String { rawValue }
     var title: String {
         switch self {
+        case .automatic: "自動"
         case .list: "一覧"
+        case .grid: "グリッド"
         case .fan: "Fan"
         }
     }
@@ -72,6 +74,9 @@ struct DockItem: Codable, Equatable, Identifiable {
     var effectiveFolderDisplayStyle: FolderDisplayStyle { folderDisplayStyle ?? .folder }
     var folderSortOrder: FolderSortOrder?
     var folderContentsDisplayStyle: FolderContentsDisplayStyle?
+    var effectiveFolderContentsDisplayStyle: FolderContentsDisplayStyle {
+        folderContentsDisplayStyle ?? (folderDisplayMode == .grid ? .grid : .list)
+    }
 
     var targetURL: URL? { resolvedTargetURL() }
 
