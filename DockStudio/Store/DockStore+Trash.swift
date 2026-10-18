@@ -36,6 +36,30 @@ extension DockStore {
         if !trashOpener(trashURL) { errorMessage = "ゴミ箱を開けませんでした。" }
     }
 
+    func emptyTrash() {
+        guard !isPreview, !isEmptyingTrash else { return }
+        isEmptyingTrash = true
+        let service = trashEmptyService
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let result = service.empty()
+            await MainActor.run {
+                guard let self else { return }
+                self.isEmptyingTrash = false
+                switch result {
+                case .emptied:
+                    self.status = "ゴミ箱を空にしました。"
+                case .cancelled:
+                    break
+                case .automationDenied:
+                    self.errorMessage = "Finder を操作する権限がありません。システム設定の「プライバシーとセキュリティ」>「オートメーション」で、Dock Studio に Finder の操作を許可してください。"
+                case .failed(let message):
+                    self.errorMessage = "ゴミ箱を空にできませんでした。\n\(message)"
+                }
+                Task { await self.refreshTrash() }
+            }
+        }
+    }
+
     func moveDroppedItemsToTrash(_ urls: [URL]) {
         guard !isPreview else { status = "ゴミ箱へ移動しました"; return }
         let failures = TrashDropService.move(urls, using: trashItemMover)

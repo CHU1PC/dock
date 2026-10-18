@@ -21,7 +21,9 @@ final class DockStore {
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
     var trashState = TrashState.unknown
+    var isEmptyingTrash = false
     @ObservationIgnored var trashInspector = TrashInspector()
+    @ObservationIgnored var trashEmptyService = TrashEmptyService()
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var trashItemMover: (URL) throws -> Void = { url in

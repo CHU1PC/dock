@@ -72,6 +72,7 @@ struct DockBar: View {
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
+    @State private var confirmingTrashEmpty = false
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
@@ -298,7 +299,20 @@ extension DockBar {
             .buttonStyle(.plain)
             .accessibilityLabel(item.name)
             .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
-            .contextMenu { Button("開く") { store.openTrash() } }
+            .contextMenu {
+                Button("開く") { store.openTrash() }
+                if store.isEmptyingTrash {
+                    Button("ゴミ箱を空にしています…") {}.disabled(true)
+                } else {
+                    Button("ゴミ箱を空にする…", role: .destructive) { confirmingTrashEmpty = true }
+                }
+            }
+            .confirmationDialog("ゴミ箱を空にしますか？", isPresented: $confirmingTrashEmpty) {
+                Button("ゴミ箱を空にする", role: .destructive) { store.emptyTrash() }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("ゴミ箱内のすべての項目を完全に削除します。この操作は取り消せません。Finder がロックされた項目を確認する場合があります。")
+            }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, 5)
