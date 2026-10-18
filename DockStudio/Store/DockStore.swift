@@ -491,13 +491,20 @@ final class DockStore {
 
     @discardableResult
     func addDroppedItems(_ urls: [URL], at index: Int) -> (added: Int, rejected: [String]) {
-        var items: [DockItem] = []
+        var dropped: [DockItem] = []
         var rejected: [String] = []
         for url in urls {
-            if let item = Self.droppedItem(from: url) { items.append(item) } else { rejected.append(url.lastPathComponent) }
+            if let item = Self.droppedItem(from: url) { dropped.append(item) } else { rejected.append(url.lastPathComponent) }
         }
         var candidate = document
-        guard !items.isEmpty, let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+            reportDropFailure(rejected: rejected)
+            return (0, rejected)
+        }
+        let existing = candidate.profiles[profileIndex].items + (drafts[candidate.profiles[profileIndex].id]?.items ?? [])
+        let (items, duplicates) = DuplicateItemPolicy.split(dropped, existing: existing)
+        guard !items.isEmpty else {
+            if !duplicates.isEmpty { status = DuplicateItemPolicy.message(for: duplicates) }
             reportDropFailure(rejected: rejected)
             return (0, rejected)
         }
@@ -513,6 +520,7 @@ final class DockStore {
             persistDrafts()
         }
         status = "\(items.count) 個の項目を Dock に追加しました"
+        if !duplicates.isEmpty { status += "。" + DuplicateItemPolicy.message(for: duplicates) }
         reportDropFailure(rejected: rejected)
         return (items.count, rejected)
     }
@@ -549,10 +557,17 @@ final class DockStore {
         panel.canChooseFiles = kind != .folder
         if kind == .application { panel.allowedContentTypes = [.applicationBundle] }
         guard panel.runModal() == .OK else { return }
-        for url in panel.urls {
-            addItem(DockItem(name: kind == .application ? url.deletingPathExtension().lastPathComponent : url.lastPathComponent,
-                             kind: kind, target: url.absoluteString))
+        addChosenItems(panel.urls, kind: kind)
+    }
+
+    func addChosenItems(_ urls: [URL], kind: DockItemKind) {
+        let chosen = urls.map {
+            DockItem(name: kind == .application ? $0.deletingPathExtension().lastPathComponent : $0.lastPathComponent,
+                     kind: kind, target: $0.absoluteString)
         }
+        let (items, duplicates) = DuplicateItemPolicy.split(chosen, existing: editorProfile.items)
+        items.forEach(addItem)
+        if !duplicates.isEmpty { status = DuplicateItemPolicy.message(for: duplicates) }
     }
 
     func importCurrentDock() async {
