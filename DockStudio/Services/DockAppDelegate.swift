@@ -28,6 +28,8 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let store else { return }
+        NSApp.servicesProvider = self
+        NSUpdateDynamicServices()
         if tileOnly {
             let controller = NativeDockTileController(store: store, notice: tileNotice)
             nativeTile = controller
@@ -39,6 +41,27 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, let store = self.store else { return }
                 self.dockController = CustomDockWindowController(store: store)
             }
+        }
+    }
+
+    @objc func addFinderSelection(
+        _ pasteboard: NSPasteboard,
+        userData: String,
+        error: AutoreleasingUnsafeMutablePointer<NSString?>
+    ) {
+        guard let store else {
+            error.pointee = "Dock Studio is not ready" as NSString
+            return
+        }
+        let urls = (pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+        guard !urls.isEmpty else {
+            store.errorMessage = "Finder から選択項目を受け取れませんでした。"
+            error.pointee = "No file URLs were received" as NSString
+            return
+        }
+        let result = store.addFinderSelection(urls)
+        if !result.rejected.isEmpty || result.items.isEmpty {
+            error.pointee = (store.errorMessage ?? "選択項目を追加できませんでした。") as NSString
         }
     }
 

@@ -318,7 +318,7 @@ final class DockStore {
     }
 
     @discardableResult
-    private func commit(_ candidate: DockDocument) -> Bool {
+    func commit(_ candidate: DockDocument) -> Bool {
         do {
             guard !storageIsReadOnly else { throw DockDataError.readOnly }
             try candidate.validate()
