@@ -24,7 +24,7 @@ Automatic の選択は、項目数と Dock の配置だけを受け取る純粋�
 
 | 確認 | 結果 |
 | --- | --- |
-| `/private/tmp/cw/run-check.sh 71 test` | 338件、失敗0件 |
+| `/private/tmp/cw/run-check.sh 71 test` | 341件、失敗0件 |
 | `/private/tmp/cw/run-check.sh 71 release` | `BUILD SUCCEEDED` |
 | `/private/tmp/cw/run-check.sh 71 testbuild` | `TEST BUILD SUCCEEDED` |
 
