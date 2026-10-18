@@ -1,4 +1,32 @@
 import SwiftUI
+import Observation
+
+@MainActor
+@Observable
+final class DockDragOutCancellation {
+    static let shared = DockDragOutCancellation()
+
+    private(set) var isDragging = false
+    private(set) var isCancelled = false
+
+    func begin() {
+        isDragging = true
+        isCancelled = false
+    }
+
+    func cancelIfDragging() -> Bool {
+        guard isDragging else { return false }
+        isCancelled = true
+        return true
+    }
+
+    func finish() -> Bool {
+        let wasCancelled = isCancelled
+        isDragging = false
+        isCancelled = false
+        return wasCancelled
+    }
+}
 
 enum DockDragOutRemoval {
     static let space = "dockBarDragOut"
@@ -32,11 +60,12 @@ struct DragOutToRemove: ViewModifier {
     @GestureState private var tracking = false
 
     func body(content: Content) -> some View {
+        let cancellation = DockDragOutCancellation.shared
         content
-            .opacity(outside ? 0.45 : 1)
+            .opacity(outside && !cancellation.isCancelled ? 0.45 : 1)
             .offset(translation)
             .overlay(alignment: vertical ? .center : .top) {
-                if outside {
+                if outside && !cancellation.isCancelled {
                     Text("取り外す").font(.caption.weight(.medium)).lineLimit(1)
                         .padding(.horizontal, 8).padding(.vertical, 4)
                         .background(.regularMaterial, in: Capsule())
@@ -46,18 +75,34 @@ struct DragOutToRemove: ViewModifier {
             }
             .zIndex(translation == .zero ? 0 : 1)
             .highPriorityGesture(enabled ? drag : nil)
-            .onChange(of: tracking) { if !tracking { reset() } }
+            .onChange(of: tracking) {
+                if !tracking {
+                    if cancellation.isDragging { _ = cancellation.finish() }
+                    reset()
+                }
+            }
+            .onChange(of: cancellation.isCancelled) {
+                if cancellation.isCancelled { reset() }
+            }
     }
 
     private var drag: some Gesture {
         DragGesture(minimumDistance: DockDragOutRemoval.minimumDistance, coordinateSpace: .named(DockDragOutRemoval.space))
             .updating($tracking) { _, state, _ in state = true }
             .onChanged { value in
+                guard !DockDragOutCancellation.shared.isCancelled else {
+                    reset()
+                    return
+                }
+                if !DockDragOutCancellation.shared.isDragging {
+                    DockDragOutCancellation.shared.begin()
+                }
                 translation = value.translation
                 outside = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
             }
             .onEnded { value in
-                let remove = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
+                let cancelled = DockDragOutCancellation.shared.finish()
+                let remove = !cancelled && DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
                 reset()
                 if remove { onRemove() }
             }
