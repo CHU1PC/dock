@@ -43,13 +43,13 @@ GitHub issue #17 の実装になる。
 
 確認できたこと:
 
-- 起動中のアプリのメニューに「開く」「Finder で表示」「隠す」「終了」「Dock に保持」が出た（[panel-menu-hide.jpg](media/hide-app-from-menu/panel-menu-hide.jpg)）。
+- 起動中のアプリのメニューに「開く」「Finder で表示」「隠す」「終了」「Dock に保持」が出た（[panel-menu-hide.jpg](media/hide-app-from-menu/old-panel-menu-hide.jpg)）。
 - 「隠す」を選ぶと、Calculator が隠れ（System Events の `visible` が false）、TextEdit は表示されたままだった（[visibility-log.txt](media/hide-app-from-menu/visibility-log.txt)）。対象以外のアプリが隠れないことは、1 つのアプリ（TextEdit）で確認した。
 - 未起動の Safari のメニューには、「隠す」が出なかった（「開く」「Finder で表示」「Dock から取り外す」のみ。[menu-items-safari-not-running.txt](media/hide-app-from-menu/menu-items-safari-not-running.txt)）。
 
 **見つかったこと（コードは直していない）**:
 
-- 「隠す」を選ぶと、アプリは隠れるが、「Calculator の表示を切り替えられませんでした。」の「操作を完了できませんでした」アラートが出た（[after-hide-error-alert.jpg](media/hide-app-from-menu/after-hide-error-alert.jpg)）。2 回の実行（Calculator が表示中の状態から）で、どちらも再現した。`hide()` の直後に `isHidden` を読んで判定している疑いがある（未確認）。再現手順は、`AXShowMenu` で Calculator のメニューを開き、「隠す」を押すことである。
+- 「隠す」を選ぶと、アプリは隠れるが、「Calculator の表示を切り替えられませんでした。」の「操作を完了できませんでした」アラートが出た（[after-hide-error-alert.jpg](media/hide-app-from-menu/old-after-hide-error-alert.jpg)）。2 回の実行（Calculator が表示中の状態から）で、どちらも再現した。`hide()` の直後に `isHidden` を読んで判定している疑いがある（未確認）。再現手順は、`AXShowMenu` で Calculator のメニューを開き、「隠す」を押すことである。
 - Calculator が隠れた状態で、メニューを開き直しても、「表示」ではなく「隠す」が出た（[menu-items-while-hidden.txt](media/hide-app-from-menu/menu-items-while-hidden.txt)）。このため「表示」の実画面の確認ができていない。上のアラートとの関連は未確認である。
 
 確認できなかったこと:
@@ -58,12 +58,26 @@ GitHub issue #17 の実装になる。
 - 複数ウィンドウと別の Space を持つ TextEdit の「隠す」（TextEdit のメニューが開かず、撮れなかった）。Spaces は設定していない。
 - 動画。
 
+### 修正後の再撮影（コミット `07d3384`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `bce8384661acace583a7de4d63a022176807f28a7d36e04ada7d89d844f220e0` と一致した。パネルだけが写るように、管理ウィンドウは「設定」タブにした（[panel-settings-tab-full.jpg](media/hide-app-from-menu/panel-settings-tab-full.jpg)）。メニューは `AXShowMenu` で開き、項目は AX の押下で選んだ。上の「見つかったこと」の画像は、修正前の古い撮影で、`old-` を付けた。操作の記録は[panel-hide-show-log.txt](media/hide-app-from-menu/panel-hide-show-log.txt)にある。
+
+| 確認項目 | 結果 |
+| --- | --- |
+| (1) 「隠す」を選ぶと、アプリが隠れ、エラーのアラートが出ない | 満たした。Calculator の `visible` が false になり、TextEdit は true のままだった。「閉じる」ボタンを持つアラートは出なかった（前回は出た） |
+| (2) 隠れた状態でメニューを開き直すと「表示」が出る | 満たした。「開く」「Finder で表示」「表示」「終了」「Dock に保持」が出た（前回は「隠す」のままだった。[画像](media/hide-app-from-menu/panel-menu-show-while-hidden-crop.jpg)） |
+| (3) 「表示」を選ぶと再表示される | 満たした。Calculator の `visible` が true に戻り、アラートは出なかった |
+| (4) TextEdit の複数ウィンドウで、他のアプリが隠れない | 一部のみ。TextEdit の 2 ウィンドウを持つ状態で「隠す」を選ぶと、TextEdit が隠れ（`visible=false`）、Calculator は true のままだった（[画像](media/hide-app-from-menu/panel-textedit-hidden-full.jpg)）。別の Space のウィンドウは、設定していない |
+| (5) 未起動アプリのメニューに「隠す」が出ない | 満たした。Safari（未起動）のメニューは「開く」「Finder で表示」「Dock から取り外す」「終了」の表示になった（[画像](media/hide-app-from-menu/panel-safari-not-running-menu-crop.jpg)）。ただし、AX の一覧には「終了」が出ている。これは、メニューバーの項目（DockStudio の「終了」）を拾った可能性が高く、Safari のメニューの項目ではないと見ている |
+
+- 動画は[panel-hide-show.mp4](media/hide-app-from-menu/panel-hide-show.mp4)（10fps、撮影時刻の間隔を維持）。VNC の取得が遅れ、メニューが開いている区間が短い。メニューが「表示」になった静止画は、その動画の 1 フレームである。
+- 確認できなかったこと: ステータス「○○ を隠しました」「○○ を表示しました」の画面（「設定」タブには出ない。「Custom Dock」タブで確認する必要があるが、そのタブではプレビュー Dock が重なる）。別の Space のウィンドウ。
+
 ## 未検証
 
 - 実際のアプリでの「表示」の動作（「隠す」は確認した）。
 - 複数ウィンドウと Spaces で、他のアプリが隠れないこと（受け入れ条件の2つ目）。単体テストでは、対象以外に呼ばれないことだけを確認した。
 - macOS 15 以降での差分。
-- 隠している間に、メニューの文言が「表示」に変わること（変わらなかった。上の「見つかったこと」を参照）。
 
 ## 撮影の手順
 
