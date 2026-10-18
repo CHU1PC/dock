@@ -1,0 +1,80 @@
+{
+  "activeProfileID" : "45BC6B2D-243F-43BD-9FF1-F54559ECB710",
+  "profiles" : [
+    {
+      "id" : "45BC6B2D-243F-43BD-9FF1-F54559ECB710",
+      "items" : [
+        {
+          "id" : "1002F50A-71F1-406D-A4F2-A278D5FAAEDE",
+          "kind" : "application",
+          "name" : "Finder",
+          "target" : "file:\/\/\/System\/Library\/CoreServices\/Finder.app\/"
+        },
+        {
+          "id" : "8780D957-CBC6-480D-9D34-FD52BE44F75F",
+          "kind" : "application",
+          "name" : "Safari",
+          "target" : "file:\/\/\/System\/Volumes\/Preboot\/Cryptexes\/App\/System\/Applications\/Safari.app\/"
+        },
+        {
+          "id" : "199B2748-A52D-48F3-94BA-826B7846C6ED",
+          "kind" : "application",
+          "name" : "メール",
+          "target" : "file:\/\/\/System\/Applications\/Mail.app\/"
+        },
+        {
+          "id" : "2A1F1246-45D9-480B-9C1D-40F7EF329789",
+          "kind" : "application",
+          "name" : "ターミナル",
+          "target" : "file:\/\/\/System\/Applications\/Utilities\/Terminal.app\/"
+        },
+        {
+          "id" : "10F4F5EA-4857-4DDF-B313-08242AEACE76",
+          "kind" : "application",
+          "name" : "Calculator",
+          "target" : "file:\/\/\/System\/Applications\/Calculator.app\/"
+        },
+        {
+          "id" : "9A3D00C1-23C6-4D0C-91E4-ADBA2BE15404",
+          "kind" : "spacer",
+          "name" : "スペーサー"
+        }
+      ],
+      "name" : "仕事"
+    },
+    {
+      "id" : "C2AD06E7-32AE-44F6-8AC4-ABD9B79DF21F",
+      "items" : [
+        {
+          "id" : "BDCA6FF3-9740-421B-B42F-87909117CC26",
+          "kind" : "application",
+          "name" : "Finder",
+          "target" : "file:\/\/\/System\/Library\/CoreServices\/Finder.app\/"
+        },
+        {
+          "id" : "1D1C8D72-5409-46B5-B221-07BE61E4FA59",
+          "kind" : "application",
+          "name" : "ミュージック",
+          "target" : "file:\/\/\/System\/Applications\/Music.app\/"
+        },
+        {
+          "id" : "4F7D57FB-DEF4-4798-9694-D78E3E0F5D9C",
+          "kind" : "application",
+          "name" : "写真",
+          "target" : "file:\/\/\/System\/Applications\/Photos.app\/"
+        }
+      ],
+      "name" : "プライベート"
+    }
+  ],
+  "schemaVersion" : 1,
+  "settings" : {
+    "autoHide" : false,
+    "iconSize" : 52,
+    "launchBounce" : true,
+    "mode" : "both",
+    "position" : "bottom",
+    "revealAnimationDuration" : 0.22,
+    "showRunningApps" : false
+  }
+}
