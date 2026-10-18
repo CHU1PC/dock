@@ -13,7 +13,12 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
-    var isDockVisible = false
+    var isDockVisible = false {
+        didSet { if oldValue != isDockVisible { saveLaunchState() } }
+    }
+    private(set) var launchStateNotice: String?
+    @ObservationIgnored private var launchStateReady = false
+    @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
@@ -41,8 +46,10 @@ final class DockStore {
     let isPreview: Bool
     private let persistence: ProfilePersistence?
 
-    init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil) {
+    init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
+         loginItem: LoginItemController? = nil) {
         self.persistence = persistence
+        self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
         let seed = initial ?? Self.initialDocument()
         document = seed
@@ -62,12 +69,37 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        restoreLaunchState()
     }
 
     static func preview() -> DockStore { DockStore(persistence: nil) }
 
     private var appearanceURL: URL? {
         persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("appearance.json")
+    }
+
+    private var launchStateURL: URL? {
+        persistence.map { LaunchRestorePersistence.url(besides: $0.fileURL) }
+    }
+
+    private func restoreLaunchState() {
+        defer { launchStateReady = true }
+        guard let url = launchStateURL else { return }
+        do {
+            if let state = try LaunchRestorePersistence.load(from: url) { isDockVisible = state.dockVisible }
+        } catch {
+            launchStateNotice = "前回の Dock の表示状態を読み込めなかったため、非表示で起動しました。\n\(error.localizedDescription)"
+        }
+    }
+
+    private func saveLaunchState() {
+        guard launchStateReady, let url = launchStateURL else { return }
+        do {
+            try LaunchRestorePersistence.save(LaunchRestoreState(dockVisible: isDockVisible), to: url)
+            launchStateNotice = nil
+        } catch {
+            launchStateNotice = "Dock の表示状態を保存できませんでした。次回の起動時は前回の状態を復元できません。\n\(error.localizedDescription)"
+        }
     }
 
     private func loadAppearance() {
