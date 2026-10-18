@@ -282,7 +282,10 @@ final class DockStore {
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
     var displayedLayout: DockSectionLayoutResult {
-        var seen = Set(activeProfile.items.compactMap(\.applicationIdentity))
+        let pinned = activeProfile.items.compactMap { item in
+            item.kind == .applicationList ? ApplicationListEntry.currentItem(for: item) : item
+        }
+        var seen = Set(pinned.compactMap(\.applicationIdentity))
         let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
             return seen.insert(identity).inserted
@@ -292,7 +295,7 @@ final class DockStore {
         let recent = document.settings.showRecentApps
             ? RecentAppHistory.visibleItems(recentAppItems, excluding: seen.union(runningIdentities))
             : []
-        return DockSectionLayout.arrange(pinned: activeProfile.items, running: running, recent: recent,
+        return DockSectionLayout.arrange(pinned: pinned, running: running, recent: recent,
                                          arrangement: document.settings.arrangement)
     }
 
@@ -836,6 +839,19 @@ final class DockStore {
 
     func openItem(_ item: DockItem) {
         guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        if item.kind == .applicationList {
+            guard let entry = ApplicationListEntry.currentItem(for: item),
+                  let identifier = entry.bundleIdentifier,
+                  let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) else {
+                errorMessage = "この macOS ではアプリ一覧を利用できません。"
+                return
+            }
+            NSWorkspace.shared.openApplication(at: url, configuration: .init()) { [weak self] _, error in
+                guard let error else { return }
+                Task { @MainActor in self?.errorMessage = "アプリ一覧を開けませんでした。\n\(error.localizedDescription)" }
+            }
+            return
+        }
         let current = ItemAvailabilityChecker().check(item)
         itemAvailability.record(item, current)
         switch current {

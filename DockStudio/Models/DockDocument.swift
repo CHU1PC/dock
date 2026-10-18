@@ -1,12 +1,13 @@
 import Foundation
 
 enum DockItemKind: String, Codable, CaseIterable, Identifiable {
-    case application, folder, file, link, spacer, clock, focusTimer
+    case application, applicationList, folder, file, link, spacer, clock, focusTimer
 
     var id: String { rawValue }
     var title: String {
         switch self {
         case .application: "アプリ"
+        case .applicationList: "アプリ一覧"
         case .folder: "フォルダ"
         case .file: "ファイル"
         case .link: "リンク"
@@ -18,6 +19,7 @@ enum DockItemKind: String, Codable, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .application: "app.fill"
+        case .applicationList: "square.grid.2x2.fill"
         case .folder: "folder.fill"
         case .file: "doc.fill"
         case .link: "link"
@@ -246,7 +248,7 @@ struct DockDocument: Codable, Equatable {
                           let host = url.host, !host.isEmpty else {
                         throw DockDataError.invalidData("Links require an HTTP or HTTPS URL.")
                     }
-                case .spacer, .clock, .focusTimer: break
+                case .applicationList, .spacer, .clock, .focusTimer: break
                 }
             }
         }
