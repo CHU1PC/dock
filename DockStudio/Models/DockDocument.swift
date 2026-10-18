@@ -29,6 +29,8 @@ enum DockItemKind: String, Codable, CaseIterable, Identifiable {
 }
 
 struct DockItem: Codable, Equatable, Identifiable {
+    static let downloadsLocationTarget = "dockstudio://system-location/downloads"
+
     var id = UUID()
     var name: String
     var kind: DockItemKind
@@ -36,7 +38,18 @@ struct DockItem: Codable, Equatable, Identifiable {
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
 
-    var targetURL: URL? { target.flatMap(URL.init(string:)) }
+    var targetURL: URL? { resolvedTargetURL() }
+
+    func resolvedTargetURL(downloadsDirectory: URL? = Self.downloadsDirectoryURL()) -> URL? {
+        guard let target else { return nil }
+        if target == Self.downloadsLocationTarget { return downloadsDirectory }
+        return URL(string: target)
+    }
+
+    static func downloadsDirectoryURL(fileManager: FileManager = .default) -> URL? {
+        try? fileManager.url(for: .downloadsDirectory, in: .userDomainMask,
+                             appropriateFor: nil, create: false)
+    }
 
     var applicationIdentity: String? {
         guard kind == .application else { return nil }
@@ -147,6 +160,7 @@ struct DockDocument: Codable, Equatable {
                 switch item.kind {
                 case .application, .folder, .file:
                     if item.target == nil { continue }
+                    if item.kind == .folder, item.target == DockItem.downloadsLocationTarget { continue }
                     guard let url = item.targetURL, url.isFileURL,
                           url.host == nil || url.host == "" || url.host == "localhost" else {
                         throw DockDataError.invalidData("File items require a file URL.")

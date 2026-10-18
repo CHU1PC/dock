@@ -121,6 +121,37 @@ final class DockStoreTests: XCTestCase {
         XCTAssertEqual(store.status, "")
     }
 
+    func testInitialDocumentIncludesRuntimeDownloadsLocation() throws {
+        let document = DockStore.initialDocument()
+        let downloads = try XCTUnwrap(document.profiles.first?.items.first { $0.name == "Downloads" })
+
+        XCTAssertEqual(downloads.kind, .folder)
+        XCTAssertEqual(downloads.target, DockItem.downloadsLocationTarget)
+        XCTAssertEqual(downloads.targetURL, DockItem.downloadsDirectoryURL())
+        XCTAssertTrue(try XCTUnwrap(document.profiles.first).items.contains { $0.name == "スペーサー" })
+    }
+
+    func testExistingProfileIsNotChangedToAddDownloads() throws {
+        let profile = DockProfile(name: "Existing", items: [])
+        let existing = DockDocument(profiles: [profile], activeProfileID: profile.id)
+        try persistence.save(existing)
+
+        let store = DockStore(persistence: persistence)
+
+        XCTAssertEqual(store.document, existing)
+        XCTAssertFalse(store.document.profiles.flatMap(\.items).contains { $0.name == "Downloads" })
+    }
+
+    func testDownloadsLocationResolvesAgainAfterFolderMoves() throws {
+        let downloads = DockItem(name: "Downloads", kind: .folder,
+                                target: DockItem.downloadsLocationTarget)
+        let original = URL(fileURLWithPath: "/Users/example/Downloads")
+        let moved = URL(fileURLWithPath: "/Volumes/Data/Downloads")
+
+        XCTAssertEqual(downloads.resolvedTargetURL(downloadsDirectory: original), original)
+        XCTAssertEqual(downloads.resolvedTargetURL(downloadsDirectory: moved), moved)
+    }
+
     func testItemRemovalCanBeUndoneWithOriginalIdentityAndOrder() {
         let store = DockStore.preview()
         let original = store.editorProfile

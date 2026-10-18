@@ -69,7 +69,7 @@ final class ItemAvailabilityMonitor {
     }
 
     func status(of item: DockItem) -> ItemAvailability {
-        guard let entry = entries[item.id], entry.target == item.target else { return .available }
+        guard let entry = entries[item.id], entry.target == currentTarget(of: item) else { return .available }
         return entry.status
     }
 
@@ -89,7 +89,11 @@ final class ItemAvailabilityMonitor {
     }
 
     func record(_ item: DockItem, _ status: ItemAvailability) {
-        entries[item.id] = Entry(target: item.target, status: status)
+        entries[item.id] = Entry(target: currentTarget(of: item), status: status)
+    }
+
+    private func currentTarget(of item: DockItem) -> String? {
+        item.targetURL?.absoluteString ?? item.target
     }
 
     func startObserving() {
