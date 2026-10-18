@@ -77,11 +77,11 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, quit, forceQuit, remove, keep }
+    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep }
 
-    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canQuit: Bool, isPinned: Bool) -> [Kind] {
+    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false, canQuit: Bool, isPinned: Bool) -> [Kind] {
         let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
-        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
+        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
 }
 
@@ -92,6 +92,7 @@ extension DockItemMenu.Kind {
         case .reveal: "Finder で表示"
         case .hide: "隠す"
         case .show: "表示"
+        case .hideOthers: "ほかを隠す"
         case .quit: "終了"
         case .forceQuit: "強制終了…"
         case .remove: "Dock から取り外す"

@@ -12,6 +12,10 @@ struct ItemClickPolicy {
         flags.intersection([.command, .option, .control, .shift]) == [.command]
     }
 
+    static func isHideOthersClick(_ flags: NSEvent.ModifierFlags) -> Bool {
+        flags.intersection([.command, .option, .control, .shift]) == [.command, .option]
+    }
+
     static func clickModifiers(event: NSEvent.ModifierFlags?, current: NSEvent.ModifierFlags) -> NSEvent.ModifierFlags {
         event ?? current
     }
@@ -36,6 +40,7 @@ struct ItemClickPolicy {
 
 extension DockStore {
     func clickItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if ItemClickPolicy.isHideOthersClick(modifiers) { hideOthers(of: item); return }
         let reveal = ItemClickPolicy.isRevealClick(modifiers)
         guard reveal else { openItem(item); return }
         guard !isPreview else { status = "\(item.name) を Finder で表示します"; return }
