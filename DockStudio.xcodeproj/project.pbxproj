@@ -47,8 +47,10 @@
 		989EDF5C442B44BBF1AA5D0A /* DockStore+Trash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40169D01B3CF3CCCB6602AEF /* DockStore+Trash.swift */; };
 		9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60EB0DB463C5447E89F603D /* SettingsPreview.swift */; };
 		9FAB0492CF4B4CD9A8144FA8 /* AsyncProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */; };
+		A2BACEE6CFA5F77522BEB3A1 /* VolumeEjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */; };
 		A72E585B7A9AF1351C676295 /* ApplicationHideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */; };
 		A90482099F2E73ED122C2AA9 /* RemoveDockItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */; };
+		A97B3265B6DB064078459181 /* VolumeEjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF9C0D6213AF118595D5880 /* VolumeEjector.swift */; };
 		B0D0C5D0629A2EA0F95E9189 /* DockDragOutRemoval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E3047B8E792AEEE176CFBF /* DockDragOutRemoval.swift */; };
 		B72FA7DF2DD2955D1A30A443 /* DockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF08A2FAB56E7BFFE8EE703 /* DockStore.swift */; };
 		B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */; };
@@ -90,6 +92,7 @@
 		238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileRegressionTests.swift; sourceTree = "<group>"; };
 		25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePersistence.swift; sourceTree = "<group>"; };
 		2AB86C3AB95EF20C137DE78A /* KeepRunningAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepRunningAppTests.swift; sourceTree = "<group>"; };
+		2BF9C0D6213AF118595D5880 /* VolumeEjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeEjector.swift; sourceTree = "<group>"; };
 		34683B59256856BB755CBF65 /* DockAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearance.swift; sourceTree = "<group>"; };
 		37D9AF83EA901F0252C6A2A5 /* DockDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDocument.swift; sourceTree = "<group>"; };
 		3D05D419252EF0367C316635 /* TrashInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashInspector.swift; sourceTree = "<group>"; };
@@ -141,6 +144,7 @@
 		EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTemporaryMagnification.swift; sourceTree = "<group>"; };
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
 		F60EB0DB463C5447E89F603D /* SettingsPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreview.swift; sourceTree = "<group>"; };
+		F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeEjectorTests.swift; sourceTree = "<group>"; };
 		FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashDropService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -186,6 +190,7 @@
 				25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */,
 				FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */,
 				3D05D419252EF0367C316635 /* TrashInspector.swift */,
+				2BF9C0D6213AF118595D5880 /* VolumeEjector.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -217,6 +222,7 @@
 				9A47BE7B777E2BCC8C022C1E /* ReviewRegressionTests.swift */,
 				E60BD64A51F2320C85780284 /* TrashDropTests.swift */,
 				B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */,
+				F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */,
 			);
 			path = DockStudioTests;
 			sourceTree = "<group>";
@@ -359,6 +365,7 @@
 				323829CCA874716179B7818C /* ReviewRegressionTests.swift in Sources */,
 				5440E4841B93F588D7FA4128 /* TrashDropTests.swift in Sources */,
 				0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */,
+				A2BACEE6CFA5F77522BEB3A1 /* VolumeEjectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +408,7 @@
 				9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */,
 				8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */,
 				2B7670294DE39057E5B88C22 /* TrashInspector.swift in Sources */,
+				A97B3265B6DB064078459181 /* VolumeEjector.swift in Sources */,
 				28356FA051FC37E8A9DAD64E /* WorkspaceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
