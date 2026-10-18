@@ -5,11 +5,31 @@ struct FolderContentsPopover: View {
     let folder: DockItem
     @Binding var displayMode: FolderDisplayMode
     let onDisplayModeChange: (FolderDisplayMode) -> Void
+    let dockPosition: DockPosition
+    let reduceMotion: Bool
     let openItem: (DockItem) -> Void
     let openInFinder: (DockItem) -> Void
+    let updateDisplayStyle: (DockItem, FolderContentsDisplayStyle) -> Bool
 
     @State private var result: Result<[DockItem], Error>?
+    @State private var displayStyle: FolderContentsDisplayStyle
     @FocusState private var focusedGridItemID: UUID?
+
+    init(folder: DockItem, displayMode: Binding<FolderDisplayMode>,
+         onDisplayModeChange: @escaping (FolderDisplayMode) -> Void,
+         dockPosition: DockPosition, reduceMotion: Bool,
+         openItem: @escaping (DockItem) -> Void, openInFinder: @escaping (DockItem) -> Void,
+         updateDisplayStyle: @escaping (DockItem, FolderContentsDisplayStyle) -> Bool) {
+        self.folder = folder
+        _displayMode = displayMode
+        self.onDisplayModeChange = onDisplayModeChange
+        self.dockPosition = dockPosition
+        self.reduceMotion = reduceMotion
+        self.openItem = openItem
+        self.openInFinder = openInFinder
+        self.updateDisplayStyle = updateDisplayStyle
+        _displayStyle = State(initialValue: folder.folderContentsDisplayStyle ?? .list)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -32,10 +52,35 @@ struct FolderContentsPopover: View {
                 .accessibilityLabel("表示形式")
                 .onChange(of: displayMode) {
                     onDisplayModeChange(displayMode)
-                    if displayMode == .grid, case .success(let items) = result {
-                        focusedGridItemID = items.first?.id
+                    if displayMode == .grid {
+                        if displayStyle == .fan { setDisplayStyle(.list) }
+                        if case .success(let items) = result { focusedGridItemID = items.first?.id }
+                    } else if displayStyle == .fan {
+                        setDisplayStyle(.list)
                     }
                 }
+
+                Menu {
+                    ForEach(FolderContentsDisplayStyle.allCases) { style in
+                        Button {
+                            setDisplayStyle(style)
+                        } label: {
+                            if displayStyle == style {
+                                Label(style.title, systemImage: "checkmark")
+                            } else {
+                                Text(style.title)
+                            }
+                        }
+                        .disabled(style == .fan && dockPosition != .bottom)
+                    }
+                } label: {
+                    Label("表示形式: \(displayStyle.title)", systemImage: "chevron.down")
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption)
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .help(dockPosition == .bottom ? "フォルダの表示形式" : "Fan は下に配置した Dock で選べます")
             }
 
             Group {
@@ -45,29 +90,7 @@ struct FolderContentsPopover: View {
                         ContentUnavailableView("フォルダは空です", systemImage: "folder")
                             .frame(minHeight: 100)
                     case .success(let items):
-                        ScrollViewReader { proxy in
-                            ScrollView {
-                                switch displayMode {
-                                case .list:
-                                    LazyVStack(alignment: .leading, spacing: 2) {
-                                        ForEach(items) { item in
-                                            listButton(for: item)
-                                        }
-                                    }
-                                case .grid:
-                                    LazyVGrid(columns: [GridItem(.flexible(minimum: 100)), GridItem(.flexible(minimum: 100))],
-                                              alignment: .leading, spacing: 8) {
-                                        ForEach(items) { item in
-                                            gridButton(for: item)
-                                        }
-                                    }
-                                }
-                            }
-                            .onChange(of: focusedGridItemID) {
-                                if let focusedGridItemID { proxy.scrollTo(focusedGridItemID, anchor: .center) }
-                            }
-                            .frame(maxHeight: 320)
-                        }
+                        contents(items)
                     case .failure(let error):
                         ContentUnavailableView(
                             "フォルダを読み込めません",
@@ -98,6 +121,7 @@ struct FolderContentsPopover: View {
             dismiss()
             return .handled
         }
+        .transaction { if reduceMotion { $0.animation = nil } }
         .task(id: folder.target) {
             guard let url = folder.targetURL, url.isFileURL else {
                 result = .failure(FolderContentsError.invalidFolder)
@@ -113,16 +137,85 @@ struct FolderContentsPopover: View {
         }
     }
 
-    private func listButton(for item: DockItem) -> some View {
-        Button { openItem(item) } label: {
-            Label(item.name, systemImage: item.kind.symbol)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 4)
+    @ViewBuilder
+    private func contents(_ items: [DockItem]) -> some View {
+        if displayMode == .grid {
+            grid(items)
+        } else if displayStyle == .fan && dockPosition == .bottom
+                    && items.count <= FolderFanLayout.maximumItemCount {
+            fan(items)
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                if displayStyle == .fan {
+                    Text(fallbackMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                list(items)
+            }
         }
-        .buttonStyle(.plain)
-        .help(item.targetURL?.path ?? item.name)
-        .accessibilityLabel(item.name)
+    }
+
+    private var fallbackMessage: String {
+        if dockPosition != .bottom {
+            return "Fan は下に配置した Dock で使えないため、一覧で表示します。"
+        }
+        return "Fan に収まる項目数を超えたため、一覧で表示します。"
+    }
+
+    private func list(_ items: [DockItem]) -> some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 2) {
+                ForEach(items) { item in
+                    Button { openItem(item) } label: {
+                        Label(item.name, systemImage: item.kind.symbol)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .help(item.targetURL?.path ?? item.name)
+                    .accessibilityLabel(item.name)
+                }
+            }
+        }
+        .frame(maxHeight: 320)
+    }
+
+    private func grid(_ items: [DockItem]) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.flexible(minimum: 100)), GridItem(.flexible(minimum: 100))],
+                          alignment: .leading, spacing: 8) {
+                    ForEach(items) { item in
+                        gridButton(for: item)
+                    }
+                }
+            }
+            .onChange(of: focusedGridItemID) {
+                if let focusedGridItemID { proxy.scrollTo(focusedGridItemID, anchor: .center) }
+            }
+            .frame(maxHeight: 320)
+        }
+    }
+
+    private func fan(_ items: [DockItem]) -> some View {
+        GeometryReader { geometry in
+            let positions = FolderFanLayout.positions(count: items.count, width: geometry.size.width,
+                                                      height: geometry.size.height)
+            ZStack {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    Button { openItem(item) } label: {
+                        ItemIcon(item: item, size: 34)
+                    }
+                    .buttonStyle(.plain)
+                    .help(item.name)
+                    .accessibilityLabel(item.name)
+                    .position(positions[index])
+                }
+            }
+        }
+        .frame(height: 180)
     }
 
     private func gridButton(for item: DockItem) -> some View {
@@ -165,6 +258,15 @@ struct FolderContentsPopover: View {
         guard items.indices.contains(target) else { return .ignored }
         focusedGridItemID = items[target].id
         return .handled
+    }
+
+    private func setDisplayStyle(_ style: FolderContentsDisplayStyle) {
+        guard updateDisplayStyle(folder, style) else { return }
+        displayStyle = style
+        if displayMode != .list {
+            displayMode = .list
+            onDisplayModeChange(.list)
+        }
     }
 }
 

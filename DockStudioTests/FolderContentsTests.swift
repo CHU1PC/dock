@@ -28,6 +28,25 @@ final class FolderContentsTests: XCTestCase {
         XCTAssertEqual(items.map(\.kind), [.application, .folder])
     }
 
+    func testFanLayoutFitsTheSupportedCountAndRejectsOverflow() {
+        let positions = FolderFanLayout.positions(count: 8, width: 256, height: 180)
+
+        XCTAssertEqual(positions.count, 8)
+        XCTAssertTrue(positions.allSatisfy { (17...239).contains($0.x) && (17...163).contains($0.y) })
+        XCTAssertTrue(FolderFanLayout.positions(count: 9, width: 256, height: 180).isEmpty)
+        XCTAssertTrue(FolderFanLayout.positions(count: 0, width: 256, height: 180).isEmpty)
+    }
+
+    func testOlderFolderItemDecodesWithDefaultDisplayStyle() throws {
+        let data = Data("""
+        {"id":"00000000-0000-0000-0000-000000000001","name":"Folder","kind":"folder","target":"file:///tmp/"}
+        """.utf8)
+
+        let item = try JSONDecoder().decode(DockItem.self, from: data)
+
+        XCTAssertNil(item.folderContentsDisplayStyle)
+    }
+
     func testReaderReturnsAnEmptyListForAnEmptyDirectory() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -92,8 +92,21 @@ final class DockStoreTests: XCTestCase {
         settings.position = .right
         settings.iconSize = 72
         settings.autoHide = true
+        settings.minimizeWindowsIntoAppIcon = true
         store.updateSettings(settings)
         XCTAssertEqual(DockStore(persistence: persistence).document.settings, settings)
+    }
+
+    func testFolderDisplayStyleIsSavedPerItem() {
+        let store = DockStore(persistence: persistence)
+        let folder = DockItem(name: "Folder", kind: .folder, target: "file:///tmp/")
+        store.addItem(folder)
+        XCTAssertTrue(store.saveProfile())
+
+        XCTAssertTrue(store.updateFolderContentsDisplayStyle(.fan, for: folder.id))
+
+        let reloaded = DockStore(persistence: persistence)
+        XCTAssertEqual(reloaded.activeProfile.items.first(where: { $0.id == folder.id })?.folderContentsDisplayStyle, .fan)
     }
 
     func testManualDockVisibilityToggleIsIndependentOfAutoHide() {
