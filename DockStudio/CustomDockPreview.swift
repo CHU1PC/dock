@@ -240,12 +240,16 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
                 if let folder = folderContentsItem {
-                    FolderContentsPopover(folder: folder) { child in
+                    FolderContentsPopover(folder: folder,
+                                           dockPosition: store.document.settings.position,
+                                           reduceMotion: store.appearance.reduceMotion || systemReduceMotion) { child in
                         folderContentsItem = nil
                         store.openItem(child)
                     } openInFinder: { folder in
                         store.clickItem(folder, modifiers: .command)
                         folderContentsItem = nil
+                    } updateDisplayStyle: { folder, style in
+                        store.updateFolderContentsDisplayStyle(style, for: folder.id)
                     }
                 }
             }
