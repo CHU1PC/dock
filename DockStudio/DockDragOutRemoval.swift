@@ -55,8 +55,11 @@ struct DragOutToRemove: ViewModifier {
     let vertical: Bool
     let bounds: CGRect
     let onRemove: () -> Void
+    var isEjectable: () -> Bool = { false }
+    var onEject: () -> Void = {}
     @State private var translation: CGSize = .zero
     @State private var outside = false
+    @State private var draggingEjectableVolume = false
     @GestureState private var tracking = false
 
     func body(content: Content) -> some View {
@@ -66,11 +69,18 @@ struct DragOutToRemove: ViewModifier {
             .offset(translation)
             .overlay(alignment: vertical ? .center : .top) {
                 if outside && !cancellation.isCancelled {
-                    Text("取り外す").font(.caption.weight(.medium)).lineLimit(1)
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(.regularMaterial, in: Capsule())
-                        .fixedSize().offset(y: vertical ? 0 : -26)
-                        .allowsHitTesting(false).accessibilityHidden(true)
+                    Group {
+                        if draggingEjectableVolume {
+                            Label("ディスクを取り出す", systemImage: "eject.fill")
+                        } else {
+                            Text("取り外す")
+                        }
+                    }
+                    .font(.caption.weight(.medium)).lineLimit(1)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(.regularMaterial, in: Capsule())
+                    .fixedSize().offset(y: vertical ? 0 : -26)
+                    .allowsHitTesting(false).accessibilityHidden(true)
                 }
             }
             .zIndex(translation == .zero ? 0 : 1)
@@ -96,6 +106,7 @@ struct DragOutToRemove: ViewModifier {
                 }
                 if !DockDragOutCancellation.shared.isDragging {
                     DockDragOutCancellation.shared.begin()
+                    draggingEjectableVolume = isEjectable()
                 }
                 translation = value.translation
                 outside = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
@@ -103,13 +114,16 @@ struct DragOutToRemove: ViewModifier {
             .onEnded { value in
                 let cancelled = DockDragOutCancellation.shared.finish()
                 let remove = !cancelled && DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
+                let eject = remove && draggingEjectableVolume
                 reset()
-                if remove { onRemove() }
+                if eject { onEject() }
+                else if remove { onRemove() }
             }
     }
 
     private func reset() {
         translation = .zero
         outside = false
+        draggingEjectableVolume = false
     }
 }

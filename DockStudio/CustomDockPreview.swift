@@ -69,6 +69,7 @@ struct DockBar: View {
     @FocusState private var focused: UUID?
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
+    @State private var folderContentsItem: DockItem?
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
@@ -226,8 +227,8 @@ struct DockBar: View {
             && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
             Button {
-                store.clickItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
-                                                                                 current: NSEvent.modifierFlags))
+                clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
+                                                                                current: NSEvent.modifierFlags))
             } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
@@ -242,6 +243,17 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
+                if let folder = folderContentsItem {
+                    FolderContentsPopover(folder: folder) { child in
+                        folderContentsItem = nil
+                        store.openItem(child)
+                    } openInFinder: { folder in
+                        store.clickItem(folder, modifiers: .command)
+                        folderContentsItem = nil
+                    }
+                }
+            }
             .focusable(false)
             .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
@@ -252,8 +264,8 @@ struct DockBar: View {
                 return handleKey(key, items: store.displayedItems) ? .handled : .ignored
             }
             .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
-            .onKeyPress(.return) { store.openItem(item); return .handled }
-            .onKeyPress(.space) { store.openItem(item); return .handled }
+            .onKeyPress(.return) { activateDockItem(item); return .handled }
+            .onKeyPress(.space) { activateDockItem(item); return .handled }
             .accessibilityActions {
                 ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
                     Button(action.title, action: action.perform)
@@ -272,10 +284,49 @@ struct DockBar: View {
         .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
-                                                                           thickness: DockMetrics.barThickness(for: store))) {
+                                                                           thickness: DockMetrics.barThickness(for: store)),
+                                  onRemove: {
             store.removeFromActiveProfile(item)
-        })
+        }, isEjectable: {
+            VolumeEjector().isEjectable(item)
+        }, onEject: {
+            store.ejectVolume(item)
+        }))
         .onHover { if $0 { hovered = item.id } }
+    }
+
+    private func folderPopoverBinding(for item: DockItem) -> Binding<Bool> {
+        Binding(
+            get: { folderContentsItem?.id == item.id },
+            set: { isPresented in
+                if !isPresented, folderContentsItem?.id == item.id { folderContentsItem = nil }
+            }
+        )
+    }
+
+    private var folderPopoverEdge: Edge {
+        if vertical {
+            return store.document.settings.position == .left ? .leading : .trailing
+        }
+        return .bottom
+    }
+
+    private func clickDockItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if item.kind == .folder,
+           !ItemClickPolicy.isRevealClick(modifiers),
+           !ItemClickPolicy.isHideOthersClick(modifiers) {
+            folderContentsItem = item
+        } else {
+            store.clickItem(item, modifiers: modifiers)
+        }
+    }
+
+    private func activateDockItem(_ item: DockItem) {
+        if item.kind == .folder {
+            folderContentsItem = item
+        } else {
+            store.openItem(item)
+        }
     }
 }
 
@@ -302,8 +353,14 @@ extension DockBar {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.name)
-            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
-            .contextMenu { Button("開く") { store.openTrash() } }
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : store.trashStateGuidance)
+            .help(state == .unknown ? store.trashStateGuidance : "")
+            .contextMenu {
+                Button("開く") { store.openTrash() }
+                if state == .unknown {
+                    Button("状態の確認方法") { store.explainTrashState() }
+                }
+            }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, 5)
@@ -593,7 +650,7 @@ struct ItemIcon: View {
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
             } else if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: symbol ?? item.kind.symbol)
