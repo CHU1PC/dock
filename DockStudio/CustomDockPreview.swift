@@ -311,7 +311,7 @@ private struct DockItemAction: Identifiable {
     let perform: () -> Void
     var id: DockItemMenu.Kind { kind }
     var title: String { kind.title }
-    var isDestructive: Bool { kind == .remove }
+    var isDestructive: Bool { kind == .remove || kind == .forceQuit }
     var isAccessibilityAction: Bool { kind.isAccessibilityAction }
 }
 
@@ -329,6 +329,7 @@ extension DockBar {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
                 case .quit: store.quitApplication(item)
+                case .forceQuit: store.forceQuitApplication(item)
                 case .remove: store.removeFromActiveProfile(item)
                 case .keep: store.keepInActiveProfile(item)
                 }

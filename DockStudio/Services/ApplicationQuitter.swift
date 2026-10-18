@@ -4,6 +4,7 @@ protocol QuittableApplication {
     var bundleIdentifier: String? { get }
     var isTerminated: Bool { get }
     func terminate() -> Bool
+    func forceTerminate() -> Bool
 }
 
 extension NSRunningApplication: QuittableApplication {}
@@ -31,10 +32,22 @@ struct ApplicationQuitter {
     }
 
     func quit(_ item: DockItem) -> ApplicationQuitOutcome {
+        request(item) { $0.terminate() }
+    }
+
+    func forceQuit(_ item: DockItem) -> ApplicationQuitOutcome {
+        request(item) { $0.forceTerminate() }
+    }
+
+    private func request(_ item: DockItem, _ action: (any QuittableApplication) -> Bool) -> ApplicationQuitOutcome {
         guard let identifier = quittableBundleIdentifier(for: item) else { return .notQuittable }
         let running = runningApplications(identifier).filter { !$0.isTerminated }
         guard !running.isEmpty else { return .notRunning }
-        let results = running.map { $0.terminate() }
+        let results = running.map(action)
         return results.contains(true) ? .requested : .rejected
     }
+}
+
+enum ForceQuitConfirmation {
+    static let informativeText = "未保存の変更は失われます。通常の終了で終わらない場合にだけ使ってください。"
 }
