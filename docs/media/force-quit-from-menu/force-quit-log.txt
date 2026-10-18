@@ -1,0 +1,12 @@
+Press キャンセル result 0
+after-cancel-calc=29465
+Press 強制終了… result 0
+Press 強制終了 result 0
+after-force-calc=gone
+textedit-before=29467
+Press 終了 result 0
+quit-normal-textedit=29467
+1
+Press 強制終了… result 0
+Press 強制終了 result 0
+after-force-textedit=gone
