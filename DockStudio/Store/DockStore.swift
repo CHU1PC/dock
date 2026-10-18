@@ -28,6 +28,7 @@ final class DockStore {
         try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
     @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live
     private(set) var hiddenApplicationIdentities: Set<String> = []
