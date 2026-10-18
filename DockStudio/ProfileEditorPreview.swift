@@ -82,7 +82,8 @@ struct ProfileEditorPreview: View {
                         ForEach(Array(store.editorProfile.items.enumerated()), id: \.element.id) { index, item in
                             Button { selectedItemID = item.id } label: {
                                 HStack(spacing: 15) {
-                                    ItemIcon(item: item, size: 32)
+                                    ItemIcon(item: item, size: 32, availability: store.itemAvailability.status(of: item))
+                                        .task(id: item.target) { await store.itemAvailability.refresh([item]) }
                                     VStack(alignment: .leading, spacing: 3) {
                                         Text(item.name).foregroundStyle(.white)
                                         Text(item.kind.title).font(.caption).foregroundStyle(StudioColor.muted)

@@ -143,6 +143,7 @@ struct DockBar: View {
         return VStack(spacing: 5) {
             Button { store.openItem(item) } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                                    availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
@@ -154,6 +155,7 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
             .onKeyPress(.return) { store.openItem(item); return .handled }
@@ -254,13 +256,21 @@ struct ItemIcon: View {
     let item: DockItem
     var size: Double = 40
     var style: DockAppearance.IconStyle = .original
+    var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Group {
-            if let url = item.targetURL, url.isFileURL {
+            if availability.isUnavailable {
+                Image(systemName: availability == .volumeNotMounted ? "externaldrive.badge.xmark" : "questionmark.square.dashed")
+                    .font(.system(size: size * 0.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: size, height: size)
+                    .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
+                    .opacity(0.75)
+            } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
