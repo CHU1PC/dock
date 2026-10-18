@@ -97,6 +97,7 @@ final class CustomDockWindowController {
     private let panel: NSPanel
     private let layout = DockPanelLayout()
     private let globalFocusShortcut: GlobalDockFocusShortcutController
+    private let attentionBounceMonitor: AttentionBounceMonitor
     private var observers: [NSObjectProtocol] = []
     private var timer: Timer?
     private var visibility = DockVisibilityState()
@@ -111,6 +112,9 @@ final class CustomDockWindowController {
     init(store: DockStore) {
         self.store = store
         globalFocusShortcut = GlobalDockFocusShortcutController(store: store)
+        attentionBounceMonitor = AttentionBounceMonitor { [weak store] identities in
+            store?.attentionRequestingIdentities = identities
+        }
         panel = DockPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "Dock Studio — Custom Dock"
         panel.isFloatingPanel = true
@@ -303,6 +307,12 @@ final class CustomDockWindowController {
 
     private func update() {
         globalFocusShortcut.update(shortcut: store.document.settings.dockFocusShortcut)
+        if store.document.settings.attentionBounce && store.document.settings.mode != .native
+            && store.isDockEffectivelyVisible {
+            attentionBounceMonitor.start()
+        } else {
+            attentionBounceMonitor.stop()
+        }
         updateVisibility()
         panel.appearance = store.appearance.colorMode.nsAppearance
         if store.dockKeyboardExitRequested {

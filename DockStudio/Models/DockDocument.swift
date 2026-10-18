@@ -166,6 +166,7 @@ struct DockSettings: Codable, Equatable {
     var autoHide = false
     var revealAnimationDuration = 0.22
     var launchBounce = true
+    var attentionBounce = true
     var showRunningApps = false
     var finderEntryEnabled = false
     var minimizeWindowsIntoAppIcon = false
@@ -178,7 +179,7 @@ extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, arrangement, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, finderEntryEnabled, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
+        case mode, arrangement, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, attentionBounce, showRunningApps, finderEntryEnabled, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
@@ -191,6 +192,7 @@ extension DockSettings {
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
         revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
         launchBounce = try values.decodeIfPresent(Bool.self, forKey: .launchBounce) ?? true
+        attentionBounce = try values.decodeIfPresent(Bool.self, forKey: .attentionBounce) ?? true
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
         finderEntryEnabled = try values.decodeIfPresent(Bool.self, forKey: .finderEntryEnabled) ?? false
         minimizeWindowsIntoAppIcon = try values.decodeIfPresent(Bool.self, forKey: .minimizeWindowsIntoAppIcon) ?? false

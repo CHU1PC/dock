@@ -135,6 +135,10 @@ struct SettingsPreview: View {
                 Text("Custom Dock から開いたアプリが起動を終えるまで跳ねます。「アニメーションを減らす」が有効なときは跳ねません。")
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
+                Toggle("他のアプリの注意要求を表示", isOn: setting(\.attentionBounce))
+                Text("アクセシビリティを許可した場合に、標準 Dock の動きから注意要求を推定します。要求の種類は判別できず、集中モードの状態も取得しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
                 Divider()
                 Toggle("最小化したウインドウをアプリアイコンにまとめる",
