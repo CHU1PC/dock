@@ -12,7 +12,13 @@
 
 `AttentionBounceTests` で、孤立した繰り返しの位置変化、複数項目の移動、拡大によるサイズ変化、小さな動き、単発の動き、Accessibility 権限、観測不能、起動直後の抑制、頻度制限を確認する。
 
-自動テスト、Release ビルド、build-for-testing の実行結果は作業報告に記録する。実画面の動きと Accessibility 経由での Dock 項目取得は確認していない。
+| 項目 | 結果 |
+| --- | --- |
+| 自動テスト | 351件すべて成功（`/private/tmp/cw/run-check.sh 132 test`、最新 main とのマージ後） |
+| Release ビルド | `BUILD SUCCEEDED`（最新 main とのマージ後） |
+| build-for-testing | `TEST BUILD SUCCEEDED`（最初の push 前、最新 main とのマージ前。テストは343件） |
+
+実画面の動きと Accessibility 経由での Dock 項目取得は確認していない。
 
 ## 未検証
 
