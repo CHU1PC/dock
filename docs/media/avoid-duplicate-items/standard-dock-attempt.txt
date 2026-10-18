@@ -1,0 +1,9 @@
+# 標準 Dock への重複ドロップの確認（macOS 26.6.2 の VM、ゲスト内 CGEvent の合成ドラッグ）
+結果: 確認できなかった。Finder の Applications から Calculator を標準 Dock へドラッグして離したが、persistent-apps は 18 件のまま変わらず、Calculator は追加されなかった（4 回試行）。
+- 1回目、2回目: 自動非表示が有効で Dock が隠れていた。autohide を無効にして Dock を再起動した後も、追加されなかった。
+- 3回目: ドロップ位置を Dock の右端、アプリ領域の末尾に近づけたが、Safari や設定のアイコンが持ち上がっただけで、追加されなかった。
+- 4回目: 3回目と同じ。1.2 秒保持から 3 秒保持に延ばしたが、同じ。
+- 1 回目の試行で、Dock が Safari を起動した形跡があった（Safari が前面に出た）。ドロップの位置がアプリのアイコン上になった。
+defaults read com.apple.dock persistent-apps の件数: 18（Calculator 0 件）
+→ 標準 Dock が、アプリ、フォルダ、ファイルの重複をどう扱うかは、記録できていない。フォルダとファイルは試していない。
+撮影後、ゲストの Dock の設定は defaults import で元に戻した（autohide は元の 1）。

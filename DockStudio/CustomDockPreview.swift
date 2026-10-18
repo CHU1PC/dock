@@ -64,7 +64,15 @@ struct CustomDockPreview: View {
 struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.controlActiveState) private var controlActiveState
     @State private var hovered: UUID?
+    @FocusState private var focused: UUID?
+    @State private var lastFocused: UUID?
+    @State private var menuRequest: UUID?
+    @State private var keyboardNavigating = false
+    @State private var focusTask: Task<Void, Never>?
+    @State private var typeAhead = DockTypeAheadBuffer()
+    @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
     let vertical: Bool
@@ -79,7 +87,7 @@ struct DockBar: View {
 
     var body: some View {
         let items = store.displayedItems
-        let hoverIndex = items.firstIndex { $0.id == hovered }
+        let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
             DockBackdrop(appearance: store.appearance)
@@ -97,6 +105,7 @@ struct DockBar: View {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
                 }
                 .padding(.horizontal, 12).padding(.vertical, 10)
@@ -107,6 +116,8 @@ struct DockBar: View {
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
         }
+        .coordinateSpace(name: DockDragOutRemoval.space)
+        .onGeometryChange(for: CGSize.self, of: \.size) { barSize = $0 }
         .coordinateSpace(name: Self.space)
         .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
         .overlay { dropIndicator(items: items) }
@@ -114,7 +125,20 @@ struct DockBar: View {
             store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] },
             isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
         .animation(motion, value: hovered)
-        .onChange(of: items.map(\.id)) { hovered = nil }
+        .onChange(of: items.map(\.id)) { old, new in
+            hovered = nil
+            guard let id = lastFocused, controlActiveState == .key, !new.contains(id),
+                  let removedIndex = old.firstIndex(of: id) else { return }
+            focus(DockKeyboardNavigation.indexAfterRemoval(at: removedIndex, entries: Self.entries(of: items)), in: items)
+        }
+        .onChange(of: focused) { if let focused { lastFocused = focused } }
+        .onChange(of: hovered) { if hovered != nil { lastFocused = nil; keyboardNavigating = false } }
+        .onChange(of: controlActiveState) { if controlActiveState != .key { focused = nil; lastFocused = nil; keyboardNavigating = false } }
+        .onChange(of: store.dockKeyboardFocusGeneration) {
+            guard isPanel else { return }
+            keyboardNavigating = true
+            focusFirstItem()
+        }
         .onChange(of: store.document.settings.position) { hovered = nil }
         .onHover { if $0 { refreshAvailability() } else { hovered = nil } }
         .onChange(of: store.isDockPointerInside) {
@@ -123,7 +147,14 @@ struct DockBar: View {
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let frame = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
+                Color.clear.onChange(of: menuRequest) {
+                    guard let id = menuRequest else { return }
+                    menuRequest = nil
+                    if let frame = frames[id], let item = items.first(where: { $0.id == id }) {
+                        presentMenu(for: item, itemFrame: frame, origin: geometry.frame(in: .global).origin)
+                    }
+                }
+                if let labelID = hovered ?? (controlActiveState == .key && keyboardNavigating ? focused : nil), let frame = frames[labelID], let item = DockStore.hoverableItems(items).first(where: { $0.id == labelID }) {
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
                     Text(item.name).font(.system(size: 12, weight: .medium))
@@ -187,7 +218,10 @@ struct DockBar: View {
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
             && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
-            Button { store.openItem(item) } label: {
+            Button {
+                store.clickItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
+                                                                                 current: NSEvent.modifierFlags))
+            } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
                                     glassNeedsContrast: store.appearance.background == .transparent,
@@ -201,35 +235,27 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .focusable(false)
             .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
             .focusable()
+            .focused($focused, equals: item.id)
+            .onKeyPress(phases: [.down, .repeat]) { press in
+                guard let key = DockKeyboardNavigation.Key(press) else { return .ignored }
+                handleKey(key, items: store.displayedItems)
+                return .handled
+            }
+            .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
             .onKeyPress(.return) { store.openItem(item); return .handled }
             .onKeyPress(.space) { store.openItem(item); return .handled }
             .accessibilityActions {
-                if store.canQuitApplication(item) {
-                    Button("終了") { store.quitApplication(item) }
-                }
-                if store.isPinned(item) {
-                    Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
-                }
-                if !store.isPinned(item) {
-                    Button("Dock に保持") { store.keepInActiveProfile(item) }
+                ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
+                    Button(action.title, action: action.perform)
                 }
             }
             .contextMenu {
-                Button("開く") { store.openItem(item) }
-                if let url = item.targetURL, url.isFileURL {
-                    Button("Finder で表示") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-                }
-                if store.canQuitApplication(item) {
-                    Button("終了") { store.quitApplication(item) }
-                }
-                if store.isPinned(item) {
-                    Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
-                }
-                if !store.isPinned(item) {
-                    Button("Dock に保持") { store.keepInActiveProfile(item) }
+                ForEach(actions(for: item)) { action in
+                    Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
@@ -238,8 +264,167 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
+        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
+                                  bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
+                                                                           thickness: DockMetrics.barThickness(for: store))) {
+            store.removeFromActiveProfile(item)
+        })
         .onHover { if $0 { hovered = item.id } }
     }
+}
+
+extension DockBar {
+    @ViewBuilder
+    fileprivate func trashSection(index: Int, hoveredIndex: Int?) -> some View {
+        let item = DockStore.trashItem
+        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+        let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
+        let state = store.trashState
+        let symbol = switch state {
+        case .empty: "trash"
+        case .hasItems: "trash.fill"
+        case .unknown: "trash.slash"
+        }
+        Rectangle().fill(.primary.opacity(0.45))
+            .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+        VStack(spacing: 5) {
+            Button { store.openTrash() } label: {
+                ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
+                         glassNeedsContrast: store.appearance.background == .transparent,
+                         glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion, symbol: symbol)
+                    .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(item.name)
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
+            .contextMenu { Button("開く") { store.openTrash() } }
+            Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
+        }
+        .padding(vertical ? .vertical : .horizontal, 5)
+        .contentShape(Rectangle())
+        .background(GeometryReader { proxy in
+            Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
+        })
+        .onHover { if $0 { hovered = item.id } }
+    }
+}
+
+private struct DockItemAction: Identifiable {
+    let kind: DockItemMenu.Kind
+    let perform: () -> Void
+    var id: DockItemMenu.Kind { kind }
+    var title: String { kind.title }
+    var isDestructive: Bool { kind == .remove || kind == .forceQuit }
+    var isAccessibilityAction: Bool { kind.isAccessibilityAction }
+}
+
+extension DockBar {
+    fileprivate static func entries(of items: [DockItem]) -> [DockKeyboardNavigation.Entry] {
+        items.map { .init(name: $0.name, isFocusable: ![.spacer, .clock, .focusTimer].contains($0.kind)) }
+    }
+
+    fileprivate func actions(for item: DockItem) -> [DockItemAction] {
+        let kinds = DockItemMenu.kinds(hasFileURL: item.targetURL?.isFileURL == true,
+                                       visibility: store.applicationVisibility(item),
+                                       canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item))
+        return kinds.map { kind in
+            DockItemAction(kind: kind) {
+                switch kind {
+                case .open: store.openItem(item)
+                case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .hide, .show: store.toggleApplicationVisibility(item)
+                case .quit: store.quitApplication(item)
+                case .forceQuit: store.forceQuitApplication(item)
+                case .remove: store.removeFromActiveProfile(item)
+                case .keep: store.keepInActiveProfile(item)
+                }
+            }
+        }
+    }
+
+    fileprivate func focusFirstItem() {
+        focusTask?.cancel()
+        focusTask = Task { @MainActor in
+            var assigned: UUID?
+            var count = 0
+            for _ in 0..<20 where !Task.isCancelled && count < 3 {
+                try? await Task.sleep(for: .milliseconds(150))
+                guard store.isDockPanelKey, focused == nil || focused == assigned,
+                      case .focus(let index) = DockKeyboardNavigation.outcome(.first, entries: Self.entries(of: store.displayedItems), current: nil)
+                else { continue }
+                if assigned != nil {
+                    focused = nil
+                    try? await Task.sleep(for: .milliseconds(20))
+                }
+                assigned = store.displayedItems[index].id
+                focused = assigned
+                count += 1
+            }
+        }
+    }
+
+    fileprivate func focus(_ index: Int?, in items: [DockItem]) {
+        focus(index.map(DockKeyboardNavigation.Outcome.focus) ?? .leave, in: items)
+    }
+
+    fileprivate func focus(_ outcome: DockKeyboardNavigation.Outcome, in items: [DockItem]) {
+        switch outcome {
+        case .focus(let index): focused = items[index].id
+        case .leave:
+            focused = nil
+            if isPanel { store.dockKeyboardExitRequested = true }
+        case .ignore: break
+        }
+    }
+
+    fileprivate func handleKey(_ key: DockKeyboardNavigation.Key, items: [DockItem]) {
+        keyboardNavigating = true
+        let entries = Self.entries(of: items)
+        let current = focused.flatMap { id in items.firstIndex { $0.id == id } }
+        let command: DockKeyboardNavigation.Command? = switch key {
+        case .home: .first
+        case .end: .last
+        case .arrow(let arrow): DockKeyboardNavigation.command(for: arrow, position: store.document.settings.position)
+        case .character: nil
+        }
+        if let command {
+            if command == .openMenu {
+                if let current, !actions(for: items[current]).isEmpty { menuRequest = items[current].id }
+            } else {
+                focus(DockKeyboardNavigation.outcome(command, entries: entries, current: current), in: items)
+            }
+        } else if case .character(let characters) = key {
+            let prefix = typeAhead.append(characters, at: .now)
+            if let index = DockKeyboardNavigation.typeAheadIndex(prefix: prefix, entries: entries, current: current) {
+                focused = items[index].id
+            }
+        }
+    }
+
+    fileprivate func presentMenu(for item: DockItem, itemFrame: CGRect, origin: CGPoint) {
+        guard let window = NSApp.keyWindow else { return }
+        let menu = NSMenu()
+        for action in actions(for: item) {
+            let entry = NSMenuItem(title: action.title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+            entry.target = DockMenuHandler.shared
+            entry.representedObject = action.perform
+            menu.addItem(entry)
+        }
+        let left = window.frame.minX + origin.x + itemFrame.minX
+        let top = window.frame.maxY - (origin.y + itemFrame.minY)
+        let point: NSPoint = switch store.document.settings.position {
+        case .bottom: NSPoint(x: left, y: top + menu.size.height)
+        case .left: NSPoint(x: left + itemFrame.width, y: top)
+        case .right: NSPoint(x: left - menu.size.width, y: top)
+        }
+        Task { @MainActor in menu.popUp(positioning: nil, at: point, in: nil) }
+    }
+}
+
+@MainActor
+private final class DockMenuHandler: NSObject {
+    static let shared = DockMenuHandler()
+    @objc func run(_ sender: NSMenuItem) { (sender.representedObject as? () -> Void)?() }
 }
 
 enum DockDropInsertion {
@@ -362,6 +547,7 @@ struct ItemIcon: View {
     var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
+    var symbol: String?
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -377,7 +563,7 @@ struct ItemIcon: View {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
-                Image(systemName: item.kind.symbol)
+                Image(systemName: symbol ?? item.kind.symbol)
                     .font(.system(size: size * 0.5, weight: .medium))
                     .foregroundStyle(style == .original ? StudioColor.accent : .primary)
                     .opacity(style == .glass ? 0.72 : 1)
@@ -462,10 +648,11 @@ private struct FocusTimerTile: View {
 enum DockMetrics {
     static func length(for store: DockStore) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
-        let total = store.displayedItems.reduce(24.0) { sum, item in
+        let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
+        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
         let reserve = store.appearance.magnification ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
     }

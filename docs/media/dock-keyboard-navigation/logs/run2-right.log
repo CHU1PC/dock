@@ -1,0 +1,57 @@
+locked
+Press Dock をキーボードで操作 result 0
+first-entry: focus role=AXScrollArea label=
+Press Dock をキーボードで操作 result 0
+second-entry: focus role=AXButton label=Finder、起動中
+01 down attempt=1 focus role=AXButton label=Safari
+02 down attempt=1 focus role=AXButton label=Mail
+03 end attempt=1 focus role=AXButton label=Mail
+03 end attempt=2 focus role=AXButton label=Mail
+03 end attempt=3 focus role=AXButton label=Mail
+Traceback (most recent call last):
+  File "/private/tmp/dockstudio-vm-tools/python/lib/python3.13/site-packages/vncdotool/api.py", line 117, in callable_threaded_proxy
+    result = self.queue.get(timeout=self.timeout)
+  File "/Users/chu1mac/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/queue.py", line 209, in get
+    raise Empty
+_queue.Empty
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/dockstudio-w48-stage/shot.py", line 13, in <module>
+    c.captureRegion(sys.argv[1],*map(int,sys.argv[2:6]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/dockstudio-vm-tools/python/lib/python3.13/site-packages/vncdotool/api.py", line 119, in callable_threaded_proxy
+    raise TimeoutError("Timeout while waiting for client response")
+TimeoutError: Timeout while waiting for client response
+04 up attempt=1 focus role=AXButton label=Safari
+04 up attempt=2 focus role=AXButton label=Finder、起動中
+04 up attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+05 home attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+05 home attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+05 home attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+06 m attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+06 m attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+06 m attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+07 left attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+08 esc attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+09 left attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+10 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+11 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+12 down attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+13 return attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+13 return attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+13 return attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+14 end attempt=1 focus role=AXWindow label=Dock Studio — Custom Dock
+14 end attempt=2 focus role=AXWindow label=Dock Studio — Custom Dock
+14 end attempt=3 focus role=AXWindow label=Dock Studio — Custom Dock
+front=Safari
+Press Dock をキーボードで操作 result 0
+entered: front=DockStudio focus role=AXButton label=Finder、起動中
+esc(53): front=Safari focus role=AXWindow label=Dock Studio — Custom Dock
+front=Safari
+Press Dock をキーボードで操作 result 0
+entered: front=DockStudio focus role=AXButton label=Finder、起動中
+edge(126): front=Safari focus role=AXWindow label=Dock Studio — Custom Dock
+done
+released

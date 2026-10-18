@@ -1,0 +1,15 @@
+  [reset] front=TextEdit finder-windows=Shared|Applications|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+A real-Command click on Calculator (TextEdit front)
+  -> calc=not-running front=Finder finder-windows=Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+  [reset] front=TextEdit finder-windows=Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+B real-Command click on Demo File (TextEdit front)
+  -> calc=not-running front=Finder finder-windows=Demo Folder|Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+  [reset] front=TextEdit finder-windows=Demo Folder|Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+C flag-only .maskCommand click on Calculator (TextEdit front)
+  -> calc=not-running front=Finder finder-windows=Applications|Demo Folder|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+  [reset] front=TextEdit finder-windows=Applications|Demo Folder|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+D flag-only .maskCommand click on Demo File (TextEdit front)
+  -> calc=not-running front=Finder finder-windows=Demo Folder|Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+  [reset] front=TextEdit finder-windows=Demo Folder|Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
+E plain click on Calculator (TextEdit front)
+  -> calc=31069 front=Calculator finder-windows=Demo Folder|Applications|Shared|Recents|Applications|Shared|admin|Documents|Documents|Trash|
