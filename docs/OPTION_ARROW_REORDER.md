@@ -110,3 +110,16 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-63 /path/to/DockStudio.app/Contents
 - 画像: 左配置と右配置でそれぞれ移動した後の Dock。
 - 画像: VoiceOver による移動後の通知が確認できる画面または記録。
 - 動画: 項目の移動、両端でのキー入力、VoiceOver の通知、再起動後に順序が保たれる様子。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `265f3da` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `ec8b011be9d800f64b066c59e5d5e4a91cbe8bbb5b4b14b6ac63096b877f0f22` と一致した。docs の撮影手順の `profiles.json`（Finder、Calculator、Safari、アイコン 64、下配置）を使い、管理ウィンドウは「設定」タブにした。キーボード操作は、メニューバーの「Dock をキーボードで操作」で入った。
+
+**結果: Option+矢印による並べ替えは、実画面で確認できなかった（Option+左を押しても、順序は変わらない）。** 経過と所見は次のとおり。
+
+- 通常の矢印キーは動く。入場すると Finder にフォーカスが当たり、右矢印で Calculator、End で Safari へ移った（[画像](media/option-arrow-reorder/bottom-optionarrow-steps-focus-frames.png)、[ログ](media/option-arrow-reorder/bottom-log.txt)）。
+- Calculator にフォーカスがある状態で Option+左を送ったが、Dock の順序は変わらず（AX のボタンの位置が Finder、Calculator、Safari のまま）、保存した `profiles.json` の順序も変わらなかった（Finder、Calculator、Safari。[画像](media/option-arrow-reorder/bottom-after-option-left-full.jpg)）。ステータスの変化もなかった。
+- キーの送り方を 3 通り試した。(1) Option のキーダウンを先に送り、押したまま矢印（フラグは Option のみ）。(2) 同じで、矢印のフラグに SecondaryFn と NumericPad を足した。(3) `osascript` の System Events で `key code 123 using option down`。どれも順序は変わらなかった。通常の矢印、End は、同じ経路（CGEvent）で動いた。
+- 原因の仮説（未確認）: `DockKeyboardNavigation.swift` の判定が `press.modifiers == [.option]` で、macOS の矢印キーのイベントには NumericPad や Function のフラグが付く。SwiftUI の `KeyPress.modifiers` にこれらが含まれると、`== [.option]` が成立せず、実際のキーボードでも並べ替えが効かない可能性がある。同じファイルの通常の矢印の判定は `isDisjoint(with: [.command, .control, .option])` で、この影響を受けない。コードは直していない。
+- 確認していない: 端での無視、移動後のフォーカス維持、左・右配置、VoiceOver の通知（AX の通知は読んでいない）、再起動後の順序。順序が変わらなかったため、これらは確認の対象にならなかった。
+- 注意: この確認の途中で、キーの送信ツールの不具合（「none」という文字列に Option の文字が含まれていた）により、最初の試行は通常の矢印を Option 付きで送ってしまい、無効だった。結果は、修正後の試行だけを書いた。
