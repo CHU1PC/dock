@@ -37,8 +37,10 @@ enum AttentionBouncePolicy {
     }
 
     static func shouldDisplay(isBounce: Bool, accessibilityTrusted: Bool, isObservable: Bool,
-                              launchedAt: Date?, lastDisplayedAt: Date?, now: Date) -> Bool {
+                              launchedAt: Date?, lastDisplayedAt: Date?, now: Date,
+                              suppressForFocus: Bool = false) -> Bool {
         guard isBounce, accessibilityTrusted, isObservable else { return false }
+        guard !suppressForFocus else { return false }
         if let launchedAt, now.timeIntervalSince(launchedAt) < launchSuppressionInterval { return false }
         if let lastDisplayedAt, now.timeIntervalSince(lastDisplayedAt) < minimumInterval { return false }
         return true
@@ -48,6 +50,7 @@ enum AttentionBouncePolicy {
 @MainActor
 final class AttentionBounceMonitor {
     private let onChange: (Set<String>) -> Void
+    private let focusStatus: AttentionBounceFocusStatus
     private var timer: Timer?
     private var framesByBundle: [String: [CGRect]] = [:]
     private var lastMovementAt: [String: Date] = [:]
@@ -56,7 +59,8 @@ final class AttentionBounceMonitor {
     private var displayed: Set<String> = []
     private var previousFrames: [String: CGRect] = [:]
 
-    init(onChange: @escaping (Set<String>) -> Void) {
+    init(focusStatus: AttentionBounceFocusStatus = AttentionBounceFocusStatus(), onChange: @escaping (Set<String>) -> Void) {
+        self.focusStatus = focusStatus
         self.onChange = onChange
         for app in NSWorkspace.shared.runningApplications {
             guard let bundleIdentifier = app.bundleIdentifier, let launchDate = app.launchDate else { continue }
@@ -73,6 +77,7 @@ final class AttentionBounceMonitor {
 
     func start() {
         guard timer == nil else { return }
+        focusStatus.requestAuthorizationIfNeeded()
         timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.sample() }
         }
@@ -102,7 +107,9 @@ final class AttentionBounceMonitor {
         guard !samples.isEmpty else { stop(); return }
         let runningIdentifiers = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         let now = Date()
+        let suppressForFocus = focusStatus.shouldSuppressBounce
         var nextDisplayed = displayed
+        if suppressForFocus { nextDisplayed.removeAll() }
         for sample in samples {
             guard runningIdentifiers.contains(sample.bundleIdentifier) else { continue }
             var history = framesByBundle[sample.bundleIdentifier, default: []]
@@ -124,7 +131,8 @@ final class AttentionBounceMonitor {
                 if AttentionBouncePolicy.shouldDisplay(isBounce: true, accessibilityTrusted: true,
                                                        isObservable: true,
                                                        launchedAt: launchedAt[sample.bundleIdentifier],
-                                                       lastDisplayedAt: lastDisplayedAt[sample.bundleIdentifier], now: now) {
+                                                       lastDisplayedAt: lastDisplayedAt[sample.bundleIdentifier], now: now,
+                                                       suppressForFocus: suppressForFocus) {
                     nextDisplayed.insert(sample.bundleIdentifier)
                     lastDisplayedAt[sample.bundleIdentifier] = now
                 }
