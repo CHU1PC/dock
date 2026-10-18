@@ -82,6 +82,26 @@ enum FolderContentsModel {
     }
 }
 
+enum FolderFanLayout {
+    static let maximumItemCount = 8
+
+    static func positions(count: Int, width: CGFloat, height: CGFloat) -> [CGPoint] {
+        guard count > 0, count <= maximumItemCount else { return [] }
+        let radius = min(width * 0.42, height * 0.72)
+        let center = CGPoint(x: width / 2, y: height - 28)
+        let startAngle = 205.0 * .pi / 180
+        let endAngle = 335.0 * .pi / 180
+        guard count > 1 else {
+            return [CGPoint(x: center.x, y: center.y - radius)]
+        }
+        return (0..<count).map { index in
+            let fraction = Double(index) / Double(count - 1)
+            let angle = startAngle + (endAngle - startAngle) * fraction
+            return CGPoint(x: center.x + radius * cos(angle), y: center.y + radius * sin(angle))
+        }
+    }
+}
+
 enum FolderContentsReader {
     static func read(at url: URL, sortOrder: FolderSortOrder = .name,
                      fileManager: FileManager = .default) throws -> [DockItem] {

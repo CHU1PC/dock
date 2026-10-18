@@ -28,6 +28,18 @@ enum DockItemKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum FolderContentsDisplayStyle: String, Codable, CaseIterable, Identifiable {
+    case list, fan
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .list: "一覧"
+        case .fan: "Fan"
+        }
+    }
+}
+
 struct DockItem: Codable, Equatable, Identifiable {
     static let downloadsLocationTarget = "dockstudio://system-location/downloads"
 
@@ -38,6 +50,7 @@ struct DockItem: Codable, Equatable, Identifiable {
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
     var folderSortOrder: FolderSortOrder?
+    var folderContentsDisplayStyle: FolderContentsDisplayStyle?
 
     var targetURL: URL? { resolvedTargetURL() }
 
@@ -100,34 +113,54 @@ enum DockPosition: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum DockDisplayMode: String, Codable, CaseIterable, Identifiable {
+    case selectedDisplay, edgeFollowing
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .selectedDisplay: "指定画面"
+        case .edgeFollowing: "画面端に追従"
+        }
+    }
+}
+
 struct DockSettings: Codable, Equatable {
     var mode: DockMode = .both
     var position: DockPosition = .bottom
+    var displayMode: DockDisplayMode = .selectedDisplay
     var iconSize = 52.0
     var autoHide = false
     var revealAnimationDuration = 0.22
     var launchBounce = true
     var showRunningApps = false
+    var minimizeWindowsIntoAppIcon = false
+    var showRecentApps = false
     var displayID: UInt32?
+    var dockFocusShortcut: DockFocusShortcut = .controlOptionCommandD
 }
 
 extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, displayID
+        case mode, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         mode = try values.decode(DockMode.self, forKey: .mode)
         position = try values.decode(DockPosition.self, forKey: .position)
+        displayMode = try values.decodeIfPresent(DockDisplayMode.self, forKey: .displayMode) ?? .selectedDisplay
         iconSize = try values.decode(Double.self, forKey: .iconSize)
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
         revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
         launchBounce = try values.decodeIfPresent(Bool.self, forKey: .launchBounce) ?? true
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
+        minimizeWindowsIntoAppIcon = try values.decodeIfPresent(Bool.self, forKey: .minimizeWindowsIntoAppIcon) ?? false
+        showRecentApps = try values.decodeIfPresent(Bool.self, forKey: .showRecentApps) ?? false
         displayID = try values.decodeIfPresent(UInt32.self, forKey: .displayID)
+        dockFocusShortcut = try values.decodeIfPresent(DockFocusShortcut.self, forKey: .dockFocusShortcut) ?? .controlOptionCommandD
     }
 }
 
