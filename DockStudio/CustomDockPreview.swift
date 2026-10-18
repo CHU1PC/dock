@@ -89,6 +89,8 @@ struct DockBar: View {
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
+    @State private var reorderIndex: Int?
+    @State private var reorderSourceID: UUID?
     let vertical: Bool
     var isPanel = false
     var temporaryMagnificationEnabled: Bool?
@@ -170,6 +172,7 @@ struct DockBar: View {
         .coordinateSpace(name: Self.space)
         .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
         .overlay { dropIndicator(items: items) }
+        .overlay { reorderIndicator(items: items) }
         .onDrop(of: [.fileURL], delegate: DockDropDelegate(
             store: store, items: items, vertical: vertical, frames: itemRects,
             isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
@@ -256,6 +259,26 @@ struct DockBar: View {
     private func dropIndicator(items: [DockItem]) -> some View {
         if let index = dropIndex {
             let frames = items.compactMap { itemRects[$0.id] }
+            let mark = RoundedRectangle(cornerRadius: 1.5).fill(StudioColor.accent)
+            GeometryReader { geometry in
+                if let neighbor = frames.isEmpty ? nil : frames[min(index, frames.count - 1)] {
+                    let edge = index < frames.count ? (vertical ? neighbor.minY : neighbor.minX) : (vertical ? neighbor.maxY : neighbor.maxX)
+                    mark.frame(width: vertical ? neighbor.width : 3, height: vertical ? 3 : neighbor.height)
+                        .position(x: vertical ? neighbor.midX : edge, y: vertical ? edge : neighbor.midY)
+                } else {
+                    mark.frame(width: vertical ? displayIconSize : 3, height: vertical ? 3 : displayIconSize)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                }
+            }
+            .allowsHitTesting(false).accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder
+    private func reorderIndicator(items: [DockItem]) -> some View {
+        if let index = reorderIndex, let movingID = reorderSourceID {
+            let remaining = items.filter { $0.id != movingID }
+            let frames = remaining.compactMap { itemRects[$0.id] }
             let mark = RoundedRectangle(cornerRadius: 1.5).fill(StudioColor.accent)
             GeometryReader { geometry in
                 if let neighbor = frames.isEmpty ? nil : frames[min(index, frames.count - 1)] {
@@ -384,6 +407,30 @@ struct DockBar: View {
             VolumeEjector().isEjectable(item)
         }, onEject: {
             store.ejectVolume(item)
+        }, onDragMove: { point in
+            guard let point else { reorderIndex = nil; return }
+            reorderSourceID = item.id
+            let layout = store.displayedLayout
+            let remaining = layout.items.filter { $0.id != item.id }
+            let frames = remaining.compactMap { itemRects[$0.id] }
+            let insertion = DockItemReordering.insertionIndex(at: point, frames: frames, vertical: vertical)
+            reorderIndex = DockItemReordering.clampedInsertionIndex(displayedItems: layout.items,
+                                                                    dividerBefore: layout.dividerBefore,
+                                                                    movingID: item.id,
+                                                                    insertionIndex: insertion)
+        }, onDragFinish: { point, cancelled in
+            defer { reorderIndex = nil; reorderSourceID = nil }
+            guard !cancelled, let point else { return }
+            let layout = store.displayedLayout
+            let remaining = layout.items.filter { $0.id != item.id }
+            let frames = remaining.compactMap { itemRects[$0.id] }
+            let insertion = DockItemReordering.insertionIndex(at: point, frames: frames, vertical: vertical)
+            guard let index = DockItemReordering.clampedInsertionIndex(displayedItems: layout.items,
+                                                                       dividerBefore: layout.dividerBefore,
+                                                                       movingID: item.id,
+                                                                       insertionIndex: insertion) else { return }
+            store.reorderActiveItem(item.id, insertionIndex: index,
+                                    displayedItems: layout.items, dividerBefore: layout.dividerBefore)
         }))
         .onHover { if $0 { hovered = item.id } }
     }

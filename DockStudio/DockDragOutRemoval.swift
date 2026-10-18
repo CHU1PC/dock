@@ -62,6 +62,8 @@ struct DragOutToRemove: ViewModifier {
     let onRemove: () -> Void
     var isEjectable: () -> Bool = { false }
     var onEject: () -> Void = {}
+    var onDragMove: (CGPoint?) -> Void = { _ in }
+    var onDragFinish: (CGPoint?, Bool) -> Void = { _, _ in }
     @State private var translation: CGSize = .zero
     @State private var outside = false
     @State private var draggingEjectableVolume = false
@@ -97,7 +99,7 @@ struct DragOutToRemove: ViewModifier {
                 }
             }
             .onChange(of: cancellation.isCancelled) {
-                if cancellation.isCancelled { reset() }
+            if cancellation.isCancelled { reset(); onDragMove(nil) }
             }
     }
 
@@ -115,11 +117,13 @@ struct DragOutToRemove: ViewModifier {
                 }
                 translation = value.translation
                 outside = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
+                onDragMove(outside ? nil : value.location)
             }
             .onEnded { value in
                 let cancelled = DockDragOutCancellation.shared.finish()
                 let remove = !cancelled && DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
                 let eject = remove && draggingEjectableVolume
+                onDragFinish(remove || cancelled ? nil : value.location, cancelled)
                 reset()
                 if eject { onEject() }
                 else if remove { onRemove() }
