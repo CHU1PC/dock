@@ -51,7 +51,7 @@ struct FolderStackIcon: View {
     @ViewBuilder
     private func childIcon(_ item: DockItem) -> some View {
         if let url = item.targetURL, url.isFileURL {
-            Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
+            Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size * 0.43, scheme: colorScheme))
                 .resizable().interpolation(.high).scaledToFit()
         } else {
             Image(systemName: item.kind.symbol)
