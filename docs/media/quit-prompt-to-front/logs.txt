@@ -1,0 +1,47 @@
+# ds-log
+Dock Studio quit TextEdit(unsaved): front-before=DockStudio
+Press 終了 result 0
+  front-after=TextEdit textedit-pid=36846
+Untitled,
+
+# ds-log2
+Press Cancel result 0
+front-before=Finder
+main/GuestAX.swift:4: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+t+1x2s front=Finder sheetBtns=0
+t+2x2s front=Finder sheetBtns=0
+t+3x2s front=Finder sheetBtns=0
+t+4x2s front=Finder sheetBtns=0
+t+5x2s front=Finder sheetBtns=0
+t+6x2s front=Finder sheetBtns=0
+
+# ds-log3
+DS case: front-before=DockStudio dockstudio=37178
+Press 終了 result 0
+  t+2s front=TextEdit cancelBtn=0 dockstudio-alive=
+  t+4s front=TextEdit cancelBtn=0 dockstudio-alive=
+  t+6s front=TextEdit cancelBtn=0 dockstudio-alive=
+  t+8s front=TextEdit cancelBtn=0 dockstudio-alive=
+  t+10s front=TextEdit cancelBtn=0 dockstudio-alive=
+
+# ds-log4
+front-before=DockStudio
+t+2s front=TextEdit textedit=37278 dockstudio=37283
+t+4s front=TextEdit textedit=37278 dockstudio=37283
+t+6s front=TextEdit textedit=37278 dockstudio=37283
+t+8s front=TextEdit textedit=37278 dockstudio=37283
+
+# ds-log5
+after Cancel: textedit=37278 front=TextEdit
+front-before-calc-quit=DockStudio calc=36850
+t+2s front=DockStudio calc=
+t+4s front=DockStudio calc=
+t+6s front=DockStudio calc=
+
+# std-log
+front-before-menu=Terminal(open -a Terminal) now=Terminal
+t+2s front=Finder textedit=37278
+t+4s front=Finder textedit=37278
+t+6s front=Finder textedit=37278
+t+8s front=Finder textedit=37278
+

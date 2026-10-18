@@ -111,3 +111,17 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-89 /path/to/DockStudio.app/Contents
 | 動画 | 保存確認のないアプリへ終了を要求し、終了するまで |
 
 PR には変更後の画面と動画を添付する。標準 Dock と Dock Studio の画面を撮り、どちらの操作か分かるように記録する。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `d40558d` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `35ec38c99dda68f1084840d498afc60077947ad4fcb7ac7986b0c87a1a9fe124` と一致した。パネルは「設定」タブにした。ログは[logs.txt](media/quit-prompt-to-front/logs.txt)にある。
+
+確認できたこと:
+
+- (a) **未保存の書類を持つ TextEdit で「終了」を選ぶと、保存確認のシートが利用者に見え、TextEdit が前面になった。** Dock Studio が前面の状態から、TextEdit のアイコンを右クリックして「終了」を選ぶと、2 秒後に前面が TextEdit になり、「"Untitled" を保存しますか」のシートが Dock Studio より前面に表示された（`front-before=DockStudio` → `front=TextEdit`。[画像](media/quit-prompt-to-front/custom-dock-quit-unsaved-textedit-sheet-front-full.jpg)、[動画](media/quit-prompt-to-front/custom-dock-quit-textedit-unsaved.mp4)）。キャンセルを選ぶと、TextEdit は起動中のまま残った（pid は変わらない）。
+- (b) 保存確認のない Calculator で「終了」を選ぶと、Calculator が終了し、前面は Dock Studio のまま（不要な前面化なし）だった（[画像](media/quit-prompt-to-front/custom-dock-quit-calculator-no-front-full.jpg)、[動画](media/quit-prompt-to-front/custom-dock-cancel-then-quit-calculator.mp4)）。
+
+確認できなかったこと、手順との違い:
+- (c) **標準 Dock の「終了」の結果は、確認できなかった。** Terminal を前面にして、標準 Dock の TextEdit を右クリックして「Quit」を選んだが、2〜8 秒後も、前面は Finder で、TextEdit は起動中のまま、保存確認のシートは画面に出なかった（[メニュー](media/quit-prompt-to-front/standard-dock-menu-full.jpg)、[操作後](media/quit-prompt-to-front/standard-dock-after-quit-full.jpg)、[動画](media/quit-prompt-to-front/standard-dock-quit-textedit-unsaved.mp4)）。画面のフレームが更新されていない可能性があり、標準 Dock で TextEdit が前面になるかは、記録できていない。
+- 手順の途中で、AX の `終了` の押下が、Dock Studio 自身の「終了」メニュー項目を押して、Dock Studio が終了した試行があった。メニューを使う操作は、マウスのクリックで行い、有効な結果は、マウスのクリックの試行だけである。
+- 別の試行で、`osascript` の `tell application "TextEdit" to quit` が、Apple Events の許可待ちで止まった。
