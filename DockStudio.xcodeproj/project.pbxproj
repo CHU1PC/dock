@@ -100,6 +100,7 @@
 		CCDAD58B7C4BE542AB546E27 /* ApplicationListEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A79CC1F521B1E37932202F2 /* ApplicationListEntry.swift */; };
 		D2D71D4CF2AFAF0FAC1F085B /* LoginLaunchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29AC52037E05CE05123B9AAB /* LoginLaunchPolicy.swift */; };
 		D30B61B9C4A122B21D5C9729 /* DockItemReordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC77AB9887FB9CBEB9A57C9C /* DockItemReordering.swift */; };
+		D33990B881D87B8F5B47EC87 /* DockSpringLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065E5D8EFD8E5C716256F8D1 /* DockSpringLoadingTests.swift */; };
 		D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */; };
 		DBF3AB780216394D0AB83ED0 /* FinderSelectionAddition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FDDE7661192797B043A0F62 /* FinderSelectionAddition.swift */; };
 		DE4A59591AEEAA2411D90B51 /* DockFocusShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */; };
@@ -111,6 +112,7 @@
 		E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D821980A359C628760823676 /* DockIconSizeRangeTests.swift */; };
 		EAD03C3C43BEB077BFC9F0E2 /* DockKeyboardNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6341E875506DD260FD3CF86B /* DockKeyboardNavigationTests.swift */; };
 		EE2156FBCBA4A552256196BF /* ApplicationQuitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */; };
+		EECF964115CDA9188FD31576 /* DockSpringLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5664DD776E71FC4062B306B /* DockSpringLoading.swift */; };
 		F41C4581C14BFBCFAD699453 /* ApplicationDockMenuAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6B90C9DC1A18484C27B49 /* ApplicationDockMenuAccess.swift */; };
 		F459FC0A0B61FD5EC180F56A /* ApplicationHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */; };
 		F45A353F73F29ABB3A148CFB /* DockStudioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */; };
@@ -130,6 +132,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		065E5D8EFD8E5C716256F8D1 /* DockSpringLoadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSpringLoadingTests.swift; sourceTree = "<group>"; };
 		08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockRevealDurationTests.swift; sourceTree = "<group>"; };
 		10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashEmptyService.swift; sourceTree = "<group>"; };
 		12E3047B8E792AEEE176CFBF /* DockDragOutRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemoval.swift; sourceTree = "<group>"; };
@@ -205,6 +208,7 @@
 		B37A4E45529871A9DBCBDC83 /* DuplicateItemPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateItemPolicy.swift; sourceTree = "<group>"; };
 		B3CE5A7B71101921ABA6F73E /* DockStore+RecentApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DockStore+RecentApps.swift"; sourceTree = "<group>"; };
 		B49BA43E2DEC3ABDB951353E /* FinderSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionTests.swift; sourceTree = "<group>"; };
+		B5664DD776E71FC4062B306B /* DockSpringLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSpringLoading.swift; sourceTree = "<group>"; };
 		B60BF615CF975A8342E5731D /* ItemAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailability.swift; sourceTree = "<group>"; };
 		B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockFocusShortcut.swift; sourceTree = "<group>"; };
 		B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashItemTests.swift; sourceTree = "<group>"; };
@@ -337,6 +341,7 @@
 				08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */,
 				31A3901B9D1B4E33814B79B2 /* DockSectionLayoutTests.swift */,
 				6D027CD6B1C14D3973B5F22C /* DockSeparatorSettingsTests.swift */,
+				065E5D8EFD8E5C716256F8D1 /* DockSpringLoadingTests.swift */,
 				EF63433C32EE891D1543248B /* DockStoreTests.swift */,
 				E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */,
 				6E4CFEA58CA6520BB9C55181 /* DuplicateItemTests.swift */,
@@ -397,6 +402,7 @@
 				37D9AF83EA901F0252C6A2A5 /* DockDocument.swift */,
 				B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */,
 				CE3448B4FA395513EEC7C924 /* DockKeyboardNavigation.swift */,
+				B5664DD776E71FC4062B306B /* DockSpringLoading.swift */,
 				EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */,
 				60ADE6223768FD15BB95E9FA /* DockVisibilityState.swift */,
 				35E12DA995C6ECA09224382D /* MinimizeEffectSettingsGuide.swift */,
@@ -507,6 +513,7 @@
 				F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */,
 				96F78F3A01BFD0967D36EFF3 /* DockSectionLayoutTests.swift in Sources */,
 				BF06CCAD556189A694A4F299 /* DockSeparatorSettingsTests.swift in Sources */,
+				D33990B881D87B8F5B47EC87 /* DockSpringLoadingTests.swift in Sources */,
 				71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */,
 				C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */,
 				CCD37AC31EC25FF9D4453B2A /* DuplicateItemTests.swift in Sources */,
@@ -564,6 +571,7 @@
 				5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */,
 				722530FCD7ACCB1B0FD72E27 /* DockSectionLayout.swift in Sources */,
 				B8A574B14EBE4C2A493FD022 /* DockSeparatorContextMenu.swift in Sources */,
+				EECF964115CDA9188FD31576 /* DockSpringLoading.swift in Sources */,
 				8F9A1C2DECD6EC2E4F37E839 /* DockStore+FinderSelection.swift in Sources */,
 				98372DC7715948A5C1B73E1C /* DockStore+RecentApps.swift in Sources */,
 				242A4D0C35F6F0A1EBBAF2E9 /* DockStore+Reordering.swift in Sources */,

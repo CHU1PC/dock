@@ -89,6 +89,8 @@ struct DockBar: View {
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
+    @State private var springLoadingTask: Task<Void, Never>?
+    @State private var springLoadingTargetID: UUID?
     @State private var reorderIndex: Int?
     @State private var reorderSourceID: UUID?
     let vertical: Bool
@@ -175,7 +177,9 @@ struct DockBar: View {
         .overlay { reorderIndicator(items: items) }
         .onDrop(of: [.fileURL], delegate: DockDropDelegate(
             store: store, items: items, vertical: vertical, frames: itemRects,
-            isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
+            isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex,
+            springLoadingTask: $springLoadingTask, springLoadingTargetID: $springLoadingTargetID,
+            folderContentsItem: $folderContentsItem, folderDisplayMode: $folderDisplayMode))
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { old, new in
             hovered = nil
@@ -827,29 +831,42 @@ private struct DockDropDelegate: DropDelegate {
     let frames: [UUID: CGRect]
     let isMeasured: Bool
     @Binding var index: Int?
+    @Binding var springLoadingTask: Task<Void, Never>?
+    @Binding var springLoadingTargetID: UUID?
+    @Binding var folderContentsItem: DockItem?
+    @Binding var folderDisplayMode: FolderDisplayMode
 
     private var orderedFrames: [CGRect] { items.compactMap { frames[$0.id] } }
 
     func validateDrop(info: DropInfo) -> Bool {
-        isMeasured && info.hasItemsConforming(to: [.fileURL]) &&
-            (applicationTarget(at: info.location) != nil || !store.storageIsReadOnly)
+        guard isMeasured, info.hasItemsConforming(to: [.fileURL]) else { return false }
+        return applicationTarget(at: info.location) != nil || folderTarget(at: info.location) != nil || !store.storageIsReadOnly
     }
 
-    func dropEntered(info: DropInfo) { updateInsertionIndex(at: info.location) }
+    func dropEntered(info: DropInfo) {
+        updateInsertionIndex(at: info.location)
+        updateSpringLoading(at: info.location)
+    }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         updateInsertionIndex(at: info.location)
+        updateSpringLoading(at: info.location)
         return DropProposal(operation: .copy)
     }
 
-    func dropExited(info: DropInfo) { index = nil }
+    func dropExited(info: DropInfo) {
+        index = nil
+        cancelSpringLoading()
+    }
 
     func performDrop(info: DropInfo) -> Bool {
         let position = insertionIndex(at: info.location)
         let applicationTarget = applicationTarget(at: info.location)
         let providers = info.itemProviders(for: [.fileURL])
         index = nil
+        cancelSpringLoading()
         guard !providers.isEmpty else { return false }
+        guard applicationTarget != nil || !store.storageIsReadOnly else { return false }
         Task { @MainActor in
             var urls: [URL] = []
             for provider in providers {
@@ -872,12 +889,49 @@ private struct DockDropDelegate: DropDelegate {
         DockDropRouting.applicationTarget(at: point, items: items, frames: frames)
     }
 
+    private func folderTarget(at point: CGPoint) -> DockItem? {
+        items.first { $0.kind == .folder && frames[$0.id]?.contains(point) == true }
+    }
+
     private func insertionIndex(at point: CGPoint) -> Int {
         DockDropInsertion.index(at: point, frames: orderedFrames, vertical: vertical)
     }
 
     private func updateInsertionIndex(at point: CGPoint) {
-        index = applicationTarget(at: point) == nil ? insertionIndex(at: point) : nil
+        index = applicationTarget(at: point) == nil && !store.storageIsReadOnly ? insertionIndex(at: point) : nil
+    }
+
+    private func updateSpringLoading(at point: CGPoint) {
+        guard DockSpringLoadingPreferences.isEnabled, let folder = folderTarget(at: point) else {
+            cancelSpringLoading()
+            return
+        }
+        guard springLoadingTargetID != folder.id else { return }
+        cancelSpringLoading()
+        springLoadingTargetID = folder.id
+        springLoadingTask = Task { @MainActor in
+            do {
+                try await Task.sleep(for: .seconds(DockSpringLoading.hoverDelay))
+            } catch {
+                return
+            }
+            guard springLoadingTargetID == folder.id else { return }
+            guard DockSpringLoading.action(for: folder.kind, elapsed: DockSpringLoading.hoverDelay,
+                                           enabled: DockSpringLoadingPreferences.isEnabled) == .openFolder else {
+                cancelSpringLoading()
+                return
+            }
+            folderContentsItem = folder
+            folderDisplayMode = folder.folderDisplayMode ?? .list
+            springLoadingTask = nil
+            springLoadingTargetID = nil
+        }
+    }
+
+    private func cancelSpringLoading() {
+        springLoadingTask?.cancel()
+        springLoadingTask = nil
+        springLoadingTargetID = nil
     }
 }
 
