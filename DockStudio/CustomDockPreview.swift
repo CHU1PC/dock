@@ -299,11 +299,13 @@ struct DockBar: View {
             .accessibilityActions {
                 ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
                     Button(action.title, action: action.perform)
+                        .disabled(!action.isEnabled)
                 }
             }
             .contextMenu {
                 ForEach(actions(for: item)) { action in
                     Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
+                        .disabled(!action.isEnabled)
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
@@ -434,8 +436,10 @@ extension DockBar {
 private struct DockItemAction: Identifiable {
     let kind: DockItemMenu.Kind
     let perform: () -> Void
+    var isEnabled = true
+    var titleOverride: String?
     var id: DockItemMenu.Kind { kind }
-    var title: String { kind.title }
+    var title: String { titleOverride ?? kind.title }
     var isDestructive: Bool { kind == .remove || kind == .forceQuit }
     var isAccessibilityAction: Bool { kind.isAccessibilityAction }
 }
@@ -450,11 +454,15 @@ extension DockBar {
                                        visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
                                        folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
-        return kinds.map { kind in
-            DockItemAction(kind: kind) {
+        let appExposeAction = item.kind == .application && item.targetURL?.isFileURL == true
+            ? [DockItemMenu.Kind.showAllWindows]
+            : []
+        return (kinds + appExposeAction).map { kind in
+            DockItemAction(kind: kind, perform: {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .showAllWindows: store.showAllWindows(for: item)
                 case .hide, .show: store.toggleApplicationVisibility(item)
                 case .hideOthers: store.hideOthers(of: item)
                 case .quit: store.quitApplication(item)
@@ -464,7 +472,8 @@ extension DockBar {
                 case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
                 case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
-            }
+            }, isEnabled: kind == .showAllWindows ? store.canShowAllWindows(for: item) : true,
+               titleOverride: kind == .showAllWindows ? store.showAllWindowsActionTitle(for: item) : nil)
         }
     }
 

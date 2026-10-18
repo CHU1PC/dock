@@ -107,7 +107,7 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, setFolderIcon, setStackIcon }
+    enum Kind { case open, reveal, showAllWindows, hide, show, hideOthers, quit, forceQuit, remove, keep, setFolderIcon, setStackIcon }
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, folderDisplayStyle: FolderDisplayStyle? = nil) -> [Kind] {
@@ -127,6 +127,7 @@ extension DockItemMenu.Kind {
         switch self {
         case .open: "開く"
         case .reveal: "Finder で表示"
+        case .showAllWindows: "全ウィンドウを表示"
         case .hide: "隠す"
         case .show: "表示"
         case .hideOthers: "ほかを隠す"
