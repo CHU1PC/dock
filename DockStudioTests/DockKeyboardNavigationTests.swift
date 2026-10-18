@@ -131,6 +131,18 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(Menu.kinds(hasFileURL: false, visibility: .hidden, canQuit: true, isPinned: false), [.open, .show, .quit, .forceQuit, .keep])
     }
 
+    func testOptionKeyChangesQuitEntryToForceQuitWithoutDuplicate() {
+        let kinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true, optionKeyDown: true)
+
+        XCTAssertEqual(kinds, [.open, .reveal, .forceQuit, .remove])
+    }
+
+    func testForceQuitRemainsAvailableWithoutOptionKey() {
+        let kinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true, optionKeyDown: false)
+
+        XCTAssertEqual(kinds, [.open, .reveal, .quit, .forceQuit, .remove])
+    }
+
     func testFinderMenuUsesFinderActionsAndRespectsFixedEntrySetting() {
         typealias Menu = DockItemMenu
         XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: false, isPinned: true,

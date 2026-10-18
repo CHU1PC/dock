@@ -568,7 +568,8 @@ extension DockBar {
                                        isFinder: FinderDockEntry.isFinder(item),
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
                                        folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
-                                       isApplication: item.kind == .application)
+                                       isApplication: item.kind == .application,
+                                       optionKeyDown: (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags).contains(.option))
         let appExposeAction = item.kind == .application && item.targetURL?.isFileURL == true
             ? [DockItemMenu.Kind.showAllWindows]
             : []
