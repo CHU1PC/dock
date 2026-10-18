@@ -242,6 +242,9 @@ struct DockBar: View {
         let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
             && !store.appearance.reduceMotion && !systemReduceMotion
+        let attentionRequested = store.document.settings.attentionBounce
+            && item.applicationIdentity.map(store.attentionRequestingIdentities.contains) == true
+        let reduceMotion = store.appearance.reduceMotion || systemReduceMotion
         return VStack(spacing: 5) {
             Button {
                 clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
@@ -252,9 +255,15 @@ struct DockBar: View {
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
-                if bouncing {
+                if bouncing || (attentionRequested && !reduceMotion) {
                     icon.modifier(LaunchBounce(position: store.document.settings.position,
                                                height: min(store.effectiveIconSize * 0.5, 28)))
+                } else if attentionRequested {
+                    icon.overlay {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.orange.opacity(0.9), lineWidth: 2)
+                            .padding(2)
+                    }
                 } else {
                     icon
                 }

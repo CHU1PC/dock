@@ -47,6 +47,7 @@ final class DockStore {
         return alert.runModal() == .alertFirstButtonReturn
     }
     private(set) var launchingItemIDs: Set<UUID> = []
+    var attentionRequestingIdentities: Set<String> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
     var focusSessions: [UUID: FocusSession] = [:]
