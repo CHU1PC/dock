@@ -10,7 +10,7 @@ GitHub issue #120 の対応になる。
 
 ## 自動テスト
 
-`/private/tmp/cw/run-check.sh 120 test` は337件すべて成功した。`/private/tmp/cw/run-check.sh 120 release` は `BUILD SUCCEEDED`、`/private/tmp/cw/run-check.sh 120 testbuild` は `TEST BUILD SUCCEEDED` になった。
+main の取り込み後に実行した `/private/tmp/cw/run-check.sh 120 test` は349件すべて成功した。`/private/tmp/cw/run-check.sh 120 release` は `BUILD SUCCEEDED`、初回 push 前の `/private/tmp/cw/run-check.sh 120 testbuild` は `TEST BUILD SUCCEEDED` になった。
 
 追加した `DockItemMenu` の単体テストで、アプリ項目に案内メニューが含まれ、アプリ以外には含まれないことを確認した。
 
