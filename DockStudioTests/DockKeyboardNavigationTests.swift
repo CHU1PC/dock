@@ -87,4 +87,17 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(buffer.append("l", at: start.addingTimeInterval(0.5)), "sl")
         XCTAssertEqual(buffer.append("m", at: start.addingTimeInterval(0.5 + DockTypeAheadBuffer.timeout + 0.1)), "m")
     }
+
+    func testItemMenuKindsFollowItemState() {
+        typealias Menu = DockItemMenu
+        XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: true, isPinned: true), [.open, .reveal, .quit, .remove])
+        XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: false, isPinned: false), [.open, .reveal, .keep])
+        XCTAssertEqual(Menu.kinds(hasFileURL: false, canQuit: false, isPinned: true), [.open, .remove])
+        XCTAssertEqual(Menu.kinds(hasFileURL: false, canQuit: true, isPinned: false), [.open, .quit, .keep])
+    }
+
+    func testAccessibilityActionsExcludeOpenAndReveal() {
+        let kinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true)
+        XCTAssertEqual(kinds.filter(\.isAccessibilityAction), [.quit, .remove])
+    }
 }

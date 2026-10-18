@@ -76,6 +76,28 @@ extension DockKeyboardNavigation.Key {
     }
 }
 
+enum DockItemMenu {
+    enum Kind { case open, reveal, quit, remove, keep }
+
+    static func kinds(hasFileURL: Bool, canQuit: Bool, isPinned: Bool) -> [Kind] {
+        [.open] + (hasFileURL ? [.reveal] : []) + (canQuit ? [.quit] : []) + [isPinned ? .remove : .keep]
+    }
+}
+
+extension DockItemMenu.Kind {
+    var title: String {
+        switch self {
+        case .open: "開く"
+        case .reveal: "Finder で表示"
+        case .quit: "終了"
+        case .remove: "Dock から取り外す"
+        case .keep: "Dock に保持"
+        }
+    }
+
+    var isAccessibilityAction: Bool { self != .open && self != .reveal }
+}
+
 struct DockTypeAheadBuffer {
     static let timeout: TimeInterval = 1
     private(set) var text = ""
