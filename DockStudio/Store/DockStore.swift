@@ -62,6 +62,7 @@ final class DockStore {
     var dockKeyboardFocusRequested = false
     var dockKeyboardFocusGeneration = 0
     var dockKeyboardExitRequested = false
+    var settingsWindowRequested = 0
     var isDockPanelKey = false
     var isDockPointerInside = false
     var appearance: DockAppearance { transientAppearance ?? savedAppearance }
@@ -278,7 +279,7 @@ final class DockStore {
 
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
-    var displayedItems: [DockItem] {
+    var displayedLayout: DockSectionLayoutResult {
         var seen = Set(activeProfile.items.compactMap(\.applicationIdentity))
         let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
@@ -289,7 +290,12 @@ final class DockStore {
         let recent = document.settings.showRecentApps
             ? RecentAppHistory.visibleItems(recentAppItems, excluding: seen.union(runningIdentities))
             : []
-        return activeProfile.items + running + recent
+        return DockSectionLayout.arrange(pinned: activeProfile.items, running: running, recent: recent,
+                                         arrangement: document.settings.arrangement)
+    }
+
+    var displayedItems: [DockItem] {
+        displayedLayout.items
     }
 
     @discardableResult
@@ -521,12 +527,42 @@ final class DockStore {
         editorProfile = profile
     }
 
+    func setFolderSortOrder(_ order: FolderSortOrder, for folderID: UUID) {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == folderID }) else { return }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderSortOrder = order
+        _ = commit(candidate)
+    }
+
     func moveItem(_ id: UUID, by offset: Int) {
         var profile = editorProfile
         guard let index = profile.items.firstIndex(where: { $0.id == id }),
               profile.items.indices.contains(index + offset) else { return }
         profile.items.swapAt(index, index + offset)
         editorProfile = profile
+    }
+
+    @discardableResult
+    func setFolderDisplayStyle(_ style: FolderDisplayStyle, for id: UUID) -> Bool {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              document.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        guard document.profiles[profileIndex].items[itemIndex].effectiveFolderDisplayStyle != style else { return true }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderDisplayStyle = style
+        guard commit(candidate) else { return false }
+        let profileID = document.profiles[profileIndex].id
+        if var draft = drafts[profileID],
+           let draftItemIndex = draft.items.firstIndex(where: { $0.id == id }) {
+            draft.items[draftItemIndex].folderDisplayStyle = style
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(document.profiles[profileIndex].items[itemIndex].name) を\(style == .stack ? "Stack" : "フォルダ")として表示しました"
+        return true
     }
 
     @discardableResult
@@ -638,14 +674,29 @@ final class DockStore {
             reportDropFailure(rejected: rejected)
             return (0, rejected)
         }
-        let position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
-        candidate.profiles[profileIndex].items.insert(contentsOf: items, at: position)
+        var position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
+        let insertionStartPosition = position
+        for item in items {
+            if document.settings.arrangement == .standardSections {
+                position = DockSectionLayout.insertionIndex(for: item, in: candidate.profiles[profileIndex].items)
+            }
+            candidate.profiles[profileIndex].items.insert(item, at: position)
+            position += 1
+        }
         guard commit(candidate) else { return (0, rejected) }
         let profileID = candidate.profiles[profileIndex].id
         if var draft = drafts[profileID] {
-            let anchor = position > 0 ? candidate.profiles[profileIndex].items[position - 1].id : nil
-            let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
-            draft.items.insert(contentsOf: items, at: draftPosition)
+            if document.settings.arrangement == .standardSections {
+                for item in items {
+                    let draftPosition = DockSectionLayout.insertionIndex(for: item, in: draft.items)
+                    draft.items.insert(item, at: draftPosition)
+                }
+            } else {
+                let anchor = insertionStartPosition > 0
+                    ? candidate.profiles[profileIndex].items[insertionStartPosition - 1].id : nil
+                let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
+                draft.items.insert(contentsOf: items, at: draftPosition)
+            }
             drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
             persistDrafts()
         }

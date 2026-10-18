@@ -98,7 +98,8 @@ struct DockBar: View {
     }
 
     var body: some View {
-        let items = store.displayedItems
+        let displayedLayout = store.displayedLayout
+        let items = displayedLayout.items
         let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
@@ -115,6 +116,11 @@ struct DockBar: View {
                                 .font(.callout).foregroundStyle(.secondary).padding(10)
                         }
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            if displayedLayout.dividerBefore.contains(index) {
+                                Rectangle().fill(.primary.opacity(0.45))
+                                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                                    .accessibilityHidden(true)
+                            }
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
@@ -272,6 +278,8 @@ struct DockBar: View {
                         folderContentsItem = nil
                     }, updateDisplayStyle: { folder, style in
                         store.updateFolderContentsDisplayStyle(style, for: folder.id)
+                    }, onSortOrderChange: { order in
+                        store.setFolderSortOrder(order, for: folder.id)
                     })
                 }
             }
@@ -367,6 +375,7 @@ extension DockBar {
         }
         DockIconSizeResizeHandle(vertical: vertical)
             .padding(5)
+            .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
@@ -427,7 +436,8 @@ extension DockBar {
     fileprivate func actions(for item: DockItem) -> [DockItemAction] {
         let kinds = DockItemMenu.kinds(hasFileURL: item.targetURL?.isFileURL == true,
                                        visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
-                                       canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item))
+                                       canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
@@ -439,6 +449,8 @@ extension DockBar {
                 case .forceQuit: store.forceQuitApplication(item)
                 case .remove: store.removeFromActiveProfile(item)
                 case .keep: store.keepInActiveProfile(item)
+                case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
+                case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
             }
         }
@@ -717,6 +729,7 @@ struct ItemIcon: View {
     var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
+    var appliesGlassEffect = true
     var symbol: String?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -729,6 +742,8 @@ struct ItemIcon: View {
                     .frame(width: size, height: size)
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
+            } else if item.kind == .folder, item.effectiveFolderDisplayStyle == .stack {
+                FolderStackIcon(folder: item, size: size, style: style)
             } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
@@ -743,7 +758,7 @@ struct ItemIcon: View {
             }
         }
         .frame(width: size, height: size)
-        .modifier(DockIconGlassEffect(enabled: style == .glass, size: size,
+        .modifier(DockIconGlassEffect(enabled: appliesGlassEffect && style == .glass, size: size,
                                       enhancedContrast: glassNeedsContrast, interactive: glassInteractive))
     }
 }
