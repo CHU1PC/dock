@@ -61,3 +61,19 @@ Dock のゴミ箱にファイルやフォルダをドロップすると、ドロ
 - 一部の項目が失敗した場合、失敗名と理由が表示され、残りの項目は処理される。
 - 画像は、ドロップ前の Dock、移動後の Finder ゴミ箱、復元後の元ディレクトリ、失敗時のエラー表示を撮る。
 - 動画は、単一ファイルのドロップ、ゴミ箱内の確認、「戻す」による復元までを撮る。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `5de43cc` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `2b91d6ad75d2f1c1251f8ddc0fe7886dea44755344400d26eb934f9a7b634ce5` と一致した。ゲストの `~/dockstudio-drop-to-trash` に `single.txt`、`multi-a.txt`、`multi-b.txt`、ロック済みの `locked.txt`（`chflags uchg`）を作り、Finder の窓から、パネルのゴミ箱へドラッグした（ゲスト内の CGEvent の合成ドラッグ）。パネルは「設定」タブで撮影し、ゴミ箱の状態は Full Disk Access がないため「空」と「項目あり」が AX の値に出た（#95 の「確認できない」は、このビルドでは出なかった。TCC の確認は、実装の `trashDirectory` の前回の VM の結果と食い違うため、別途の確認が必要）。ログは[drop-logs.txt](media/drop-to-trash/drop-logs.txt)にある。
+
+確認できたこと:
+- **単一ファイル**: `single.txt` をゴミ箱へドロップすると、元のディレクトリから消え、ゲストの `~/.Trash` に `single.txt` が現れた。ゴミ箱の AX の値は「空」から「項目あり」に変わった（[画像](media/drop-to-trash/after-single-drop-full.jpg)、[動画](media/drop-to-trash/single-drop.mp4)）。
+- **複数ファイル**: Finder で 4 つのファイルをラバーバンドで選び、そのうち 1 つをドロップすると、**選択した 3 つ（`multi-a.txt`、`multi-b.txt`、`single.txt`）がすべて `~/.Trash` に入った**（`locked.txt` は元に残った）。
+- **失敗の表示**: ロック済みの `locked.txt` は、ゴミ箱へ移動できず、アラート「操作を完了できませんでした。次の項目をゴミ箱へ移動できませんでした。権限が不足している場合は、ファイルへのアクセスを許可してください。locked.txt: "locked.txt" couldn't be moved to the trash because you don't have permission to access it.」が出た。成功した 3 つは、アラートの有無にかかわらずゴミ箱に入った（一部失敗でも残りは処理された。[画像](media/drop-to-trash/after-multi-drop-with-locked-error-full.jpg)、[動画](media/drop-to-trash/multi-drop-with-locked.mp4)）。
+- 撮影後、ゲストのゴミ箱の撮影用ファイルは削除し（`~/.Trash` は `.DS_Store` だけの元の状態）、ロックを外して、ファイルとディレクトリを削除した。
+
+確認できなかったこと、手順との違い:
+- **Finder の「戻す」による復元は、操作していない。** 代わりに、`mv` でゴミ箱から元のディレクトリへ戻した（ゴミ箱に入ったことの確認までで、「戻す」で元の場所へ戻る確認ではない）。
+- 画面に出る Finder のゴミ箱ウインドウの画像は、撮っていない。ゴミ箱の中身は、`ls ~/.Trash` と、AX の値で確認した。
+- 最初の複数ファイルの試行（Command+A、Shift クリック）は、選択が合成の入力で成立せず、1 つだけが移動した。ラバーバンドの 4 回目が有効な結果である。
+- 読み取り専用ディスクイメージ上の項目、アクセス権を外した項目は、試していない（ロック済みの項目だけ）。
