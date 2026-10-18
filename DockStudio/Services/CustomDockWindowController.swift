@@ -73,6 +73,7 @@ final class CustomDockWindowController {
     private var timer: Timer?
     private var visibility = DockVisibilityState()
     private var trackingMenus = 0
+    private var handledKeyboardFocusGeneration = 0
     private var pointerMonitor: Any?
     private var localMonitor: Any?
     private var previousApp: NSRunningApplication?
@@ -120,6 +121,18 @@ final class CustomDockWindowController {
                 MainActor.assumeIsolated {
                     let isKey = notification.name == NSWindow.didBecomeKeyNotification
                     self?.store.isDockPanelKey = isKey
+                    if isKey, let self,
+                       self.store.dockKeyboardFocusGeneration != self.handledKeyboardFocusGeneration {
+                        self.handledKeyboardFocusGeneration = self.store.dockKeyboardFocusGeneration
+                        Task { @MainActor [weak self] in
+                            await Task.yield()
+                            guard let self else { return }
+                            let actionNeeded = DockKeyboardNavigation.shouldAdvanceKeyView(
+                                isWindowKey: self.panel.isKeyWindow,
+                                firstResponderIsDockContainer: self.panel.firstResponder === self.panel.contentView)
+                            if actionNeeded { self.panel.selectNextKeyView(nil) }
+                        }
+                    }
                     if !isKey { self?.previousApp = nil }
                     self?.updateAutoHide()
                 }
