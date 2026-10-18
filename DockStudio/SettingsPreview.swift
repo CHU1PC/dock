@@ -312,7 +312,7 @@ struct SettingsPreview: View {
                 if let message = store.loginItem.message {
                     Label(message, systemImage: "exclamationmark.triangle").font(.callout)
                 }
-                if store.loginItem.state == .requiresApproval {
+                if store.loginItem.state.shouldOpenSystemSettings {
                     Button("システム設定を開く") { store.loginItem.openSystemSettings() }
                 }
                 if let notice = store.launchStateNotice {
