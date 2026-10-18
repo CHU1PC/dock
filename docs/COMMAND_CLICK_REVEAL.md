@@ -1,0 +1,157 @@
+# Command クリックで対象を Finder に表示する
+
+## 仕様
+
+Dock の項目を Command だけを押しながらクリックすると、対象を開かずに、Finder で選択して表示する。
+
+| 項目の種類と状態 | Command クリックの結果 |
+| --- | --- |
+| アプリ、フォルダ、ファイル（利用可能またはアクセス不可） | 起動せず、Finder で対象を選択して表示する |
+| 参照切れ、ボリューム未接続 | Finder は開かず、通常のクリックと同じ文言のエラーを表示する |
+| リンク（URL）、対象が未設定の項目 | 何もしない（開きもしない。Finder に表示する対象がないため） |
+| 時計、集中タイマー、スペーサー | 従来どおり（この操作の対象外） |
+
+- 修飾キーは Command だけのときに反応する。Option、Control、Shift のどれかを併用したクリックは、Finder 表示にはならず、従来どおり開く。Command+Option は別の機能（issue #20）に使うため、ここでは奪わない。
+- 修飾キーなしのクリック、Return、Space は変更していない。
+- 管理画面内のプレビュー（`isPreview`）では、何も開かず、ステータスに表示するだけにする。
+- 判定は `ItemClickPolicy`（`DockStudio/Services/ItemClickAction.swift`）が行う。画面から独立した純粋な構造体で、単体テストで縛っている。`DockStore.clickItem` がクリックを受け、修飾キーで `openItem` と Finder 表示を振り分ける。
+- 右クリックメニューの「Finder で表示」は変更していない。
+
+## 自動テストの結果
+
+ホストで、ビルドと単体テストだけを実行した。GUI は表示していない。
+
+| 項目 | 結果 |
+| --- | --- |
+| `swift test` | 149件すべて成功（新規7件: `ItemClickActionTests`） |
+| Release ビルド | 成功した |
+| Debug の `build-for-testing` | 成功した |
+
+### 未検証
+
+- 管理画面内の Dock で Command クリックが Finder に表示されることは、実画面で確認した。パネルでは確認できず、上の「所見」を参照
+- 修正後のパネルでの Command クリック。ボタンの action 内で `NSApp.currentEvent?.modifierFlags` を優先し、無ければ `NSEvent.modifierFlags` を使うようにした。さらに、`activateFileViewerSelecting` のあとに、LaunchServices 経由で Finder を前面に出す（`openApplication` の `activates = true`）処理を加えた。どちらが原因だったか、効いたかは VM で未確認で、撮影担当は、パネルで Finder が前面に出て対象が選択されることを再確認する。
+- macOS 15 以降での差異（VM が 26.6.2 のみ）
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `356ac94` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `972c4a635c6eb4ded690d08b4066106e35bbc961669814443bea9bb752557fd2` と一致した。Command の押下は、ゲスト内の CGEvent で、クリックのイベントに `.maskCommand` を付けて合成した。
+
+確認できたこと:
+
+- 管理画面内（Dock Studio のウィンドウ）の Dock で、Finder が前面のとき（ウィンドウは非アクティブ）に Calculator を Command クリックすると、Calculator は起動せず、Finder の「Applications」が開いて Calculator.app が選択された（[window-dock-cmd-click-calculator-finder.jpg](media/command-click-reveal/window-dock-cmd-click-calculator-finder.jpg)）。
+
+**所見（コードは直していない）**: デスクトップ用パネル（非アクティブ）では、Command クリックで Finder の表示にならなかった。
+
+- TextEdit が前面の状態で、パネルの Calculator と Demo File を Command クリックした。Calculator は起動しなかったが、Finder は前面に出ず、前面は TextEdit のままだった（[panel-cmd-click-calculator-inactive.jpg](media/command-click-reveal/old-custom-dock-tab-panel-cmd-click-calculator-inactive.jpg)、[panel-cmd-click-file-inactive.jpg](media/command-click-reveal/old-custom-dock-tab-panel-cmd-click-file-inactive.jpg)）。
+- Finder のウィンドウが背後に残っている様子はあるが、前面化も選択も確認できなかった。起動しなかったことは確認できたため、「通常の起動」にはなっていない。Command の修飾が `NSEvent.modifierFlags` で取れていない（未検証だった懸念）か、Finder 表示が前面化されていない可能性がある。切り分けは未実施。
+- 1 回目の Command クリックは、他の入力と同じく、環境の入力欠落の可能性もある。各ボタンを 1 回ずつしか試していない。
+
+確認できなかったこと:
+
+- パネルでの Command クリックの再試行による切り分け、Demo Folder、Demo File（ウィンドウ側）、Removed Folder のアラート、Example Link、修飾キーなしのクリックの回帰、Command+Option。
+- 動画。
+
+### 再撮影: パネルの Command クリック（コミット `513f9a6`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `d4e135ba6eb2629419be974907a1acf9b29e8167dddcb236b7d11badd28c78f2` と一致した。パネルだけが写るように、管理ウィンドウは「設定」タブにした（「Custom Dock」タブでは、ウィンドウ内のプレビュー Dock とパネルが重なって二重に見える。上の「所見」の画像は、そのタブで撮った古いもので、`old-custom-dock-tab-` を付けた）。操作の記録は[panel-cmd-click-log.txt](media/command-click-reveal/panel-cmd-click-log.txt)にある。
+
+| 条件 | 結果 |
+| --- | --- |
+| TextEdit が前面で、パネルの Calculator を Command クリック | Calculator は起動せず、**Finder は前面に出なかった**。前面は TextEdit のままだった |
+| TextEdit が前面で、パネルの Demo File を Command クリック | 同じ。前面は TextEdit のままで、Finder のウィンドウも前面に出なかった |
+| Dock Studio が前面（管理ウィンドウをクリックした後）で、パネルの Calculator を Command クリック | Calculator は起動せず、Finder が前面に出て、Applications で Calculator.app が選択された |
+| Dock Studio が前面で、パネルの Demo File を Command クリック | Finder が前面に出て、Demo Folder の note.txt が選択された |
+| 修飾なしでパネルの Calculator をクリック | Calculator が起動し、前面になった（回帰なし） |
+
+- 結論: パネルの Command クリックは、**他のアプリが前面（パネルが非アクティブ）のときは Finder 表示にならず、Dock Studio が前面のときは動く**。どちらの場合も Calculator は起動していない（通常のクリックとしては扱われていない）。1 つめの条件で、`NSEvent.modifierFlags` が Command を返していないか、Finder 表示は実行されても前面化されないかは、切り分けていない。Dock Studio が前面のときは同じ操作で成功するため、前面化の処理ではなく、非アクティブなときの修飾キーの取得が疑わしい。
+- 画像と動画: [textedit-front-full](media/command-click-reveal/panel-cmd-click-textedit-front-full.jpg)、[crop](media/command-click-reveal/panel-cmd-click-textedit-front-crop.jpg)、[動画（TextEdit が前面。Finder は出ない）](media/command-click-reveal/panel-cmd-click-textedit-front.mp4)、[Dock Studio が前面の Calculator](media/command-click-reveal/panel-cmd-click-studio-front-calculator-full.jpg)、[同じ Demo File](media/command-click-reveal/panel-cmd-click-studio-front-demofile-full.jpg)、[動画（Dock Studio が前面）](media/command-click-reveal/panel-cmd-click-studio-front.mp4)、[修飾なしの回帰](media/command-click-reveal/panel-plain-click-calculator-full.jpg)、[操作前の全体](media/command-click-reveal/panel-settings-tab-before-full.jpg)。動画は 10fps で、撮影時刻の間隔を維持し、倍速にはしていない。
+
+### 再々撮影: LaunchServices 経由の前面化の修正後（コミット `c56a253`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `0e878ec58c9c0f2fbb47fd78d06f255a1bd7fd1d8e397ddfcbb6f10f2bb139fa` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした（[操作前](media/command-click-reveal/fixed-panel-settings-tab-before-full.jpg)）。TextEdit を前面にした状態から、毎回 `open -a TextEdit` で前面に戻して、5 通りの操作を行った。「Finder のウインドウ」は、Finder の AX のウインドウ名を並べたものである（先頭が前面側）。操作の記録は[fixed-panel-cmd-click-log.txt](media/command-click-reveal/fixed-panel-cmd-click-log.txt)にある。
+
+| 操作（TextEdit が前面） | Calculator | 前面 | Finder の前面のウインドウ |
+| --- | --- | --- | --- |
+| A 本物の Command 押下（キーダウン、押したままクリック、キーアップ）で、パネルの Calculator をクリック | 起動せず | Finder | Applications |
+| B 同じく Demo File | 起動せず | Finder | Demo Folder |
+| C `.maskCommand` だけの合成クリックで Calculator | 起動せず | Finder | Applications |
+| D `.maskCommand` だけの合成クリックで Demo File | 起動せず | Finder | Demo Folder |
+| E 修飾なしクリックで Calculator | 起動した | Calculator | （変化なし） |
+
+- 結論: **修正が効いた。** 本物の Command 押下でも、`.maskCommand` だけの合成でも、非アクティブなパネルから Finder が前面に出て、Applications で Calculator.app、Demo Folder で note.txt が開く（Finder のウインドウ名が切り替わった）。Calculator は起動していない。修飾なしクリックで Calculator が起動する回帰もない。前回の「Command が取れていない」疑いは、前面化の問題だったことになる。
+- 画像と動画: [動画](media/command-click-reveal/panel-cmd-click-fixed.mp4)（8fps、撮影時刻の間隔を維持。A から E までの全操作）、フレーム画像 [A](media/command-click-reveal/fixed-panel-frame-real-cmd-calculator-full.jpg)、[B](media/command-click-reveal/fixed-panel-frame-real-cmd-demofile-full.jpg)、[後半](media/command-click-reveal/fixed-panel-frame-flag-only-or-later-full.jpg)（各 `-crop` あり）。VNC の取得が遅れるため、フレームの時刻と操作の対応は、ログのほうが正確である。
+- 確認していない: Note.txt が選択状態になっていること（画像では、Demo Folder のウィンドウに note.txt が青く表示されているが、選択かどうかは AX で読んでいない）、Removed Folder のアラート、Example Link。
+
+## 撮影の手順
+
+撮影は、専用ヘッドレス VM のゲストの中だけで行う。
+
+### 検証用データ
+
+ゲストで `/Users/Shared/dockstudio-18` を作り、次の `profiles.json` を置く。
+
+```json
+{
+  "schemaVersion": 1,
+  "activeProfileID": "00000000-0000-0000-0000-000000000001",
+  "settings": { "mode": "custom", "position": "bottom", "iconSize": 64, "autoHide": false, "showRunningApps": false },
+  "profiles": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Reveal demo",
+      "items": [
+        { "id": "00000000-0000-0000-0000-0000000000a1", "name": "Calculator", "kind": "application",
+          "target": "file:///System/Applications/Calculator.app/" },
+        { "id": "00000000-0000-0000-0000-0000000000a2", "name": "Demo Folder", "kind": "folder",
+          "target": "file:///Users/Shared/dockstudio-18/Demo%20Folder/" },
+        { "id": "00000000-0000-0000-0000-0000000000a3", "name": "Demo File", "kind": "file",
+          "target": "file:///Users/Shared/dockstudio-18/Demo%20Folder/note.txt" },
+        { "id": "00000000-0000-0000-0000-0000000000a4", "name": "Removed Folder", "kind": "folder",
+          "target": "file:///Users/Shared/removed-folder/" },
+        { "id": "00000000-0000-0000-0000-0000000000a5", "name": "Example Link", "kind": "link",
+          "target": "https://example.com/" }
+      ]
+    }
+  ]
+}
+```
+
+起動前に、ゲストで次を実行する。
+
+```
+mkdir -p "/Users/Shared/dockstudio-18/Demo Folder" && echo hello > "/Users/Shared/dockstudio-18/Demo Folder/note.txt"
+rm -rf /Users/Shared/removed-folder
+```
+
+アプリのビルド成果物をゲストに置き、次で起動する。
+
+```
+DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-18 /path/to/DockStudio.app/Contents/MacOS/DockStudio
+```
+
+### 操作と期待する見え方
+
+Command のキー押下は、ゲスト内の CGEvent（クリックのイベントに `.maskCommand` を付ける）で合成する。
+
+| 操作 | 期待する見え方 |
+| --- | --- |
+| Calculator を Command クリック | Calculator は起動せず、Finder が前面に出て `/System/Applications` の Calculator.app が選択される |
+| Demo Folder を Command クリック | Finder が前面に出て、`/Users/Shared/dockstudio-18` の中で Demo Folder が選択される |
+| Demo File を Command クリック | Finder が前面に出て、Demo Folder の中で note.txt が選択される |
+| Removed Folder を Command クリック | Finder は開かず、「Removed Folder は見つかりません。…」のアラートが出る |
+| Example Link を Command クリック | ブラウザは起動せず、何も起きない |
+| Calculator を修飾キーなしでクリック | 従来どおり Calculator が起動する（回帰の確認） |
+| Calculator を Command+Option でクリック | Finder は開かず、従来どおり Calculator を開く |
+
+### 撮るべき画像と動画
+
+- 画像: Calculator を Command クリックした直後の、Finder で Calculator.app が選択された画面
+- 画像: Demo File を Command クリックした直後の、note.txt が選択された Finder
+- 画像: Removed Folder の Command クリックで出るアラート
+- 動画: Dock の項目を Command クリックして Finder で選択され、Calculator が起動していないこと（Dock の起動中表示や、Calculator のウィンドウが出ないこと）が分かるもの
+- 動画: 修飾キーなしのクリックで Calculator が起動する場面（比較用）
+
+### 補足: 修飾キーの合成について
+
+`CGEvent` のクリックに `.maskCommand` を付けるだけの合成では、グローバルの修飾状態（`NSEvent.modifierFlags`）は変わらない。パネルの Command クリックを撮るときは、ゲスト内で `CGEventPost` により Command（キーコード 55）のキーダウンを先に送り、押したままクリックしてから、キーアップを送る。

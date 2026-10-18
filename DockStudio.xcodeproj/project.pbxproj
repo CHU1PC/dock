@@ -26,6 +26,7 @@
 		5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
 		5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3448B4FA395513EEC7C924 /* DockKeyboardNavigation.swift */; };
+		65CB028378595A6413439AF1 /* ItemClickAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE48D330924061B817672BC /* ItemClickAction.swift */; };
 		66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */; };
 		6A92F0038DF5C5011A9D9564 /* ItemAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60BF615CF975A8342E5731D /* ItemAvailability.swift */; };
 		6E86CB4559D851E7A44BC68D /* CustomDockWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */; };
@@ -47,6 +48,7 @@
 		B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */; };
 		BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */; };
 		C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */; };
+		C93204A2FFA888CFA0EF0195 /* ItemClickActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B1CE92853E8EDB2592E58A /* ItemClickActionTests.swift */; };
 		C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */; };
 		CCD37AC31EC25FF9D4453B2A /* DuplicateItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4CFEA58CA6520BB9C55181 /* DuplicateItemTests.swift */; };
 		D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */; };
@@ -76,6 +78,7 @@
 		14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncProcessRunner.swift; sourceTree = "<group>"; };
 		19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockWindowController.swift; sourceTree = "<group>"; };
+		21B1CE92853E8EDB2592E58A /* ItemClickActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemClickActionTests.swift; sourceTree = "<group>"; };
 		2255DDF17826ECD819C17196 /* CustomDockPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockPreview.swift; sourceTree = "<group>"; };
 		238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileRegressionTests.swift; sourceTree = "<group>"; };
 		25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePersistence.swift; sourceTree = "<group>"; };
@@ -103,6 +106,7 @@
 		A3243251C3D1D413F413377E /* NativeDockReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockReader.swift; sourceTree = "<group>"; };
 		A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginRestoreTests.swift; sourceTree = "<group>"; };
 		A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemLaunchPolicy.swift; sourceTree = "<group>"; };
+		ADE48D330924061B817672BC /* ItemClickAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemClickAction.swift; sourceTree = "<group>"; };
 		B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileArchive.swift; sourceTree = "<group>"; };
 		B37A4E45529871A9DBCBDC83 /* DuplicateItemPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateItemPolicy.swift; sourceTree = "<group>"; };
 		B60BF615CF975A8342E5731D /* ItemAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailability.swift; sourceTree = "<group>"; };
@@ -155,6 +159,7 @@
 				BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */,
 				68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */,
 				B60BF615CF975A8342E5731D /* ItemAvailability.swift */,
+				ADE48D330924061B817672BC /* ItemClickAction.swift */,
 				A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */,
 				E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */,
 				14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */,
@@ -183,6 +188,7 @@
 				E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */,
 				6E4CFEA58CA6520BB9C55181 /* DuplicateItemTests.swift */,
 				D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */,
+				21B1CE92853E8EDB2592E58A /* ItemClickActionTests.swift */,
 				2AB86C3AB95EF20C137DE78A /* KeepRunningAppTests.swift */,
 				48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */,
 				A4A4E336A7C9A06785CBF204 /* LoginRestoreTests.swift */,
@@ -320,6 +326,7 @@
 				C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */,
 				CCD37AC31EC25FF9D4453B2A /* DuplicateItemTests.swift in Sources */,
 				156F522A6DDFC46E4A8AD7C6 /* ItemAvailabilityTests.swift in Sources */,
+				C93204A2FFA888CFA0EF0195 /* ItemClickActionTests.swift in Sources */,
 				5065ACDCCE694B2E3F4A90B3 /* KeepRunningAppTests.swift in Sources */,
 				C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */,
 				72424A2AD63E9103A58BAEED /* LoginRestoreTests.swift in Sources */,
@@ -354,6 +361,7 @@
 				3D1340B383846A2F3362B867 /* DuplicateItemPolicy.swift in Sources */,
 				B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */,
 				6A92F0038DF5C5011A9D9564 /* ItemAvailability.swift in Sources */,
+				65CB028378595A6413439AF1 /* ItemClickAction.swift in Sources */,
 				0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */,
 				5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */,
 				34221F28FDB55CEE67C23859 /* LoginItemController.swift in Sources */,
