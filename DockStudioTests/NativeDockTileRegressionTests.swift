@@ -86,6 +86,26 @@ final class NativeDockTileRegressionTests: XCTestCase {
     }
 
     @MainActor
+    func testBackgroundActivityMenuGuidesToLoginItemsWithoutTerminatingApps() {
+        var openedLoginItemsSettings = false
+        let controller = NativeDockTileController(
+            store: .preview(),
+            tile: NSWindow().dockTile,
+            openLoginItemsSettings: { openedLoginItemsSettings = true }
+        )
+        let menu = controller.makeMenu()
+        let settingsItem = menu.items.first { $0.title == "バックグラウンド実行を設定…" }
+
+        XCTAssertNotNil(settingsItem)
+        XCTAssertTrue(menu.items.contains { $0.title.contains("ログイン項目と機能拡張") && $0.title.contains("バックグラウンドでのアプリのアクティビティ") })
+        XCTAssertTrue(menu.items.contains { $0.title.contains("同期や自動更新が止まる場合があります") })
+        XCTAssertTrue(menu.items.contains { $0.title.contains("Stop Running in Background") && $0.title.contains("通常終了や強制終了とは異なる設定です") })
+        XCTAssertFalse(openedLoginItemsSettings)
+        XCTAssertTrue(NSApplication.shared.sendAction(settingsItem!.action!, to: settingsItem!.target, from: settingsItem))
+        XCTAssertTrue(openedLoginItemsSettings)
+    }
+
+    @MainActor
     func testProfileSelectionDoesNotReuseStaleErrorsAndConsumesNewErrors() {
         let store = DockStore.preview()
         let controller = NativeDockTileController(store: store, tile: NSWindow().dockTile)
