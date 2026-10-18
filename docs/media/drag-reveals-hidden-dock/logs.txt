@@ -1,0 +1,18 @@
+dd50d98e41b9e505a7bc788c8c3c50d1a15b9d04f496c231c31ed44059c035ef  /Users/admin/dw85/DockStudio.app/Contents/MacOS/DockStudio
+autohide on, pointer away: panel onscreen=false x0 y920 w220 h80
+## A: drag file to bottom edge, hold 5s, drop onto Dock
+during hold(t~5s): panel onscreen=false x0 y920 w220 h80
+after drop: items=Drag target, panel onscreen=false x0 y920 w220 h80
+5s after: panel onscreen=false x0 y920 w220 h80
+## B: pointer only to bottom edge (regression)
+pointer at edge: panel onscreen=false x0 y920 w220 h80
+away: panel onscreen=false x0 y920 w220 h80
+## C: drag second file to edge, Escape before drop
+after esc: items=Drag target, panel onscreen=false x0 y920 w220 h80
+later: panel onscreen=false x0 y920 w220 h80
+## B: pointer only to reveal zone (100,997)
+at zone: panel onscreen=false x0 y920 w220 h80
+away: panel onscreen=false x0 y920 w220 h80
+## A: drag second.txt to reveal zone, hold 4s, then drop
+during hold: panel onscreen=false x0 y920 w220 h80
+after drop: items=Drag target, panel onscreen=false x0 y920 w220 h80
