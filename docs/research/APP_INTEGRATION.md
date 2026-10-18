@@ -1,6 +1,6 @@
 # 他アプリの Dock 情報を取り込む方法の調査
 
-調査日は 2026-10-17（VM の観察は 2026-10-18）になる。対象は GitHub issue #26、#27、#29、#41、#42、#43、#45 の7件で、いずれも「標準 Dock が持つアプリ連携を、DockStudio が他アプリに対して再現できるか」を調べる。
+調査日は 2026-10-17（VM の観察は 2026-10-18）になる。対象は GitHub issue #26、#27、#29、#41、#42、#43、#45 の7件で、いずれも「標準 Dock が持つアプリ連携を、DockStudio が他アプリに対して再現できるか」を調べる。2026-10-18 の更新では、issue の現行受け入れ条件と `origin/main` の `9e26408` までの実装を照合した。#43 は CLOSED のため今回の担当対象から除いた。今回の作業では VM を使わず、過去の観察記録とリポジトリのコードだけを確認した。
 
 ## この調査の範囲と限界
 
@@ -159,6 +159,11 @@ $ grep -rn "AXStatusLabel" .../ApplicationServices.framework   # 出力なし（
 
 条件付きで可能。公開 API では、他アプリの最近の書類を取得できない。Accessibility を許可した利用者に限り、標準 Dock のメニューから読める。
 
+### 現在の DockStudio（origin/main `9e26408`）
+
+- 最近使った未固定アプリを最大3件表示し、起動したアプリの履歴を保存・復元する（`DockStudio/Store/DockStore.swift:278-289`、`DockStudio/Store/DockStore+RecentApps.swift:18-30`）。これはアプリ履歴であり、最近使った書類の取得・表示ではない。
+- 他アプリの書類履歴を読む Dock の AX メニュー連携と、書類を開く操作は実装されていない。この判断はコード確認によるもので、画面上の挙動は今回確認していない。
+
 ### 根拠
 
 - `NSDocumentController.recentDocumentURLs` と `noteNewRecentDocumentURL(_:)` は SDK に実在する（`NSDocumentController.h` 237、241 行）。ヘッダの説明は「Open Recent メニューに現れる項目の URL を返す」で、対象は呼び出したアプリ自身になる。ホストでコマンドラインプロセスから呼ぶと、自プロセスの分だけが返った（`own recentDocumentURLs: 0 max: 10`）。
@@ -193,11 +198,18 @@ $ grep -rn "AXStatusLabel" .../ApplicationServices.framework   # 出力なし（
 
 第一に、DockStudio が開いた書類を `recentDocumentURLs` で出す（1日未満）。第二に、Accessibility を許可した利用者に限り、Dock のメニューから他アプリの書類を取得する（#27 と同じ基盤で2〜3日）。`.sfl4` の直接読みは、形式が非公開のため採らない。
 
+他アプリの書類を Dock メニュー経由で表示・実行する実装は、フォローアップ issue #128 で扱う。
+
 ## #27 アプリ固有の Dock メニューを扱う方法
 
 ### 結論
 
 条件付きで可能。他アプリのメニューを読む公開 API は無い。Accessibility を許可した利用者に限り、標準 Dock の項目へ `AXShowMenu` を送ってメニューを読める。VM で、自作アプリのメニュー項目の取得を確認した。
+
+### 現在の DockStudio（origin/main `9e26408`）
+
+- DockStudio の各項目には、固定の独自コンテキストメニューを表示する（`DockStudio/CustomDockPreview.swift:269-273`）。項目の状態に応じて、開く、Finder で表示、隠す、他を隠す、終了、強制終了、Dock への追加・削除を実行する（同 `399-416`）。
+- 別アプリが標準 Dock に提供した固有メニューを読み取る処理は見つからなかった。現行の固定メニューは代替手段に当たる。この判断はコード確認によるもので、メニューの画面表示やちらつきは今回確認していない。
 
 ### 根拠
 
@@ -232,11 +244,19 @@ $ grep -rn "AXStatusLabel" .../ApplicationServices.framework   # 出力なし（
 
 標準 Dock をアプリ項目ごとに `AXShowMenu` で開き、メニューを読み取ってキャッシュし、自作 Dock で描画する。実行は `AXPress` を標準 Dock に送る。工数は、実行とちらつきの検証に1日、実装に3〜4日と見込む。Accessibility が無い場合は、固定メニューを維持する。
 
+他アプリの固有メニューを取得・実行する実装は、フォローアップ issue #129 で扱う。
+
 ## #29 アプリの Open at Login を扱う方法
 
 ### 結論
 
 条件付きで可能。ただし、状態の読み取りは確認できていない。別アプリを登録する公開 API は SDK に無く、公開されているのはシステム設定を開く API になる。
+
+### 現在の DockStudio（origin/main `9e26408`）
+
+- `LoginItemController` は `SMAppService.mainApp` の状態を読み、自アプリを登録・解除する（`DockStudio/Services/LoginItemController.swift:27-52`）。他アプリの状態を読み取る処理はない。
+- 同コントローラーはシステム設定のログイン項目パネルを開ける（同 `40-42`）。対象アプリの選択状態を読み取ったり、別アプリを登録・解除したりする処理は実装されていない。
+- PR #126 では、DockStudio 自身がログイン起動されたときにスタジオ画面を抑制し、Dock だけを表示する挙動が追加された（`DockStudio/DockStudioApp.swift:28-38`、`DockStudio/Services/LoginLaunchPolicy.swift:4-17`）。これは他アプリの `Open at Login` の状態取得や操作ではない。
 
 ### 根拠
 
@@ -273,11 +293,18 @@ $ grep -rn "AXStatusLabel" .../ApplicationServices.framework   # 出力なし（
 
 DockStudio 自身のログイン時起動を `SMAppService.mainApp` で提供する（0.5日）。他アプリは、メニューに「システム設定のログイン項目を開く」を出す（0.5日）。他アプリの状態の表示は、読み取り経路が未確認のため、実装の前に1日の検証が必要になる。
 
+他アプリのログイン項目設定へ案内する実装は、フォローアップ issue #130 で扱う。状態表示は読み取り経路の確認後に別途判断する。
+
 ## #41 アプリの通知バッジを取得して表示する方法
 
 ### 結論
 
 条件付きで可能。Accessibility を許可した利用者に限り、標準 Dock の項目の `AXStatusLabel` を読める。VM で、自作アプリのバッジ `42` の取得を確認した。
+
+### 現在の DockStudio（origin/main `9e26408`）
+
+- DockStudio に他アプリの `AXStatusLabel` を読む処理や、バッジを Custom Dock に表示する処理は見つからなかった。
+- Native Dock Tile の終了処理では、自アプリのタイルに設定したバッジを消去する（`DockStudio/Services/NativeDockTileController.swift:121-134`）。これは他アプリのバッジ取得を示すものではない。この判断はコード確認によるもので、画面表示は今回確認していない。
 
 ### 根拠
 
@@ -312,11 +339,18 @@ DockStudio 自身のログイン時起動を `SMAppService.mainApp` で提供す
 
 Accessibility を許可した利用者に限り、Dock の項目の `AXStatusLabel` を読んで、自作 Dock にバッジを表示する。許可が無い場合は、バッジなしで動作する。属性名が非公開のため、値が取れない場合の表示（バッジなし）を既定にする。工数は、更新方式（ポーリングまたは購読）の確認に0.5日、実装に2日と見込む。優先度は P1 のため、#26、#27、#45 と共通の AX 基盤から先に作る。
 
+他アプリのバッジを取得して表示する実装は、フォローアップ issue #131 で扱う。
+
 ## #42 動的なアプリアイコンの更新を反映する方法
 
 ### 結論
 
 公開 API では不可。他アプリの描画を取る手段は、公開 API にも Dock の AX 属性にも見つからなかった。画面キャプチャによる近似は、検証できていない。
+
+### 現在の DockStudio（origin/main `9e26408`）
+
+- アイコンは対象アプリのファイル URL から `NSWorkspace.shared.icon(forFile:)` で取得し、選択中の外観に応じて加工・キャッシュする（`DockStudio/Services/DockAppearanceRendering.swift:37-55`）。他アプリの Dock Tile の描画を取り込む処理は見つからなかった。
+- 現状は静的なファイルアイコンを使う設計であり、取得不能時の表示方針と整合する。この判断はコード確認によるもので、Calendar などの動的描画との差は今回観察していない。
 
 ### 根拠
 
@@ -427,6 +461,11 @@ VM では、GUI アプリ（`PROBE=progress`）が `Progress` を公開し、別
 
 条件付きで可能。注意要求を示す属性は、Dock の AX 項目に無い。ただし、バウンドは項目の `AXFrame` の位置変化として観測できる。Accessibility が前提で、観測は間接的になる。
 
+### 現在の DockStudio（origin/main `9e26408`）
+
+- Custom Dock は、DockStudio から起動したアプリの起動中だけアイコンをバウンドさせる（`DockStudio/CustomDockPreview.swift:221-238`）。設定画面にはこの動作の切り替えがあり、システムの「アニメーションを減らす」が有効な場合はバウンドしない（`DockStudio/SettingsPreview.swift:107-109`）。
+- 他アプリの `requestUserAttention` を検出する処理は見つからなかった。起動バウンドと注意要求の連携は別機能であり、後者は未実装である。この判断はコード確認によるもので、アニメーションは今回確認していない。
+
 ### 根拠
 
 - `NSApplication.requestUserAttention(_:)` と `cancelUserAttentionRequest(_:)` は、自アプリが送る側の API（`NSApplication.h` 269〜276 行）。種類は `NSCriticalRequest = 0` と `NSInformationalRequest = 10`。ヘッダに「call this method only if your application is not already active」とある。
@@ -462,6 +501,20 @@ t=7 y:908.357  t=8 y:1000.00  t=9 y:927.861  t=10 y:1000.0
 ### 実装する場合の方針と工数の見立て
 
 #41 と同じ Dock の AX の観察基盤に、`AXFrame` の変化の検出を加える。検出の閾値と誤検知の確認に1日、実装に1〜2日と見込む。標準 Dock を隠す設計の場合は、観測の可否を先に確認する。
+
+他アプリの注意要求によるバウンドを検出する実装は、フォローアップ issue #132 で扱う。
+
+## issue の状況（2026-10-18）
+
+| 調査 issue | 状態 | 受け入れ条件 | 実装フォローアップ |
+| --- | --- | --- | --- |
+| #26 | OPEN | 一部のみ。対象照合と下位メニューの確認が残る | #128 |
+| #27 | OPEN | 一部のみ。起動後 Safari とメディアアプリの確認が残る | #129 |
+| #29 | OPEN | 一部のみ。登録状態の読み取りと表示が残る | #130（設定画面への案内） |
+| #41 | OPEN | 一部のみ。文字列・点の例と更新頻度の測定が残る | #131 |
+| #42 | OPEN | 一部のみ。独自描画と静的アイコンの画面比較が残る | なし。取得手段がなく静的表示とする |
+| #43 | CLOSED | 今回の担当対象外 | なし |
+| #45 | OPEN | 一部のみ。情報要求と起動バウンドの区別が残る | #132 |
 
 ## 横断の所見
 

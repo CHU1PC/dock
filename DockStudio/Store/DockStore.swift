@@ -13,6 +13,7 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
+    var dockFocusShortcutMessage: String?
     var isDockVisible = false {
         didSet { if oldValue != isDockVisible { saveLaunchState() } }
     }
@@ -20,6 +21,7 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored let minimizedWindowController: MinimizedWindowController
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     @ObservationIgnored var trashInspector = TrashInspector()
@@ -29,6 +31,7 @@ final class DockStore {
         try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
     @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live
     private(set) var hiddenApplicationIdentities: Set<String> = []
@@ -76,6 +79,7 @@ final class DockStore {
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
          loginItem: LoginItemController? = nil) {
+        minimizedWindowController = MinimizedWindowController(provider: AccessibilityMinimizedWindowProvider())
         self.persistence = persistence
         self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
@@ -377,6 +381,23 @@ final class DockStore {
         return true
     }
 
+    @discardableResult
+    func updateFolderContentsDisplayStyle(_ style: FolderContentsDisplayStyle, for itemID: UUID) -> Bool {
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == itemID }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderContentsDisplayStyle = style
+        guard commit(candidate) else { return false }
+        if var draft = drafts[candidate.activeProfileID],
+           let draftIndex = draft.items.firstIndex(where: { $0.id == itemID }) {
+            draft.items[draftIndex].folderContentsDisplayStyle = style
+            drafts[draft.id] = draft
+            persistDrafts()
+        }
+        return true
+    }
+
     var effectiveIconSize: Double { transientIconSize ?? document.settings.iconSize }
     var effectiveRevealAnimationDuration: Double { transientRevealAnimationDuration ?? document.settings.revealAnimationDuration }
     var isDockEffectivelyVisible: Bool { isDockVisible && document.settings.mode != .native }
@@ -559,6 +580,20 @@ final class DockStore {
 
     func removeFromActiveProfile(_ item: DockItem) {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
+    }
+
+    func ejectVolume(_ item: DockItem) {
+        let ejector = VolumeEjector()
+        guard ejector.isEjectable(item), let url = item.targetURL else {
+            errorMessage = "\(item.name) は取り出し可能なディスクではありません。"
+            return
+        }
+        do {
+            try ejector.ejectVolume(at: url)
+            status = "\(item.name) を取り出しました"
+        } catch {
+            errorMessage = "\(item.name) を取り出せませんでした。使用中の項目を閉じてから、もう一度お試しください。\n\(error.localizedDescription)"
+        }
     }
 
     @discardableResult
