@@ -122,6 +122,14 @@ enum FolderFanLayout {
     }
 }
 
+enum FolderContentsAutomaticStyle {
+    static func resolve(itemCount: Int, position: DockPosition) -> FolderContentsDisplayStyle {
+        guard position == .bottom else { return .list }
+        guard itemCount > 0 else { return .list }
+        return itemCount <= FolderFanLayout.maximumItemCount ? .fan : .grid
+    }
+}
+
 enum FolderContentsReader {
     static func read(at url: URL, sortOrder: FolderSortOrder = .name,
                      fileManager: FileManager = .default) throws -> [DockItem] {

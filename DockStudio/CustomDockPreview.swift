@@ -124,6 +124,20 @@ struct DockBar: View {
                             }
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        if !store.notificationBadgeAccessibilityGranted,
+                           items.contains(where: { $0.kind == .application }) {
+                            Button {
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            } label: {
+                                Label("通知バッジにはアクセシビリティの許可が必要です", systemImage: "lock.fill")
+                                    .font(.caption).padding(8)
+                                    .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
+                            .help("システム設定の「プライバシーとセキュリティ」で Dock Studio を許可してください")
+                        }
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
                                                     iconStyle: store.appearance.iconStyle,
                                                     controller: store.minimizedWindowController,
@@ -168,6 +182,12 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) {
             if store.isDockPointerInside { refreshAvailability() }
             if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
+        .task {
+            while !Task.isCancelled {
+                await store.refreshNotificationBadges()
+                try? await Task.sleep(for: .seconds(2))
+            }
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
@@ -252,6 +272,18 @@ struct DockBar: View {
                                     glassNeedsContrast: store.appearance.background == .transparent,
                                     glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
                     .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+                    .overlay(alignment: .topTrailing) {
+                        if let badge = NotificationBadgeSnapshot.badge(for: item, in: store.notificationBadges) {
+                            Text(badge)
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 5)
+                                .frame(minWidth: 18, minHeight: 18)
+                                .background(.red, in: Capsule())
+                                .offset(x: 5, y: -4)
+                                .accessibilityHidden(true)
+                        }
+                    }
                 if bouncing {
                     icon.modifier(LaunchBounce(position: store.document.settings.position,
                                                height: min(store.effectiveIconSize * 0.5, 28)))
@@ -306,6 +338,9 @@ struct DockBar: View {
                 ForEach(actions(for: item)) { action in
                     Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
                         .disabled(!action.isEnabled)
+                }
+                if supportsApplicationDockMenu(item) {
+                    Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
                 }
             }
             Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
@@ -484,6 +519,45 @@ extension DockBar {
         }
     }
 
+    fileprivate func supportsApplicationDockMenu(_ item: DockItem) -> Bool {
+        item.kind == .application && item.targetURL?.isFileURL == true
+    }
+
+    fileprivate func showApplicationDockMenu(for item: DockItem) {
+        guard let applicationURL = item.targetURL,
+              let items = store.applicationDockMenuAccess.menu(for: applicationURL), !items.isEmpty else {
+            store.errorMessage = "\(item.name) のアプリ固有メニューを取得できませんでした。アクセシビリティ権限と標準 Dock への登録を確認してください。"
+            return
+        }
+        let menu = NSMenu()
+        appendApplicationDockMenuItems(items, to: menu, applicationURL: applicationURL, itemName: item.name)
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+    }
+
+    fileprivate func appendApplicationDockMenuItems(_ items: [ApplicationDockMenuItem], to menu: NSMenu,
+                                                      applicationURL: URL, itemName: String) {
+        for item in items {
+            let entry = NSMenuItem(title: item.title, action: nil, keyEquivalent: "")
+            if item.children.isEmpty {
+                entry.action = #selector(DockMenuHandler.run(_:))
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { [store] in
+                    guard store.applicationDockMenuAccess.perform(itemID: item.id, for: applicationURL) else {
+                        store.errorMessage = "\(itemName) の「\(item.title)」を実行できませんでした。"
+                        return
+                    }
+                    store.status = "\(itemName) の「\(item.title)」を実行しました"
+                }
+            } else {
+                let submenu = NSMenu()
+                appendApplicationDockMenuItems(item.children, to: submenu, applicationURL: applicationURL,
+                                               itemName: itemName)
+                entry.submenu = submenu
+            }
+            menu.addItem(entry)
+        }
+    }
+
     fileprivate func focusFirstItem() {
         focusTask?.cancel()
         focusTask = Task { @MainActor in
@@ -563,6 +637,13 @@ extension DockBar {
             entry.target = DockMenuHandler.shared
             entry.representedObject = action.perform
             menu.addItem(entry)
+        }
+        if supportsApplicationDockMenu(item) {
+            let appMenu = NSMenuItem(title: "アプリ固有メニュー…", action: #selector(DockMenuHandler.run(_:)),
+                                     keyEquivalent: "")
+            appMenu.target = DockMenuHandler.shared
+            appMenu.representedObject = { showApplicationDockMenu(for: item) }
+            menu.addItem(appMenu)
         }
         let recentDocuments = store.recentDocuments(for: item)
         if !recentDocuments.isEmpty {
