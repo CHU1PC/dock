@@ -53,6 +53,11 @@ struct SettingsPreview: View {
                 .pickerStyle(.segmented)
                 Text(store.document.settings.mode.description).font(.callout).foregroundStyle(StudioColor.muted)
             }
+            settingsGroup("Finder") {
+                Toggle("Finder を先頭に固定", isOn: setting(\.finderEntryEnabled))
+                Text("有効にすると、Finder は各プロファイルの先頭に常に表示されます。無効にすると、プロファイル内で削除や並べ替えができます。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+            }
             settingsGroup("Custom Dock の配置") {
                 HStack {
                     Text("項目の並び方")
