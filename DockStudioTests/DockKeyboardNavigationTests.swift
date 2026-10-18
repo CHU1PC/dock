@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import DockStudio
 
 final class DockKeyboardNavigationTests: XCTestCase {
@@ -39,6 +40,19 @@ final class DockKeyboardNavigationTests: XCTestCase {
             XCTAssertEqual(Nav.reorderOffset(for: .down, position: position), 1)
             XCTAssertNil(Nav.reorderOffset(for: .left, position: position))
             XCTAssertNil(Nav.reorderOffset(for: .right, position: position))
+        }
+    }
+
+    func testOptionArrowIgnoresNonSemanticEventModifiers() {
+        let key = Nav.Key(key: .leftArrow, characters: "", modifiers: [.option, .numericPad, .function])
+
+        XCTAssertEqual(key, .reorder(.left))
+    }
+
+    func testOptionArrowRejectsAdditionalSemanticModifiers() {
+        for modifier: EventModifiers in [.shift, .control, .command] {
+            let key = Nav.Key(key: .leftArrow, characters: "", modifiers: [.option, modifier, .numericPad, .function])
+            XCTAssertNil(key, "Expected to reject modifier: \(modifier)")
         }
     }
 

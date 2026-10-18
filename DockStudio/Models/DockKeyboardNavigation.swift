@@ -68,10 +68,17 @@ enum DockKeyboardNavigation {
 }
 
 extension DockKeyboardNavigation.Key {
-    /// Command、Control、Option を伴う入力は OS やアプリのショートカットに任せる。
+    private static let semanticModifiers: EventModifiers = [.command, .option, .control, .shift]
+
+    /// Command、Control、Option、Shift を伴う入力は OS やアプリのショートカットに任せる。
     init?(_ press: KeyPress) {
-        if press.modifiers == [.option] {
-            switch press.key {
+        self.init(key: press.key, characters: press.characters, modifiers: press.modifiers)
+    }
+
+    init?(key: KeyEquivalent, characters: String, modifiers: EventModifiers) {
+        let semanticModifiers = modifiers.intersection(Self.semanticModifiers)
+        if semanticModifiers == [.option] {
+            switch key {
             case .upArrow: self = .reorder(.up)
             case .downArrow: self = .reorder(.down)
             case .leftArrow: self = .reorder(.left)
@@ -80,8 +87,8 @@ extension DockKeyboardNavigation.Key {
             }
             return
         }
-        guard press.modifiers.isDisjoint(with: [.command, .control, .option]) else { return nil }
-        switch press.key {
+        guard semanticModifiers.isEmpty else { return nil }
+        switch key {
         case .upArrow: self = .arrow(.up)
         case .downArrow: self = .arrow(.down)
         case .leftArrow: self = .arrow(.left)
@@ -89,8 +96,8 @@ extension DockKeyboardNavigation.Key {
         case .home: self = .home
         case .end: self = .end
         default:
-            guard let first = press.characters.first, first.isLetter || first.isNumber else { return nil }
-            self = .character(press.characters)
+            guard let first = characters.first, first.isLetter || first.isNumber else { return nil }
+            self = .character(characters)
         }
     }
 }

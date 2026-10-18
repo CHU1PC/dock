@@ -14,22 +14,24 @@ Dock にキーボードフォーカスがあるとき、Option+矢印で保持�
 - 並び順の端にある項目は、その方向へ移動しない。移動できないキーは処理せず、OS に渡す。
 - Dock の並びと直交する Option+矢印、保持されていない実行中アプリへの Option+矢印も処理しない。
 - 項目の移動はアクティブなプロファイルに保存する。読み上げには、項目名と移動後の順番を通知する。
-- Option 単独の矢印だけを認識する。Command、Control などの修飾キーを含む入力は既存のキー処理で無視する。
+- Option と矢印を認識する際は Command、Control、Option、Shift だけを意味のある修飾キーとして判定する。NumericPad、Function、CapsLock などのイベント属性は無視する。
+- Option 以外の意味のある修飾キーが加わった入力は既存のキー処理で無視する。
 
 ## 実装
 
 - `DockKeyboardNavigation.reorderOffset` が配置と矢印から移動方向を返す。
 - `DockStore.moveActiveItem` がアクティブなプロファイル内の項目を交換して保存し、ステータスを更新する。
 - `DockBar` は移動に成功した場合だけキーを処理済みにし、VoiceOver に新しい順番を通知する。
-- `DockKeyboardNavigationTests` が配置ごとの方向と直交方向を確認し、`DockStoreTests` が移動後の保存を確認する。
+- `DockKeyboardNavigationTests` が配置ごとの方向と直交方向を確認する。イベントに NumericPad と Function が加わっても Option+矢印として認識し、Shift、Control、Command が加わると認識しないことも確認する。
+- `DockStoreTests` が移動後の保存を確認する。
 
 ## 受け入れ条件との対応
 
 | 条件 | 状況 |
 | --- | --- |
-| Dock にフォーカスがあるときに項目を一つずつ移動できる | 満たした。Option+矢印を並び順の前後に対応させ、Dock 項目を隣と交換する実装を追加した。自動テストは通過したが、実画面では未確認になる |
+| Dock にフォーカスがあるときに項目を一つずつ移動できる | 実装と自動テストを満たした。イベントの NumericPad と Function を無視する修正を加えた。修正後の実画面は未確認になる |
 | 左右と下の配置で移動方向と境界を定義し、変更を保存する | 満たした。左右と下の配置を `reorderOffset` で定義し、ストアで保存する。項目が端にある場合は移動関数が変更を行わない |
-| VoiceOver で移動後の順番を通知し、OS や他アプリのキーを奪わない | 満たした。移動成功時だけ通知し、対象外の方向、対象外の項目、境界ではイベントを処理しない。VoiceOver と他アプリへの実入力は未確認になる |
+| VoiceOver で移動後の順番を通知し、OS や他アプリのキーを奪わない | 実装と自動テストを満たした。意味のある追加修飾キーは拒否し、移動成功時だけ通知する。VoiceOver と他アプリへの実入力は未確認になる |
 
 ## 自動テスト結果
 
@@ -40,8 +42,8 @@ $ /private/tmp/cw/run-check.sh 63 test
 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.130 (0.131) seconds
 	 Executed 27 tests, with 0 failures (0 unexpected) in 0.840 (0.843) seconds
 	 Executed 8 tests, with 0 failures (0 unexpected) in 0.287 (0.288) seconds
-	 Executed 239 tests, with 0 failures (0 unexpected) in 4.388 (4.412) seconds
-	 Executed 239 tests, with 0 failures (0 unexpected) in 4.388 (4.413) seconds
+	 Executed 241 tests, with 0 failures (0 unexpected) in 6.136 (6.168) seconds
+	 Executed 241 tests, with 0 failures (0 unexpected) in 6.136 (6.175) seconds
 exit=0
 
 $ /private/tmp/cw/run-check.sh 63 release
@@ -56,6 +58,7 @@ exit=0
 ## 未検証
 
 - 専用 VM での Option+矢印操作と VoiceOver の読み上げ。
+- 修正後の VM での順序変更と `profiles.json` への保存。
 - 下、左、右の配置それぞれで、端の移動が OS に渡ること。
 - macOS 15 から 25 でのキー入力と VoiceOver の動作。
 
@@ -120,6 +123,7 @@ DOCKSTUDIO_DATA_DIR=/Users/Shared/dockstudio-63 /path/to/DockStudio.app/Contents
 - 通常の矢印キーは動く。入場すると Finder にフォーカスが当たり、右矢印で Calculator、End で Safari へ移った（[画像](media/option-arrow-reorder/bottom-optionarrow-steps-focus-frames.png)、[ログ](media/option-arrow-reorder/bottom-log.txt)）。
 - Calculator にフォーカスがある状態で Option+左を送ったが、Dock の順序は変わらず（AX のボタンの位置が Finder、Calculator、Safari のまま）、保存した `profiles.json` の順序も変わらなかった（Finder、Calculator、Safari。[画像](media/option-arrow-reorder/bottom-after-option-left-full.jpg)）。ステータスの変化もなかった。
 - キーの送り方を 3 通り試した。(1) Option のキーダウンを先に送り、押したまま矢印（フラグは Option のみ）。(2) 同じで、矢印のフラグに SecondaryFn と NumericPad を足した。(3) `osascript` の System Events で `key code 123 using option down`。どれも順序は変わらなかった。通常の矢印、End は、同じ経路（CGEvent）で動いた。
-- 原因の仮説（未確認）: `DockKeyboardNavigation.swift` の判定が `press.modifiers == [.option]` で、macOS の矢印キーのイベントには NumericPad や Function のフラグが付く。SwiftUI の `KeyPress.modifiers` にこれらが含まれると、`== [.option]` が成立せず、実際のキーボードでも並べ替えが効かない可能性がある。同じファイルの通常の矢印の判定は `isDisjoint(with: [.command, .control, .option])` で、この影響を受けない。コードは直していない。
+- 原因: `DockKeyboardNavigation.swift` のキー変換は Option+矢印を `press.modifiers == [.option]` で判定していた。SwiftUI の `KeyPress.modifiers` は NumericPad と Function も表すため、矢印イベントにこれらが含まれるとキー変換が `nil` になり、DockBar の `handleKey` に渡らなかった。VM ログでも2回目の入力に NumericPad と SecondaryFn が付いており、通常矢印と End は同じ送信経路で動く一方、Option+左だけは順序を変えなかった。テストでこのイベント属性の組み合わせを修正前の判定に通すと `.reorder(.left)` の期待に対して `nil` となることを確認した。
+- 修正: `KeyPress.modifiers` から Command、Option、Control、Shift だけを取り出して判定する。NumericPad、Function、CapsLock は無視し、Option とほかの意味のある修飾キーが同時にある場合は引き続き拒否する。新しい自動テストは通過したが、修正後の VM 操作と保存は未確認になる。
 - 確認していない: 端での無視、移動後のフォーカス維持、左・右配置、VoiceOver の通知（AX の通知は読んでいない）、再起動後の順序。順序が変わらなかったため、これらは確認の対象にならなかった。
 - 注意: この確認の途中で、キーの送信ツールの不具合（「none」という文字列に Option の文字が含まれていた）により、最初の試行は通常の矢印を Option 付きで送ってしまい、無効だった。結果は、修正後の試行だけを書いた。
