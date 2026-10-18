@@ -27,6 +27,7 @@ enum DockInteractionGeometry {
     static func panelOrigin(screen: NSRect, available: NSRect, size: NSSize, position: DockPosition) -> NSPoint {
         switch position {
         case .bottom:
+            // 8pt の内側余白で、Dock 本体を画面下端から5pt離す。
             return NSPoint(x: screen.midX - size.width / 2, y: screen.minY + bottomGap - panelPadding)
         case .left: return NSPoint(x: available.minX, y: available.midY - size.height / 2)
         case .right: return NSPoint(x: available.maxX - size.width, y: available.midY - size.height / 2)
