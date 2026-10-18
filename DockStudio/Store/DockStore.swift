@@ -78,12 +78,9 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
-<<<<<<< HEAD
         restoreLaunchState()
-=======
         startTrashMonitoring()
         if !isPreview { itemAvailability.startObserving() }
->>>>>>> origin/main
     }
 
     static func preview() -> DockStore { DockStore(persistence: nil) }
