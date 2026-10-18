@@ -47,7 +47,7 @@ GitHub issue #16 の実装になる。通常終了（#15、`docs/QUIT_APP_FROM_M
 - 起動中の Calculator のメニューに「開く」「Finder で表示」「終了」「強制終了…」「Dock に保持」が出た（[menu-items.txt](media/force-quit-from-menu/menu-items.txt)、[menu-open-calculator.jpg](media/force-quit-from-menu/menu-open-calculator.jpg)）。
 - 「強制終了…」を選ぶと、AX に確認のダイアログ（「キャンセル」「強制終了」のボタン）が現れた（[dialog-buttons.txt](media/force-quit-from-menu/dialog-buttons.txt)）。
 - 「キャンセル」を選ぶと、Calculator は残った（[force-quit-log.txt](media/force-quit-from-menu/force-quit-log.txt)）。もう一度「強制終了…」から「強制終了」を選ぶと、Calculator は終了して Dock から消え、状態に「Calculator に強制終了を要求しました」が出た（[force-quit-calculator-status.jpg](media/force-quit-from-menu/force-quit-calculator-status.jpg)）。
-- TextEdit（未保存の書類つき）は、通常の「終了」ではプロセスが残り、保存確認のシートが出た（AX に確認のボタンがあった）。続けて「強制終了…」を選ぶと、保存確認を経ずに TextEdit が終了し、状態に「TextEdit に強制終了を要求しました」が出た（[force-quit-textedit-status.jpg](media/force-quit-from-menu/force-quit-textedit-status.jpg)）。
+- TextEdit（未保存の書類つき）は、通常の「終了」ではプロセスが残った（保存確認が出たと思われるが、AX の一致が1件あっただけで、画像では確認していない）。続けて「強制終了…」を選ぶと、保存確認を経ずに TextEdit が終了し、状態に「TextEdit に強制終了を要求しました」が出た（[force-quit-textedit-status.jpg](media/force-quit-from-menu/force-quit-textedit-status.jpg)）。
 
 確認できなかったこと、見つかったこと:
 
