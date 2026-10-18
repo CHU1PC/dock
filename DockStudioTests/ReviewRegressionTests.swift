@@ -172,6 +172,21 @@ final class ReviewRegressionTests: XCTestCase {
         XCTAssertFalse(state.isCollapsed)
     }
 
+    func testDragRevealRemainsVisibleUntilDragEndsAndThenUsesAutoHideDelay() {
+        let start = Date(timeIntervalSince1970: 100)
+        var state = DockVisibilityState()
+        state.update(visible: true, autoHide: true, hovering: false, interacting: false, now: start)
+        state.update(visible: true, autoHide: true, hovering: false, interacting: false,
+                     draggingOverRevealArea: true, now: start.addingTimeInterval(1.1))
+        XCTAssertFalse(state.isCollapsed)
+        state.update(visible: true, autoHide: true, hovering: false, interacting: false,
+                     now: start.addingTimeInterval(1.5))
+        XCTAssertFalse(state.isCollapsed)
+        state.update(visible: true, autoHide: true, hovering: false, interacting: false,
+                     now: start.addingTimeInterval(2.2))
+        XCTAssertTrue(state.isCollapsed)
+    }
+
     func testOpenPopoverOrMenuPreventsAutoHideAndRestartsDelay() {
         let start = Date(timeIntervalSince1970: 100)
         var state = DockVisibilityState()
