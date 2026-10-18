@@ -47,16 +47,25 @@ struct CustomDockPreview: View {
 
     private func dockPreview(in size: CGSize) -> some View {
         let vertical = store.document.settings.position != .bottom
+        let position = store.document.settings.position
         let alignment: Alignment = switch store.document.settings.position {
         case .left: .leading
         case .bottom: .bottom
         case .right: .trailing
         }
+        let previewSize = DockPreviewLayout.frameSize(
+            containerSize: size,
+            position: position,
+            length: DockMetrics.length(for: store),
+            thickness: DockMetrics.thickness(for: store)
+        )
         return DockBar(vertical: vertical)
             .environment(store)
-            .frame(width: vertical ? 190 : min(size.width - 50, DockMetrics.length(for: store)),
-                   height: vertical ? min(size.height - 120, DockMetrics.length(for: store)) : DockMetrics.thickness(for: store))
+            .frame(width: previewSize.width, height: previewSize.height)
+            .clipShape(Rectangle())
             .padding(24)
+            .padding(.bottom, position == .bottom ? 90 : 0)
+            .padding(.vertical, vertical ? 70 : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
 }
@@ -696,6 +705,19 @@ enum DockMetrics {
         let maximum = enabled ? store.appearance.magnificationScale : 1
         return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) :
             barThickness(for: store, magnificationEnabled: enabled)
+    }
+}
+
+enum DockPreviewLayout {
+    static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat) -> CGSize {
+        let availableWidth = max(0, containerSize.width - 50)
+        let availableHeight = max(0, containerSize.height - 188)
+        if position == .bottom {
+            return CGSize(width: min(availableWidth, max(0, length)),
+                          height: min(availableHeight, max(0, thickness)))
+        }
+        return CGSize(width: min(190, availableWidth),
+                      height: min(availableHeight, max(0, length)))
     }
 }
 
