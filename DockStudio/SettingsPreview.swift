@@ -55,6 +55,18 @@ struct SettingsPreview: View {
             }
             settingsGroup("Custom Dock の配置") {
                 HStack {
+                    Text("画面の選び方")
+                    Spacer()
+                    Picker("画面の選び方", selection: setting(\.displayMode)) {
+                        ForEach(DockDisplayMode.allCases) { Text($0.title).tag($0) }
+                    }.labelsHidden().pickerStyle(.segmented).frame(width: 210)
+                }
+                Text(store.document.settings.displayMode == .edgeFollowing
+                     ? "ポインタが各画面の Dock 側の端に入ると、その画面へ移動します。Dock は1つだけ表示します。"
+                     : "選択した画面に固定して表示します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                HStack {
                     Text("画面の位置")
                     Spacer()
                     Picker("画面の位置", selection: setting(\.position)) {
@@ -63,7 +75,7 @@ struct SettingsPreview: View {
                 }
                 Divider()
                 HStack {
-                    Text("表示先")
+                    Text(store.document.settings.displayMode == .edgeFollowing ? "戻り先" : "表示先")
                     Spacer()
                     Picker("表示先", selection: setting(\.displayID)) {
                         Text("メインディスプレイ").tag(Optional<UInt32>.none)
