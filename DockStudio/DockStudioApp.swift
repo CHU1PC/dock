@@ -32,6 +32,12 @@ struct DockStudioApp: App {
         .defaultSize(width: 1080, height: 700)
         .defaultLaunchBehavior(tileOnly ? .suppressed : .automatic)
         .restorationBehavior(tileOnly ? .disabled : .automatic)
+        .commands {
+            CommandMenu("Custom Dock") {
+                Button("Custom Dock の表示を切り替える") { store.toggleDockVisibility() }
+                    .disabled(store.storageIsReadOnly)
+            }
+        }
 
         MenuBarExtra("Dock Studio", systemImage: "square.stack.3d.up.fill", isInserted: .constant(!tileOnly)) {
             DockMenu()

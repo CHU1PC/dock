@@ -77,6 +77,7 @@ struct DockBar: View {
     @State private var dropIndex: Int?
     let vertical: Bool
     var isPanel = false
+    var temporaryMagnificationEnabled: Bool?
     private func refreshAvailability() {
         Task { await store.itemAvailability.refreshAll(minInterval: 1) }
     }
@@ -91,7 +92,7 @@ struct DockBar: View {
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
             DockBackdrop(appearance: store.appearance)
-                .frame(width: vertical ? DockMetrics.barThickness(for: store) : nil,
+                .frame(width: vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil,
                        height: vertical ? nil : DockMetrics.barThickness(for: store))
                 .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
             ScrollView(vertical ? .vertical : .horizontal) {
@@ -212,7 +213,8 @@ struct DockBar: View {
     }
 
     private func dockItem(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
-        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
+        let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
+        let maximum = magnificationEnabled ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
         let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
@@ -305,6 +307,21 @@ extension DockBar {
             Color.clear.preference(key: DockItemFrames.self, value: [item.id: proxy.frame(in: .named(Self.space))])
         })
         .onHover { if $0 { hovered = item.id } }
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            guard !providers.isEmpty else { return false }
+            Task { @MainActor in
+                var urls: [URL] = []
+                for provider in providers {
+                    let url: URL? = await withCheckedContinuation { continuation in
+                        _ = provider.loadObject(ofClass: URL.self) { url, _ in continuation.resume(returning: url) }
+                    }
+                    if let url, url.isFileURL { urls.append(url) }
+                }
+                guard !urls.isEmpty else { return }
+                store.moveDroppedItemsToTrash(urls)
+            }
+            return true
+        }
     }
 }
 
@@ -657,24 +674,28 @@ private struct FocusTimerTile: View {
 
 @MainActor
 enum DockMetrics {
-    static func length(for store: DockStore) -> CGFloat {
+    static func length(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
         let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
-        let reserve = store.appearance.magnification ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
+        let enabled = magnificationEnabled ?? store.appearance.magnification
+        let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
     }
-    static func barThickness(for store: DockStore) -> CGFloat {
-        CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 30 :
-                    max(174, store.effectiveIconSize * (store.appearance.magnification ? store.appearance.magnificationScale : 1) + 32))
+    static func barThickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
+        let enabled = magnificationEnabled ?? store.appearance.magnification
+        return CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 30 :
+                    max(174, store.effectiveIconSize * (enabled ? store.appearance.magnificationScale : 1) + 32))
     }
     static let sideLabelGutter = DockLabelPlacement.maxWidth + DockLabelPlacement.gap
-    static func thickness(for store: DockStore) -> CGFloat {
-        let maximum = store.appearance.magnification ? store.appearance.magnificationScale : 1
-        return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) : barThickness(for: store)
+    static func thickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
+        let enabled = magnificationEnabled ?? store.appearance.magnification
+        let maximum = enabled ? store.appearance.magnificationScale : 1
+        return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) :
+            barThickness(for: store, magnificationEnabled: enabled)
     }
 }
 

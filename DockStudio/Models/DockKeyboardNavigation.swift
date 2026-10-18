@@ -12,6 +12,10 @@ enum DockKeyboardNavigation {
         var isFocusable: Bool
     }
 
+    static func shouldAdvanceKeyView(isWindowKey: Bool, firstResponderIsDockContainer: Bool) -> Bool {
+        isWindowKey && firstResponderIsDockContainer
+    }
+
     /// 項目の並びに沿う矢印が前後の移動になり、画面の端から離れる向きがメニューになる。
     static func command(for arrow: Arrow, position: DockPosition) -> Command? {
         switch (position, arrow) {

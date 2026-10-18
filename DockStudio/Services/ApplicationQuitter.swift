@@ -2,12 +2,29 @@ import AppKit
 
 protocol QuittableApplication {
     var bundleIdentifier: String? { get }
+    var bundleURL: URL? { get }
     var isTerminated: Bool { get }
     func terminate() -> Bool
+    func activate()
     func forceTerminate() -> Bool
 }
 
-extension NSRunningApplication: QuittableApplication {}
+extension NSRunningApplication: QuittableApplication {
+    func activate() {
+        guard let bundleURL else { return }
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: configuration)
+    }
+}
+
+enum ApplicationQuitActivationPolicy {
+    static let delay = Duration.milliseconds(750)
+
+    static func shouldActivate(requestWasSent: Bool, isTerminated: Bool) -> Bool {
+        requestWasSent && !isTerminated
+    }
+}
 
 enum ApplicationQuitOutcome: Equatable {
     case requested
@@ -19,6 +36,12 @@ enum ApplicationQuitOutcome: Equatable {
 struct ApplicationQuitter {
     var runningApplications: (String) -> [any QuittableApplication]
     var excludedBundleIdentifiers: Set<String>
+    var scheduleActivation: (@escaping @MainActor () -> Void) -> Void = { action in
+        Task { @MainActor in
+            try? await Task.sleep(for: ApplicationQuitActivationPolicy.delay)
+            action()
+        }
+    }
 
     static let live = ApplicationQuitter(
         runningApplications: { NSRunningApplication.runningApplications(withBundleIdentifier: $0) },
@@ -32,7 +55,18 @@ struct ApplicationQuitter {
     }
 
     func quit(_ item: DockItem) -> ApplicationQuitOutcome {
-        request(item) { $0.terminate() }
+        request(item) {
+            let application = $0
+            guard application.terminate() else { return false }
+            scheduleActivation {
+                guard ApplicationQuitActivationPolicy.shouldActivate(
+                    requestWasSent: true,
+                    isTerminated: application.isTerminated
+                ) else { return }
+                application.activate()
+            }
+            return true
+        }
     }
 
     func forceQuit(_ item: DockItem) -> ApplicationQuitOutcome {

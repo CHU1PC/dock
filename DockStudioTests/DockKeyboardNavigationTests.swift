@@ -76,6 +76,12 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(Nav.outcome(.previous, entries: entries, current: nil), .focus(4))
     }
 
+    func testInitialFocusAdvancesAppKitKeyViewWhenDockContainerIsFirstResponder() {
+        XCTAssertTrue(Nav.shouldAdvanceKeyView(isWindowKey: true, firstResponderIsDockContainer: true))
+        XCTAssertFalse(Nav.shouldAdvanceKeyView(isWindowKey: false, firstResponderIsDockContainer: true))
+        XCTAssertFalse(Nav.shouldAdvanceKeyView(isWindowKey: true, firstResponderIsDockContainer: false))
+    }
+
     func testEmptyAndSpacerOnlyDockIgnoresNavigation() {
         XCTAssertEqual(Nav.outcome(.next, entries: [], current: nil), .ignore)
         XCTAssertEqual(Nav.outcome(.first, entries: [Nav.Entry(name: "", isFocusable: false)], current: nil), .ignore)
