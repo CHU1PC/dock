@@ -545,6 +545,27 @@ final class DockStore {
     }
 
     @discardableResult
+    func setFolderDisplayStyle(_ style: FolderDisplayStyle, for id: UUID) -> Bool {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              document.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        guard document.profiles[profileIndex].items[itemIndex].effectiveFolderDisplayStyle != style else { return true }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderDisplayStyle = style
+        guard commit(candidate) else { return false }
+        let profileID = document.profiles[profileIndex].id
+        if var draft = drafts[profileID],
+           let draftItemIndex = draft.items.firstIndex(where: { $0.id == id }) {
+            draft.items[draftItemIndex].folderDisplayStyle = style
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(document.profiles[profileIndex].items[itemIndex].name) を\(style == .stack ? "Stack" : "フォルダ")として表示しました"
+        return true
+    }
+
+    @discardableResult
     func moveActiveItem(_ id: UUID, by offset: Int) -> Int? {
         guard !storageIsReadOnly, let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
               let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),

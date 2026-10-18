@@ -2,6 +2,42 @@ import XCTest
 @testable import DockStudio
 
 final class FolderContentsTests: XCTestCase {
+    func testStackIconPreviewUsesCurrentContentsAndPreservesTheirOrder() {
+        let contents = [candidateItem("First.txt"), candidateItem("Second.app", kind: .application),
+                        candidateItem("Third Folder", kind: .folder), candidateItem("Fourth.txt")]
+
+        let preview = FolderStackIconModel.previewItems(from: contents)
+
+        XCTAssertEqual(preview.map(\.name), ["First.txt", "Second.app", "Third Folder"])
+    }
+
+    func testStackIconPreviewUpdatesWhenContentsAndOrderChange() {
+        let initial = [candidateItem("A.txt"), candidateItem("B.txt")]
+        let changed = [candidateItem("B.txt"), candidateItem("C.txt")]
+
+        XCTAssertEqual(FolderStackIconModel.previewItems(from: initial).map(\.name), ["A.txt", "B.txt"])
+        XCTAssertEqual(FolderStackIconModel.previewItems(from: changed).map(\.name), ["B.txt", "C.txt"])
+    }
+
+    func testStackIconStateDistinguishesLoadingEmptyFailureAndPreview() {
+        let item = candidateItem("One.txt")
+        XCTAssertEqual(FolderStackIconModel.state(contents: nil, failedToRead: false), .loading)
+        XCTAssertEqual(FolderStackIconModel.state(contents: [], failedToRead: false), .empty)
+        XCTAssertEqual(FolderStackIconModel.state(contents: nil, failedToRead: true), .failed)
+        XCTAssertEqual(FolderStackIconModel.state(contents: [item], failedToRead: false), .preview([item]))
+    }
+
+    func testFolderDisplayStyleDefaultsToFolderAndCanBePersistedAsStack() throws {
+        let legacy = Data(#"{"name":"Folder","kind":"folder","id":"00000000-0000-0000-0000-000000000001"}"#.utf8)
+        let decoded = try JSONDecoder().decode(DockItem.self, from: legacy)
+        XCTAssertEqual(decoded.effectiveFolderDisplayStyle, .folder)
+
+        var stack = decoded
+        stack.folderDisplayStyle = .stack
+        let restored = try JSONDecoder().decode(DockItem.self, from: JSONEncoder().encode(stack))
+        XCTAssertEqual(restored.effectiveFolderDisplayStyle, .stack)
+    }
+
     func testItemsPreserveInputOrderAndClassifyEntries() {
         let candidates = [
             candidate("Nested", directory: true),
@@ -134,5 +170,9 @@ final class FolderContentsTests: XCTestCase {
             dateModified: modified,
             dateCreated: created
         )
+    }
+
+    private func candidateItem(_ name: String, kind: DockItemKind = .file) -> DockItem {
+        DockItem(name: name, kind: kind, target: URL(fileURLWithPath: "/tmp/\(name)").absoluteString)
     }
 }

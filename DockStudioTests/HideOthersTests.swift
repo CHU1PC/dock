@@ -53,6 +53,15 @@ final class HideOthersTests: XCTestCase {
         XCTAssertEqual(DockItemMenu.Kind.hideOthers.title, "ほかを隠す")
     }
 
+    func testFolderMenuOffersOnlyTheAlternateDisplayStyle() {
+        XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
+                                          folderDisplayStyle: .folder),
+                       [.open, .reveal, .setStackIcon, .keep])
+        XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
+                                          folderDisplayStyle: .stack),
+                       [.open, .reveal, .setFolderIcon, .keep])
+    }
+
     func testTargetIsActivatedAndOthersAreHidden() {
         let target = FakeApp("com.example.target", pid: 10)
         let other = FakeApp("com.example.other", pid: 11)

@@ -426,7 +426,8 @@ extension DockBar {
     fileprivate func actions(for item: DockItem) -> [DockItemAction] {
         let kinds = DockItemMenu.kinds(hasFileURL: item.targetURL?.isFileURL == true,
                                        visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
-                                       canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item))
+                                       canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
@@ -438,6 +439,8 @@ extension DockBar {
                 case .forceQuit: store.forceQuitApplication(item)
                 case .remove: store.removeFromActiveProfile(item)
                 case .keep: store.keepInActiveProfile(item)
+                case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
+                case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
             }
         }
@@ -716,6 +719,7 @@ struct ItemIcon: View {
     var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
+    var appliesGlassEffect = true
     var symbol: String?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -728,6 +732,8 @@ struct ItemIcon: View {
                     .frame(width: size, height: size)
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
+            } else if item.kind == .folder, item.effectiveFolderDisplayStyle == .stack {
+                FolderStackIcon(folder: item, size: size, style: style)
             } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
@@ -742,7 +748,7 @@ struct ItemIcon: View {
             }
         }
         .frame(width: size, height: size)
-        .modifier(DockIconGlassEffect(enabled: style == .glass, size: size,
+        .modifier(DockIconGlassEffect(enabled: appliesGlassEffect && style == .glass, size: size,
                                       enhancedContrast: glassNeedsContrast, interactive: glassInteractive))
     }
 }
