@@ -21,6 +21,7 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored let minimizedWindowController: MinimizedWindowController
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     @ObservationIgnored var trashInspector = TrashInspector()
@@ -77,6 +78,7 @@ final class DockStore {
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
          loginItem: LoginItemController? = nil) {
+        minimizedWindowController = MinimizedWindowController(provider: AccessibilityMinimizedWindowProvider())
         self.persistence = persistence
         self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
