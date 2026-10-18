@@ -36,6 +36,8 @@ final class DockStore {
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
     @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
+    @ObservationIgnored var applicationExposeAccess = ApplicationExposeAccess.live
+    var failedApplicationExposePaths: Set<String> = []
     @ObservationIgnored var applicationDockMenuAccess = ApplicationDockMenuAccess.live
     @ObservationIgnored var recentDocumentAccess = RecentDocumentAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
@@ -51,6 +53,7 @@ final class DockStore {
         return alert.runModal() == .alertFirstButtonReturn
     }
     private(set) var launchingItemIDs: Set<UUID> = []
+    var attentionRequestingIdentities: Set<String> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
     var focusSessions: [UUID: FocusSession] = [:]
