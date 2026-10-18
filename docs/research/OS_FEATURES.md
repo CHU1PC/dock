@@ -14,6 +14,8 @@
 
 根拠は、Apple のサポート文書、SDK ヘッダ、ホストの読み取り専用の確認、公開されたフォーラムと報道の4種類になる。アプリのコードは変更していない。
 
+2026-10-18 の issue 更新では、VM やアプリを使った新しい観察は行っていない。下記の VM 結果は、2026-10-18 より前に記録された証拠として残し、この更新で再確認した結果とは扱わない。コードの現状は `origin/main` の履歴とファイルを読み、行番号を付けて追記した。
+
 SDK は `xcrun --show-sdk-path` の `MacOSX26.5`（`SDKSettings.json` の `Version` が `26.5`）を使った。macOS 27 の SDK は手元になく、macOS 27 の API は確認できていない。ホストは macOS 26.5.2 で、VM は macOS 26.6.2 になる。macOS 27 と macOS 15 の実機は、どちらも手元にない。
 
 結論は「実装可能」「条件付きで可能」「公開 API では不可」「未確認」のいずれかで書く。
@@ -46,17 +48,17 @@ macOS 15 と macOS 27 は、環境がないため確認できていない。
 
 | issue | 結論 | 根拠の要点 |
 | --- | --- | --- |
-| #14 | 公開 API では不可。代替として、自アプリの利用履歴による「最近使った項目」は実装可能 | 提案アプリを返す公開 API が SDK にない。`NSWorkspace.runningApplications` は実行中のアプリだけを返す |
+| #14 | OS の提案は公開 API では取得できない。代替の「最近使ったアプリ」は実装済み | `DockStudio/Services/RecentAppHistory.swift:3`、`DockStudio/Services/CustomDockWindowController.swift:101`、`DockStudio/SettingsPreview.swift:113` |
 | #56 | 他アプリの継続候補を読むことは公開 API では不可。自アプリが Handoff を受ける側になることは実装可能 | `NSUserActivity` は同じ Team ID のアプリ間でだけ継続できる。他デバイスの活動を列挙する API がない |
-| #58 | 条件付きで可能。26 は `com.apple.apps.launcher` を `NSWorkspace` で引いて開く呼び出しが通る（一覧の表示は未撮影）。15 の Launchpad は未確認 | ホストの `/System/Applications/Apps.app` を確認した。Launchpad の実体は15の実機で確認できていない |
-| #67 | 公開 API では不可。ただし、macOS 27 では Dock 側が自動で表示するため、実装は不要の可能性が高い | 26.5 の SDK に該当する API がない。27 の API は未確認 |
+| #58 | 条件付きで可能。OS 別の専用入口は未実装で、26 のアプリ一覧の表示と15の Launchpad は未確認 | 過去の記録では26の `Apps.app` の URL 解決と起動呼び出しまで確認。画面表示は確認できていない |
+| #67 | 26.5 SDK では該当 API が見つからず、macOS 27 で利用できる公開 API は未確認 | 27 の SDK と標準 Dock の挙動を確認できていない |
 | #70 | 未確認。公開 API で他アプリのバックグラウンド実行だけを止める経路は見つかっていない。System Settings への案内は 26 までの API で可能 | `SMAppService.openSystemSettingsLoginItems` は実在する。27 の停止操作の API は確認できていない |
 
 ## #14 OS が提案するアプリの表示方法
 
 ### 結論
 
-公開 API では不可。ただし「最近使ったアプリ」に近い表示は、DockStudio が自分で記録すれば実装できる。OS の提案そのものとは別物になる。
+OS の提案そのものは公開 API で取得できない。「最近使ったアプリ」に近い表示は実装済みだが、DockStudio の利用履歴であり、OS の提案とは別物になる。
 
 ### 根拠
 
@@ -64,14 +66,14 @@ Apple のサポート文書は、設定項目を次のように説明してい�
 
 > Show suggested and recently opened apps (if they aren't already included in the Dock) toward one end of the Dock.
 
-- 15: https://support.apple.com/guide/mac-help/mchlp1119/15.0/mac/15.0
-- 26: https://support.apple.com/guide/mac-help/mchlp1119/26/mac/26
+- 15: [Apple Support](https://support.apple.com/guide/mac-help/mchlp1119/15.0/mac/15.0)
+- 26: [Apple Support](https://support.apple.com/guide/mac-help/mchlp1119/26/mac/26)
 
 「Use the Dock」の macOS 26 版は、表示数を次のように書いている。
 
 > The Dock can show up to three recently used apps that aren't already in it
 
-- https://support.apple.com/en-gb/guide/mac-help/mh35859/26/mac/26
+- [Apple Support](https://support.apple.com/en-gb/guide/mac-help/mh35859/26/mac/26)
 
 macOS 15 版の「Use the Dock」にも、最近使ったアプリの説明がある。取得できた要約では、上限の数は確認できなかった。
 
@@ -80,11 +82,13 @@ SDK 側では、次を確認した。
 - `NSRunningApplication.h` の `activationPolicy`（34〜42行）は、Dock に出るアプリを `NSApplicationActivationPolicyRegular` として説明している。
 - `NSWorkspace` の `runningApplications`（`NSRunningApplication.h:184`）は、実行中のアプリだけを返す。
 - `NSWorkspace.h` に、提案アプリや最近使ったアプリを返すメソッドはない。`launchedApplications`（`NSWorkspace.h:441`）は、非推奨で、実行中のアプリを返す。
-- 現在の DockStudio は `CustomDockWindowController.swift:256` で `runningApplications` を使い、`activationPolicy == .regular` のアプリだけを拾っている。
+- 調査時の DockStudio は `CustomDockWindowController.swift:351-354` で `runningApplications` を使い、`activationPolicy == .regular` のアプリだけを拾っている。
+
+調査後に、DockStudio 自身の履歴による最近使ったアプリが追加された。`CustomDockWindowController.swift:101-118` は起動とアクティベーション通知を受け、通常のアプリを履歴へ記録する。`RecentAppHistory.swift:3-28` は最大3件を表示し、固定済みと実行中の項目を除外する。`SettingsPreview.swift:113-115` は表示設定と履歴消去の説明を提供する。履歴の復元と保存は `DockStore+RecentApps.swift:4-40` にある。これはOSの提案を取得する実装ではない。
 
 ホストの Dock の設定を、読み取り専用で確認した。
 
-```
+```text
 $ defaults read com.apple.dock show-recents
 0
 $ defaults read com.apple.dock recent-apps
@@ -94,7 +98,7 @@ $ defaults read com.apple.dock recent-apps
 
 VM（macOS 26.6.2）で、設定を有効にして確認した。
 
-```
+```text
 $ defaults write com.apple.dock show-recents -bool true; killall Dock
 $ open -a Calculator; (終了); open -a Stickies; (終了)
 $ defaults read com.apple.dock recent-apps | grep -E "bundle-identifier|file-label"
@@ -114,9 +118,9 @@ $ defaults read com.apple.dock recent-apps | grep -E "bundle-identifier|file-lab
 
 | 条件 | 結果 |
 | --- | --- |
-| OS の提案が出る条件を対象 OS で確認する | 一部のみ。26.6.2 の VM で、最近使ったアプリが起動順に3個まで並ぶことを確認した。「提案」の出現条件は、利用履歴のない VM では再現できず、Apple の公開資料にも書かれていない。macOS 15 は未確認 |
-| 公開 API で取得できる範囲と、最近使ったアプリとの違いを記録する | 公開 API で取得できるのは、実行中のアプリまで。提案アプリと最近使ったアプリは、どちらも公開 API で読めない。Apple の文書は、両者を同じ設定項目で扱っている。提案と最近使ったアプリを区別する資料は見つからなかった |
-| 取得できない場合は、明示的な制約または同意済みの代替を決める | 制約として明示する。代替は下の「方針」の案になる。実装には加藤さんの同意が要る |
+| OS の提案が出る条件を対象 OS で確認する | 一部のみ。前回記録の26.6.2 VMでは最近使ったアプリの表示を確認したが、OSの「提案」の条件は確認できていない。macOS 15も未確認。本更新ではVM観察を行っていない |
+| 公開 API で取得できる範囲と、最近使ったアプリとの違いを記録する | 満たした。公開APIでは実行中アプリを取得できるが、OSの提案は取得できない。最近使ったアプリは `RecentAppHistory.swift:3-28` にあるDockStudio独自の履歴である |
+| 取得できない場合は、明示的な制約または同意済みの代替を決める | 満たした。制約を明示し、別機能であることを設定画面にも記載した独自履歴を代替として実装済み（`SettingsPreview.swift:113-115`）。OSの提案と同じものとは説明しない |
 
 ### リスクと制約
 
@@ -125,7 +129,7 @@ $ defaults read com.apple.dock recent-apps | grep -E "bundle-identifier|file-lab
 
 ### 方針と工数の見立て
 
-方針は、DockStudio が `NSWorkspace` の起動通知（`didLaunchApplicationNotification`）で最近起動したアプリを自分で記録し、「最近使った項目」として表示する案になる。OS の提案とは別の機能であることを、設定画面で明記する。通知名は今回、SDK ヘッダで確認していない。実装時に確認する。
+この方針は実装済みである。DockStudio は `didLaunchApplicationNotification` と `didActivateApplicationNotification` を使って履歴を記録し、最大3件を表示する。設定画面では最近使ったアプリの表示と、オフにした場合の履歴消去を説明する。OS の提案とは別の機能として扱う。
 
 工数の見立ては、モデルと保存に1日、表示と設定画面に1日、テストと画面検証に1日で、合計3日ほどになる。見立てであり、測定はしていない。
 
@@ -134,6 +138,7 @@ $ defaults read com.apple.dock recent-apps | grep -E "bundle-identifier|file-lab
 - 提案アプリの出現条件（26.6.2 の VM では、利用履歴がなく再現できなかった）。15 の挙動。
 - 提案と最近使ったアプリが、見た目で区別されるか。
 - `recent-apps` の更新条件と、サンドボックスでの可否。
+- この更新では、上記の過去の VM 観察を再実施していない。
 
 ## #56 Handoff の継続中アプリを表示・起動する方法
 
@@ -151,7 +156,7 @@ Apple の「Hand off tasks between Apple devices」（macOS 26）は、次の内
 - Mac では、System Settings の General > AirDrop & Continuity で「Allow Handoff between this Mac and your iCloud devices」を有効にすること。
 - アイコンは、Dock が下にあるとき Dock の右端付近に、Dock が横にあるときは Dock の下端に出ること。
 
-https://support.apple.com/guide/mac-help/mchl732d3c0a/26/mac/26
+[Apple Support](https://support.apple.com/guide/mac-help/mchl732d3c0a/26/mac/26)
 
 「Use the Dock」の26版と15版は、Handoff のアイコンが Dock の右端付近に出ると書いている。
 
@@ -170,9 +175,9 @@ macOS の Dock が表示する Handoff アイコンを、DockStudio のカスタ
 
 | 条件 | 結果 |
 | --- | --- |
-| 対応するアカウント・機器・アプリで、標準 Dock の表示条件を確認する | 条件はサポート文書で確認した（上記）。26.6.2 の VM では、「Allow Handoff between this Mac and your iCloud devices」のスイッチが存在し、有効だった（`07-handoff-setting.png`）。ただし Apple Account が未サインインで、別デバイスもないため、Dock への表示は確認できていない |
-| 自アプリの Handoff 対応と、別アプリの継続候補を読む手段を区別する | 自アプリ: `NSUserActivity` と `NSApplication` のデリゲートで対応できる（実装可能）。別アプリ: 読む公開 API はない（公開 API では不可） |
-| 公開経路と制約を記録し、取得できない場合の案内を決める | 上記に記録した。案内の文面は下の「方針」の案になる |
+| 対応するアカウント・機器・アプリで、標準 Dock の表示条件を確認する | 一部のみ。Appleのサポート文書で条件を確認した。前回記録の26.6.2 VMでは設定スイッチの存在を確認したが、Apple Account と別デバイスがなく Dock 表示は未確認。macOS 15も未確認。本更新ではVM観察を行っていない |
+| 自アプリの Handoff 対応と、別アプリの継続候補を読む手段を区別する | 満たした。自アプリは `NSUserActivity` と `NSApplication` のデリゲートで対応できる。別アプリの継続候補を列挙する公開APIは確認できていない |
+| 公開経路と制約を記録し、取得できない場合の案内を決める | 満たした。別アプリの候補は標準Dockに任せ、設定画面で案内する方針を記録した。案内自体は未実装で、対象となるDockStudio内の活動もまだない |
 
 ### リスクと制約
 
@@ -189,12 +194,13 @@ macOS の Dock が表示する Handoff アイコンを、DockStudio のカスタ
 - 実機（別デバイスと同じ Apple Account）での、標準 Dock のアイコンの表示条件と位置。VM では、設定のスイッチの存在までを確認した。
 - 15 と 26 の差。
 - システムの Dock の Handoff アイコンを、サードパーティが置き換えたときの挙動。
+- この更新では、VM や別デバイスを使った Handoff の観察を行っていない。
 
 ## #58 Launchpad・アプリ一覧への入口
 
 ### 結論
 
-条件付きで可能。macOS 26 は、`com.apple.apps.launcher` の `Apps.app` を `NSWorkspace` で引いて開く呼び出しまでは通る（VM で確認）。ただし、アプリ一覧の表示は撮影できていない。macOS 15 の Launchpad は、実機で確認できていないため未確認。
+条件付きで可能。macOS 26 は、過去の記録で `com.apple.apps.launcher` の `Apps.app` を `NSWorkspace` で引いて開く呼び出しまで確認した。ただし、アプリ一覧の表示は撮影できていない。macOS 15 の Launchpad は未確認で、DockStudio の専用入口も未実装である。本更新ではVM観察を行っていない。
 
 ### 根拠
 
@@ -206,7 +212,7 @@ macOS 26 の「View and open apps」は、アプリ一覧への入口を次の�
 
 > and then press ⌘-1.
 
-https://support.apple.com/guide/mac-help/mh35840/26/mac/26
+[Apple Support](https://support.apple.com/guide/mac-help/mh35840/26/mac/26)
 
 この文書は Launchpad に触れていない。
 
@@ -214,7 +220,7 @@ macOS 15 の「Use the Dock」は、Launchpad を Dock から使える機能の�
 
 ホスト（macOS 26.5.2）で、次を確認した。
 
-```
+```text
 $ ls /System/Applications | grep -i -E "launchpad|apps"
 Apps.app
 $ defaults read /System/Applications/Apps.app/Contents/Info CFBundleIdentifier
@@ -227,7 +233,7 @@ $ defaults read /System/Applications/Apps.app/Contents/Info LSUIElement
 
 `NSWorkspace.h:114` の `URLForApplicationWithBundleIdentifier:` は、バンドル ID から URL を引ける。`NSWorkspace.h:46` の `openApplicationAtURL:configuration:completionHandler:` で開ける。どちらも公開 API になる。VM（macOS 26.6.2）で、次の小さなプログラムを実行した。
 
-```
+```text
 $ /tmp/ws-r3
 url: /System/Applications/Apps.app
 opened: nil policy: -1 error: nil
@@ -246,9 +252,9 @@ launchpad url: nil
 
 | 条件 | 結果 |
 | --- | --- |
-| 15 の Launchpad と 26 以降のアプリ一覧への起動方法を、公式資料と実機で確認する | 26: 公式資料と、ホストおよび VM のバンドルの確認。VM で `NSWorkspace` から開く呼び出しは成功したが、アプリ一覧の表示は撮影できなかった。15: 公式資料の一部のみ。実機は未確認（15 の環境がない） |
-| 公開された入口があれば専用項目として利用し、OS 別に無効な参照を残さない | 方針あり（下記）。`URLForApplicationWithBundleIdentifier:` が `nil` を返すときは、項目を表示しない。`Apps.app` と Launchpad の実体は、OS で異なる |
-| Spotlight や OS のアプリ検索自体を複製しない | 方針に含める。DockStudio は検索画面を持たず、OS の入口を開くだけにする |
+| 15 の Launchpad と 26 以降のアプリ一覧への起動方法を、公式資料と実機で確認する | 一部のみ。26の公式資料と過去のバンドル確認、URL解決と起動呼び出しの記録はあるが、一覧の表示は未確認。15は公式資料の一部のみで、実機未確認。本更新ではVM観察を行っていない |
+| 公開された入口があれば専用項目として利用し、OS 別に無効な参照を残さない | 未実施。OS別の項目追加と参照の解決は方針に記録したが、コードには実装していない。実装Issue #133 を作成し、#58 に関連付けた |
+| Spotlight や OS のアプリ検索自体を複製しない | 満たした（方針）。DockStudio は検索画面を複製せず、OSのアプリ一覧への入口だけを追加する予定である |
 
 ### リスクと制約
 
@@ -266,13 +272,15 @@ OS 別の「アプリ一覧」項目を追加する。バンドル ID の候補�
 
 - macOS 15 の Launchpad のバンドル ID と、`NSWorkspace` で開けること。
 - macOS 26 で `Apps.app` を開いたときの、アプリ一覧の実際の表示。VM では呼び出しは成功したが、画面に出なかった。ssh 経由の起動や、画面更新の遅れが原因の可能性がある（いずれも未切り分け）。
+- OS別の専用入口の実装と、その画面表示の検証。
+- この更新では、VM や実機での画面観察を行っていない。
 - 26 より後の OS（27 を含む）での入口の変更。
 
 ## #67 macOS 27 のバックグラウンド実行表示との互換性
 
 ### 結論
 
-公開 API では不可（26.5 の SDK に該当する API がない）。macOS 27 の SDK は未確認のため、27 で API が追加されたかは未確認になる。この機能は macOS 27 だけのものであり、15 と 26 に存在するものとして扱わない。
+26.5 の SDK には該当する公開 API が見つからなかった。macOS 27 の SDK は未確認のため、27 で利用できる公開 API は未確認になる。この機能は macOS 27 だけのものであり、15 と 26 に存在するものとして扱わない。
 
 ### 根拠
 
@@ -282,11 +290,11 @@ Apple のサポート文書（macOS 27 Golden Gate）は、次のように書い
 
 最初に起きたときに通知が出て、Dock のアイコンにポインタを重ねると、アプリ名と「Running in Background」が表示される。
 
-https://support.apple.com/en-my/125671
+[Apple Support](https://support.apple.com/en-my/125671)
 
 報道は、通知後の Dock の点が、黒から薄い灰色に変わると伝えている。ただし、これは二次情報になる。
 
-- 9to5Mac、2026-06-09: https://9to5mac.com/?p=1055761
+- 9to5Mac、2026-06-09: [9to5Mac](https://9to5mac.com/?p=1055761)
 
 26.5 の SDK では、次を確認した。
 
@@ -296,22 +304,22 @@ https://support.apple.com/en-my/125671
 
 macOS 27 のベータ版の挙動を、開発者フォーラムが伝えている。公式の回答は、確認できた範囲で付いていない。
 
-- 起動中のプロセスがなく、登録された launchd ジョブだけが残るアプリにも、「Running in Background」が出るという報告がある。https://developer.apple.com/forums/thread/832557（返信なし）
-- `LSUIElement` や `LSBackgroundOnly` を設定しても、Launch Services 経由で起動したアプリが Dock に出るという報告がある。旧 API のログイン項目を `SMAppService` に変えると解消したという。https://developer.apple.com/forums/thread/847300
+- 起動中のプロセスがなく、登録された launchd ジョブだけが残るアプリにも、「Running in Background」が出るという報告がある。[Apple Developer Forums](https://developer.apple.com/forums/thread/832557)（返信なし）
+- `LSUIElement` や `LSBackgroundOnly` を設定しても、Launch Services 経由で起動したアプリが Dock に出るという報告がある。旧 API のログイン項目を `SMAppService` に変えると解消したという。[Apple Developer Forums](https://developer.apple.com/forums/thread/847300)
 
 これらから、表示の条件は、アプリが Launch Services 経由で起動され、ウィンドウがない状態で動き続けていることに関係する、と推測できる。正確な条件は、公式資料に書かれていない。
 
 VM（macOS 26.6.2）の `Dock.app` の実行ファイルには、「Running in Background」「Stop Running in Background」の文字列がなかった（`grep -c -a` の結果は、どちらも 0）。ただし、文言が別のリソースにある可能性があり、不在の証明にはならない。26.6.2 の標準 Dock にこの機能がないことの、補助的な確認にとどまる。
 
-DockStudio の現在の実行中アプリの列挙（`CustomDockWindowController.swift:256`）は、`activationPolicy == .regular` のアプリだけを拾う。macOS 27 で、ウィンドウのないバックグラウンドのアプリが、`regular` で `runningApplications` に残るかは未確認になる。
+DockStudio の現在の実行中アプリの列挙（`CustomDockWindowController.swift:351-354`）は、`activationPolicy == .regular` のアプリだけを拾う。macOS 27 で、ウィンドウのないバックグラウンドのアプリが、`regular` で `runningApplications` に残るかは未確認になる。
 
 ### 受け入れ条件ごとの確認結果
 
 | 条件 | 結果 |
 | --- | --- |
-| macOS 27 の代表アプリと公式条件で、標準 Dock の表示を確認する | 26.6.2 の VM では、この表示は確認できなかった（27 の機能のため想定どおりで、Dock の実行ファイルに文言もない）。公式条件は、サポート文書で確認した。代表アプリの実機での確認は未実施（macOS 27 の環境がない）。報道は Gemini アプリを例に挙げている |
-| 別プロセスの稼働状態を公開 API で識別できるか調査し、単なる起動中の点と区別する | 26.5 の SDK には、識別できる公開 API がない。`NSRunningApplication` は、起動中かどうかまでしか分からない。27 の SDK は未確認 |
-| 15 と 26 へ存在しない状態を持ち込まず、取得できない情報やプライバシー上の制約を記録する | 15 と 26 には、この状態がないものとして扱う。取得できない情報は、バックグラウンドで実行している理由と、実行中のタスクの内容になる。システム全体のプロセスの調査は、プライバシー上の問題が大きく、サンドボックスでも制限される |
+| macOS 27 の代表アプリと公式条件で、標準 Dock の表示を確認する | 未実施。対象のmacOS 27環境がなく、公式サポート文書の記述までを記録した。過去の26.6.2 VM記録は27の表示確認にはならない。本更新ではVM観察を行っていない |
+| 別プロセスの稼働状態を公開 API で識別できるか調査し、単なる起動中の点と区別する | 一部のみ。26.5 SDKの調査では該当APIは見つからなかったが、27 SDKは未確認で、結論を確定できない |
+| 15 と 26 へ存在しない状態を持ち込まず、取得できない情報やプライバシー上の制約を記録する | 満たした（調査方針）。15と26では状態を扱わず、取得できない情報とプロセス調査のプライバシー上の制約を記録した |
 
 ### リスクと制約
 
@@ -329,6 +337,7 @@ macOS 27 の API が確認できた場合の工数は、調査に1日、実装�
 - macOS 27 の SDK に、バックグラウンド実行の状態を返す API があるか。
 - macOS 27 で、`NSWorkspace.runningApplications` と `activationPolicy` が、バックグラウンド実行中のアプリをどう返すか。
 - macOS 27 の標準 Dock の実際の表示（点の色、ホバー表示）。
+- この更新では、VM や実機での macOS 27 の観察を行っていない。
 
 ## #70 macOS 27 の Stop Running in Background 操作との連携
 
@@ -345,7 +354,7 @@ Apple のサポート文書（macOS 27）は、次のように書いている。
 - System Settings の General > Login Items & Extensions の「Background App Activity」で、アプリのバックグラウンド実行を、オンまたはオフにできる。
 - 止めた後は、自動更新やデータの同期が動かなくなるなど、アプリが想定どおりに動かない場合がある。止める範囲の詳細は、文書に書かれていない。
 
-https://support.apple.com/en-my/125671
+[Apple Support](https://support.apple.com/en-my/125671)
 
 9to5Mac は、この操作がプロセスを終了し、アプリを Dock から外すと伝えている。これは二次情報になる。
 
@@ -361,9 +370,9 @@ SDK では、次を確認した。
 
 | 条件 | 結果 |
 | --- | --- |
-| 対応 OS の標準 Dock で、操作の条件と停止する範囲を確認する | 26.6.2 の VM では、この操作を確認できない（27 の機能）。「Login Items & Extensions」の画面にも、上部には「Background App Activity」がなかった（`08-login-items-26.png`、スクロールはしていない）。操作の条件（コンテキストメニュー）は、サポート文書で確認した。停止する範囲は、文書に書かれていない。実機での確認は未実施（macOS 27 の環境がない） |
-| 公開経路で停止できるかと、OS の Login Items 設定へ案内できる範囲を調査する | 停止: 公開 API では確認できなかった（未確認）。案内: `SMAppService.openSystemSettingsLoginItems` で、画面を開くまでは可能。特定のアプリの行までは開けない。ヘッダにその指定がない |
-| 通常終了や強制終了と混同せず、同期や更新が中断する影響を説明する。無関係なヘルパーを一括で終了しない | 方針に含める。`terminate` と `forceTerminate` を、この操作の代わりに使わない。影響の説明の文面は下記 |
+| 対応 OS の標準 Dock で、操作の条件と停止する範囲を確認する | 一部のみ。操作方法と副作用はAppleのサポート文書に記載があるが、対象のmacOS 27環境がなく実機観察は未実施。停止範囲も文書に記載されていない。本更新ではVM観察を行っていない |
+| 公開経路で停止できるかと、OS の Login Items 設定へ案内できる範囲を調査する | 一部のみ。26.5 SDKの `SMAppService.openSystemSettingsLoginItems` で設定画面を開く経路は確認した。他アプリの停止APIは見つからず、27 SDKは未確認 |
+| 通常終了や強制終了と混同せず、同期や更新が中断する影響を説明する。無関係なヘルパーを一括で終了しない | 一部のみ。`terminate` と `forceTerminate` を代用しない方針と、同期・更新への一般的な影響は記録した。停止範囲と具体的な影響は27環境で未確認で、案内の実装も未実施 |
 
 ### リスクと制約
 
@@ -386,21 +395,22 @@ macOS 27 の SDK に公開 API が見つかるまでは、停止操作を実装�
 - 「Stop Running in Background」が停止する範囲（アプリ本体だけか、ヘルパーを含むか）。
 - macOS 27 の標準 Dock の実際のメニュー項目の位置と、表示される条件。
 - 同期や更新が中断される具体的な影響。
+- この更新では、VM や実機での macOS 27 の操作観察を行っていない。
 
 ## 実装可能と分かった項目
 
 | 項目 | 内容 | 工数の見立て |
 | --- | --- | --- |
-| #14 の代替 | DockStudio 自身の起動記録による「最近使った項目」。OS の提案とは別物と明記する | 3日 |
-| #56 の案内 | 「Handoff の継続アイコンは macOS の Dock にのみ表示される」という設定画面の案内 | 0.5日 |
-| #58 | OS 別のアプリ一覧の項目（26 は `Apps.app`）。15 の Launchpad は、15 の環境で確認してから | 2日 |
-| #70 の案内 | Login Items の設定を開く案内。macOS 27 の環境で確認してから | 1日 |
+| #14 の代替 | DockStudio 自身の起動記録による「最近使った項目」。OS の提案とは別物と明記する（実装済み。`RecentAppHistory.swift`、PR #117） | 完了 |
+| #56 の案内 | 「Handoff の継続アイコンは macOS の Dock にのみ表示される」という設定画面の案内 | 0.5日。対象活動が決まってからIssue化する |
+| #58 | OS 別のアプリ一覧の項目（26 は `Apps.app`）。15 の Launchpad は、15 の環境で確認してから | 2日。実装Issue #133 を作成済み |
+| #70 の案内 | Login Items の設定を開く案内。macOS 27 の環境で確認してから | 1日。実装Issue #134 を作成し、27の確認後に着手する |
 
 ## 確認できなかった項目
 
 | 項目 | 理由 |
 | --- | --- |
-| VM での撮影の一部 | #58 のアプリ一覧の表示は、VNC の更新遅れやクリック不達の可能性があり、撮影できなかった。他の項目は、26.6.2 の範囲で確認した |
+| 過去の VM 観察の一部 | #58 のアプリ一覧の表示は、VNC の更新遅れやクリック不達の可能性があり、撮影できなかった。他の項目は、過去の記録で26.6.2の範囲を確認した。本更新ではVMに触れていない |
 | macOS 15 の実機での確認（#14、#56、#58） | macOS 15 の環境がない |
 | macOS 27 の実機と SDK（#67、#70） | macOS 27 の環境と SDK がない。サポート文書と報道だけを根拠にした |
 | Handoff の実機での確認（#56） | 別デバイスと同じ Apple Account の環境がない |
@@ -409,13 +419,13 @@ macOS 27 の SDK に公開 API が見つかるまでは、停止操作を実装�
 
 ## 参考にした資料
 
-- Desktop & Dock settings（15）: https://support.apple.com/guide/mac-help/mchlp1119/15.0/mac/15.0
-- Desktop & Dock settings（26）: https://support.apple.com/guide/mac-help/mchlp1119/26/mac/26
-- Use the Dock（15）: https://support.apple.com/en-gb/guide/mac-help/mh35859/15.0/mac/15.0
-- Use the Dock（26）: https://support.apple.com/en-gb/guide/mac-help/mh35859/26/mac/26
-- Hand off tasks between Apple devices（26）: https://support.apple.com/guide/mac-help/mchl732d3c0a/26/mac/26
-- View and open apps（26）: https://support.apple.com/guide/mac-help/mh35840/26/mac/26
-- If an app continues running in the background after you quit it（27）: https://support.apple.com/en-my/125671
-- 9to5Mac、macOS 27 のバックグラウンド実行: https://9to5mac.com/?p=1055761
-- Apple Developer Forums: https://developer.apple.com/forums/thread/832557 、 https://developer.apple.com/forums/thread/847300
+- Desktop & Dock settings（15）: [Apple Support](https://support.apple.com/guide/mac-help/mchlp1119/15.0/mac/15.0)
+- Desktop & Dock settings（26）: [Apple Support](https://support.apple.com/guide/mac-help/mchlp1119/26/mac/26)
+- Use the Dock（15）: [Apple Support](https://support.apple.com/en-gb/guide/mac-help/mh35859/15.0/mac/15.0)
+- Use the Dock（26）: [Apple Support](https://support.apple.com/en-gb/guide/mac-help/mh35859/26/mac/26)
+- Hand off tasks between Apple devices（26）: [Apple Support](https://support.apple.com/guide/mac-help/mchl732d3c0a/26/mac/26)
+- View and open apps（26）: [Apple Support](https://support.apple.com/guide/mac-help/mh35840/26/mac/26)
+- If an app continues running in the background after you quit it（27）: [Apple Support](https://support.apple.com/en-my/125671)
+- 9to5Mac、macOS 27 のバックグラウンド実行: [9to5Mac](https://9to5mac.com/?p=1055761)
+- Apple Developer Forums: [thread 832557](https://developer.apple.com/forums/thread/832557)、[thread 847300](https://developer.apple.com/forums/thread/847300)
 - SDK ヘッダ: `MacOSX26.5.sdk` の `Foundation/NSUserActivity.h`、`AppKit/NSApplication.h`、`AppKit/NSRunningApplication.h`、`AppKit/NSWorkspace.h`、`ServiceManagement/SMAppService.h`
