@@ -85,6 +85,7 @@ struct DockBar: View {
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
     @State private var confirmingTrashEmpty = false
+    @State private var showingSpacesAssignmentGuide = false
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
@@ -192,6 +193,11 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) {
             if store.isDockPointerInside { refreshAvailability() }
             if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
+        .alert("Spaces への割り当て", isPresented: $showingSpacesAssignmentGuide) {
+            Button("閉じる", role: .cancel) {}
+        } message: {
+            Text(DockItemMenu.spacesAssignmentGuideMessage)
         }
         .task {
             while !Task.isCancelled {
@@ -504,6 +510,7 @@ extension DockBar {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .spacesAssignmentGuide: showingSpacesAssignmentGuide = true
                 case .openLoginItemsSettings: store.loginItem.openSystemSettings()
                 case .hide, .show: store.toggleApplicationVisibility(item)
                 case .hideOthers: store.hideOthers(of: item)
