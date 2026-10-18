@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0012FD4BCA6862F6CF2EF478 /* DockIconAutoShrinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F714D55BFD3802304D28395A /* DockIconAutoShrinkTests.swift */; };
 		00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */; };
 		045F51B5371EDF7D8D51EDF9 /* FolderContentsPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA2524AA25A4B3F205E58B5 /* FolderContentsPopover.swift */; };
 		07E8780C2F3169583C8CB543 /* AttentionBounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9F6701FE1D0CF7500BBE55 /* AttentionBounceTests.swift */; };
@@ -42,6 +43,7 @@
 		5440E4841B93F588D7FA4128 /* TrashDropTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60BD64A51F2320C85780284 /* TrashDropTests.swift */; };
 		549D9BAD44EADF220B15CCFE /* RecentDocumentAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907CA81DE5A793991439D84 /* RecentDocumentAccessTests.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
+		57EB0F0D3796CAB88BBFA894 /* ApplicationListEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B318E3C7F956C10D873F691 /* ApplicationListEntryTests.swift */; };
 		59CA44698B3B4A4D5BFD405E /* OptionClickHide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446BE9EC97BDC15CFC617184 /* OptionClickHide.swift */; };
 		5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3448B4FA395513EEC7C924 /* DockKeyboardNavigation.swift */; };
 		65CB028378595A6413439AF1 /* ItemClickAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE48D330924061B817672BC /* ItemClickAction.swift */; };
@@ -88,6 +90,7 @@
 		C93204A2FFA888CFA0EF0195 /* ItemClickActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B1CE92853E8EDB2592E58A /* ItemClickActionTests.swift */; };
 		C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */; };
 		CCD37AC31EC25FF9D4453B2A /* DuplicateItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4CFEA58CA6520BB9C55181 /* DuplicateItemTests.swift */; };
+		CCDAD58B7C4BE542AB546E27 /* ApplicationListEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A79CC1F521B1E37932202F2 /* ApplicationListEntry.swift */; };
 		D2D71D4CF2AFAF0FAC1F085B /* LoginLaunchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29AC52037E05CE05123B9AAB /* LoginLaunchPolicy.swift */; };
 		D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */; };
 		DE4A59591AEEAA2411D90B51 /* DockFocusShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */; };
@@ -103,6 +106,7 @@
 		F45A353F73F29ABB3A148CFB /* DockStudioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */; };
 		F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */; };
 		FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */; };
+		FF0588EB74DAF2DBAEACB255 /* DockIconAutoShrink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 261911ED51635A9DAC7FE61E /* DockIconAutoShrink.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +133,7 @@
 		2255DDF17826ECD819C17196 /* CustomDockPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockPreview.swift; sourceTree = "<group>"; };
 		238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileRegressionTests.swift; sourceTree = "<group>"; };
 		25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePersistence.swift; sourceTree = "<group>"; };
+		261911ED51635A9DAC7FE61E /* DockIconAutoShrink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconAutoShrink.swift; sourceTree = "<group>"; };
 		29AC52037E05CE05123B9AAB /* LoginLaunchPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginLaunchPolicy.swift; sourceTree = "<group>"; };
 		2AB86C3AB95EF20C137DE78A /* KeepRunningAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepRunningAppTests.swift; sourceTree = "<group>"; };
 		2B49140B4FD109A655440582 /* DockPreviewLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockPreviewLayoutTests.swift; sourceTree = "<group>"; };
@@ -148,6 +153,7 @@
 		446BE9EC97BDC15CFC617184 /* OptionClickHide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionClickHide.swift; sourceTree = "<group>"; };
 		48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchBounceTests.swift; sourceTree = "<group>"; };
 		519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportReviewSheet.swift; sourceTree = "<group>"; };
+		5B318E3C7F956C10D873F691 /* ApplicationListEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationListEntryTests.swift; sourceTree = "<group>"; };
 		5EE40C4A91F65930C9304921 /* DockSeparatorContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSeparatorContextMenu.swift; sourceTree = "<group>"; };
 		60ADE6223768FD15BB95E9FA /* DockVisibilityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockVisibilityState.swift; sourceTree = "<group>"; };
 		60BE877B7C6538BB30ECB64C /* NativeDockTilePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTilePreview.swift; sourceTree = "<group>"; };
@@ -161,6 +167,7 @@
 		81BF6A82EF7412D9D55B58A0 /* ApplicationDockMenuAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockMenuAccessTests.swift; sourceTree = "<group>"; };
 		873F2DB6F8BB95032D1A31C8 /* ApplicationWindowAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationWindowAccessTests.swift; sourceTree = "<group>"; };
 		8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHideTests.swift; sourceTree = "<group>"; };
+		8A79CC1F521B1E37932202F2 /* ApplicationListEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationListEntry.swift; sourceTree = "<group>"; };
 		8B0034AC0A7C56181BF9C3D6 /* NotificationBadgeReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBadgeReaderTests.swift; sourceTree = "<group>"; };
 		8C5A3D597201827F7044AD33 /* OptionClickHideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionClickHideTests.swift; sourceTree = "<group>"; };
 		900EEEC2A6259B224B83CD3F /* DockDragOutRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemovalTests.swift; sourceTree = "<group>"; };
@@ -213,6 +220,7 @@
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
 		F60EB0DB463C5447E89F603D /* SettingsPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreview.swift; sourceTree = "<group>"; };
 		F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeEjectorTests.swift; sourceTree = "<group>"; };
+		F714D55BFD3802304D28395A /* DockIconAutoShrinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconAutoShrinkTests.swift; sourceTree = "<group>"; };
 		FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashDropService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -242,6 +250,7 @@
 			children = (
 				3AB6B90C9DC1A18484C27B49 /* ApplicationDockMenuAccess.swift */,
 				E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */,
+				8A79CC1F521B1E37932202F2 /* ApplicationListEntry.swift */,
 				DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */,
 				91B939FE73C92190784C203A /* ApplicationWindowAccess.swift */,
 				19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */,
@@ -250,6 +259,7 @@
 				950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */,
 				BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */,
 				68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */,
+				261911ED51635A9DAC7FE61E /* DockIconAutoShrink.swift */,
 				E8B4DF981D4D56D467629B9D /* DockSectionLayout.swift */,
 				B07A1DBE70C6D91F689305D1 /* FinderDockEntry.swift */,
 				2E12D341AFA8F5A63734EA69 /* FolderContents.swift */,
@@ -284,12 +294,14 @@
 			children = (
 				81BF6A82EF7412D9D55B58A0 /* ApplicationDockMenuAccessTests.swift */,
 				8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */,
+				5B318E3C7F956C10D873F691 /* ApplicationListEntryTests.swift */,
 				DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */,
 				873F2DB6F8BB95032D1A31C8 /* ApplicationWindowAccessTests.swift */,
 				DA9F6701FE1D0CF7500BBE55 /* AttentionBounceTests.swift */,
 				763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */,
 				900EEEC2A6259B224B83CD3F /* DockDragOutRemovalTests.swift */,
 				1DAC827BCD22081B23C609FC /* DockFocusShortcutTests.swift */,
+				F714D55BFD3802304D28395A /* DockIconAutoShrinkTests.swift */,
 				D821980A359C628760823676 /* DockIconSizeRangeTests.swift */,
 				E7FA201CC570AF21E46FC468 /* DockIconSizeResizeTests.swift */,
 				6341E875506DD260FD3CF86B /* DockKeyboardNavigationTests.swift */,
@@ -445,12 +457,14 @@
 			files = (
 				19E65BE6090820DA4D7887EB /* ApplicationDockMenuAccessTests.swift in Sources */,
 				A72E585B7A9AF1351C676295 /* ApplicationHideTests.swift in Sources */,
+				57EB0F0D3796CAB88BBFA894 /* ApplicationListEntryTests.swift in Sources */,
 				EE2156FBCBA4A552256196BF /* ApplicationQuitTests.swift in Sources */,
 				525AE692044328AB3A651BD5 /* ApplicationWindowAccessTests.swift in Sources */,
 				07E8780C2F3169583C8CB543 /* AttentionBounceTests.swift in Sources */,
 				D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */,
 				328F70DE6DE2EBD83B54BCC8 /* DockDragOutRemovalTests.swift in Sources */,
 				162467E14E9509C458CF1106 /* DockFocusShortcutTests.swift in Sources */,
+				0012FD4BCA6862F6CF2EF478 /* DockIconAutoShrinkTests.swift in Sources */,
 				E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */,
 				17756CC9580CF9721B3E26CC /* DockIconSizeResizeTests.swift in Sources */,
 				EAD03C3C43BEB077BFC9F0E2 /* DockKeyboardNavigationTests.swift in Sources */,
@@ -493,6 +507,7 @@
 			files = (
 				F41C4581C14BFBCFAD699453 /* ApplicationDockMenuAccess.swift in Sources */,
 				F459FC0A0B61FD5EC180F56A /* ApplicationHider.swift in Sources */,
+				CCDAD58B7C4BE542AB546E27 /* ApplicationListEntry.swift in Sources */,
 				948F7CBA787B4B0D01DEBEE4 /* ApplicationQuitter.swift in Sources */,
 				88B2BB36ABB28B3F9CE67F93 /* ApplicationWindowAccess.swift in Sources */,
 				9FAB0492CF4B4CD9A8144FA8 /* AsyncProcessRunner.swift in Sources */,
@@ -506,6 +521,7 @@
 				7187D2A8A4A2E6697B6AD102 /* DockDocument.swift in Sources */,
 				B0D0C5D0629A2EA0F95E9189 /* DockDragOutRemoval.swift in Sources */,
 				DE4A59591AEEAA2411D90B51 /* DockFocusShortcut.swift in Sources */,
+				FF0588EB74DAF2DBAEACB255 /* DockIconAutoShrink.swift in Sources */,
 				2AB5D8FA740964898EE5EF91 /* DockIconSizeResize.swift in Sources */,
 				5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */,
 				722530FCD7ACCB1B0FD72E27 /* DockSectionLayout.swift in Sources */,

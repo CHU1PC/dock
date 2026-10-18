@@ -441,7 +441,9 @@ private struct PanelDockContent: View {
     var body: some View {
         ZStack {
             DockBar(vertical: layout.vertical, isPanel: true,
-                    temporaryMagnificationEnabled: temporaryMagnificationEnabled)
+                    temporaryMagnificationEnabled: temporaryMagnificationEnabled,
+                    availableLength: max(0, (layout.vertical ? layout.size.height : layout.size.width)
+                        - DockInteractionGeometry.panelPadding * 2))
                 .frame(width: layout.vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil)
                 .padding(DockInteractionGeometry.panelPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity,
