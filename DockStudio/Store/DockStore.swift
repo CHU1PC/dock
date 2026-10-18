@@ -13,13 +13,27 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
-    var isDockVisible = false
+    var isDockVisible = false {
+        didSet { if oldValue != isDockVisible { saveLaunchState() } }
+    }
+    private(set) var launchStateNotice: String?
+    @ObservationIgnored private var launchStateReady = false
+    @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
     var trashState = TrashState.unknown
     @ObservationIgnored var trashInspector = TrashInspector()
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var confirmForceQuit: (DockItem) -> Bool = { item in
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "「\(item.name)」を強制終了しますか？"
+        alert.informativeText = ForceQuitConfirmation.informativeText
+        alert.addButton(withTitle: "強制終了")
+        alert.addButton(withTitle: "キャンセル")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
     private(set) var launchingItemIDs: Set<UUID> = []
     @ObservationIgnored private var launchTasks: [UUID: Task<Void, Never>] = [:]
     var availableDisplays = DisplayOption.current
@@ -36,6 +50,9 @@ final class DockStore {
     @ObservationIgnored private var appearanceSaveTask: Task<Void, Never>?
     private(set) var isChoosingDockBackground = false
     var dockKeyboardFocusRequested = false
+    var dockKeyboardFocusGeneration = 0
+    var dockKeyboardExitRequested = false
+    var isDockPanelKey = false
     var isDockPointerInside = false
     var appearance: DockAppearance { transientAppearance ?? savedAppearance }
     private(set) var appearanceIsReadOnly = false
@@ -50,8 +67,10 @@ final class DockStore {
     }
     private let persistence: ProfilePersistence?
 
-    init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil) {
+    init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
+         loginItem: LoginItemController? = nil) {
         self.persistence = persistence
+        self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
         let seed = initial ?? Self.initialDocument()
         document = seed
@@ -71,6 +90,7 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        restoreLaunchState()
         startTrashMonitoring()
         if !isPreview { itemAvailability.startObserving() }
     }
@@ -79,6 +99,30 @@ final class DockStore {
 
     private var appearanceURL: URL? {
         persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("appearance.json")
+    }
+
+    private var launchStateURL: URL? {
+        persistence.map { LaunchRestorePersistence.url(besides: $0.fileURL) }
+    }
+
+    private func restoreLaunchState() {
+        defer { launchStateReady = true }
+        guard let url = launchStateURL else { return }
+        do {
+            if let state = try LaunchRestorePersistence.load(from: url) { isDockVisible = state.dockVisible }
+        } catch {
+            launchStateNotice = "前回の Dock の表示状態を読み込めなかったため、非表示で起動しました。\n\(error.localizedDescription)"
+        }
+    }
+
+    private func saveLaunchState() {
+        guard launchStateReady, let url = launchStateURL else { return }
+        do {
+            try LaunchRestorePersistence.save(LaunchRestoreState(dockVisible: isDockVisible), to: url)
+            launchStateNotice = nil
+        } catch {
+            launchStateNotice = "Dock の表示状態を保存できませんでした。次回の起動時は前回の状態を復元できません。\n\(error.localizedDescription)"
+        }
     }
 
     private func loadAppearance() {
@@ -161,7 +205,10 @@ final class DockStore {
 
     func focusDock() {
         if !isDockEffectivelyVisible { toggleDockVisibility() }
-        if isDockEffectivelyVisible { dockKeyboardFocusRequested = true }
+        if isDockEffectivelyVisible {
+            dockKeyboardFocusRequested = true
+            dockKeyboardFocusGeneration += 1
+        }
     }
 
     func chooseDockBackground() {
@@ -496,13 +543,20 @@ final class DockStore {
 
     @discardableResult
     func addDroppedItems(_ urls: [URL], at index: Int) -> (added: Int, rejected: [String]) {
-        var items: [DockItem] = []
+        var dropped: [DockItem] = []
         var rejected: [String] = []
         for url in urls {
-            if let item = Self.droppedItem(from: url) { items.append(item) } else { rejected.append(url.lastPathComponent) }
+            if let item = Self.droppedItem(from: url) { dropped.append(item) } else { rejected.append(url.lastPathComponent) }
         }
         var candidate = document
-        guard !items.isEmpty, let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == document.activeProfileID }) else {
+            reportDropFailure(rejected: rejected)
+            return (0, rejected)
+        }
+        let existing = candidate.profiles[profileIndex].items + (drafts[candidate.profiles[profileIndex].id]?.items ?? [])
+        let (items, duplicates) = DuplicateItemPolicy.split(dropped, existing: existing)
+        guard !items.isEmpty else {
+            if !duplicates.isEmpty { status = DuplicateItemPolicy.message(for: duplicates) }
             reportDropFailure(rejected: rejected)
             return (0, rejected)
         }
@@ -518,6 +572,7 @@ final class DockStore {
             persistDrafts()
         }
         status = "\(items.count) 個の項目を Dock に追加しました"
+        if !duplicates.isEmpty { status += "。" + DuplicateItemPolicy.message(for: duplicates) }
         reportDropFailure(rejected: rejected)
         return (items.count, rejected)
     }
@@ -554,10 +609,17 @@ final class DockStore {
         panel.canChooseFiles = kind != .folder
         if kind == .application { panel.allowedContentTypes = [.applicationBundle] }
         guard panel.runModal() == .OK else { return }
-        for url in panel.urls {
-            addItem(DockItem(name: kind == .application ? url.deletingPathExtension().lastPathComponent : url.lastPathComponent,
-                             kind: kind, target: url.absoluteString))
+        addChosenItems(panel.urls, kind: kind)
+    }
+
+    func addChosenItems(_ urls: [URL], kind: DockItemKind) {
+        let chosen = urls.map {
+            DockItem(name: kind == .application ? $0.deletingPathExtension().lastPathComponent : $0.lastPathComponent,
+                     kind: kind, target: $0.absoluteString)
         }
+        let (items, duplicates) = DuplicateItemPolicy.split(chosen, existing: editorProfile.items)
+        items.forEach(addItem)
+        if !duplicates.isEmpty { status = DuplicateItemPolicy.message(for: duplicates) }
     }
 
     func importCurrentDock() async {
@@ -589,6 +651,17 @@ final class DockStore {
         case .notRunning: status = "\(item.name) は起動していません"
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
+        }
+    }
+
+    func forceQuitApplication(_ item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        guard canQuitApplication(item), confirmForceQuit(item) else { return }
+        switch applicationQuitter.forceQuit(item) {
+        case .requested: status = "\(item.name) に強制終了を要求しました"
+        case .notRunning: status = "\(item.name) は起動していません"
+        case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
+        case .rejected: errorMessage = "\(item.name) を強制終了できませんでした。"
         }
     }
 
