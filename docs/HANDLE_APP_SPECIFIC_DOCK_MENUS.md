@@ -12,7 +12,7 @@ GitHub issue #129 に対応する。Accessibility を許可した利用者が、
 
 ## 自動テスト
 
-`ApplicationDockMenuAccessTests` で、メニュー項目の受け渡し、取得失敗時の空状態、選択項目 ID の実行要求を確認した。`swift test` は 339 件、失敗 0 件だった。Release ビルドは `BUILD SUCCEEDED`、build-for-testing は `TEST BUILD SUCCEEDED` だった。
+`ApplicationDockMenuAccessTests` で、メニュー項目の受け渡し、取得失敗時の空状態、選択項目 ID の実行要求を確認した。実装直後の `swift test` は 339 件、失敗 0 件だった。main 取り込み後の `swift test` は 342 件、失敗 0 件だった。main 取り込み後の Release ビルドは `BUILD SUCCEEDED`、事前の build-for-testing は `TEST BUILD SUCCEEDED` だった。
 
 ## 受け入れ条件
 
