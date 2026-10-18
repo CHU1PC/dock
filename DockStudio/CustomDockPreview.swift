@@ -553,6 +553,19 @@ extension DockBar {
             entry.representedObject = action.perform
             menu.addItem(entry)
         }
+        let recentDocuments = store.recentDocuments(for: item)
+        if !recentDocuments.isEmpty {
+            let recentItem = NSMenuItem(title: "最近使った書類", action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+            for document in recentDocuments {
+                let entry = NSMenuItem(title: document.title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+                entry.target = DockMenuHandler.shared
+                entry.representedObject = { store.openRecentDocument(document.id, for: item) }
+                submenu.addItem(entry)
+            }
+            recentItem.submenu = submenu
+            menu.addItem(recentItem)
+        }
         if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
             let windowMenu = NSMenuItem(title: "ウィンドウを前面に表示", action: nil, keyEquivalent: "")
             let submenu = NSMenu()
