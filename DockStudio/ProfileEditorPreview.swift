@@ -16,6 +16,13 @@ struct ProfileEditorPreview: View {
         }
     }
 
+    private var selectedItemLocked: Bool {
+        guard store.document.settings.finderEntryEnabled,
+              let selectedItemID,
+              let item = store.editorProfile.items.first(where: { $0.id == selectedItemID }) else { return false }
+        return FinderDockEntry.isFinder(item)
+    }
+
     var body: some View {
         @Bindable var store = store
         HStack(spacing: 0) {
@@ -82,6 +89,10 @@ struct ProfileEditorPreview: View {
                     .font(.callout).foregroundStyle(StudioColor.accent)
                     .padding(15).frame(maxWidth: .infinity, alignment: .leading)
                     .background(StudioColor.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 12))
+                if store.document.settings.finderEntryEnabled {
+                    Text("Finder を先頭に固定中は、Dock上の位置を固定し、Dockからの削除を無効にします。設定で固定を解除すると、削除や並べ替えができます。")
+                        .font(.caption).foregroundStyle(StudioColor.muted)
+                }
 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -103,7 +114,7 @@ struct ProfileEditorPreview: View {
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel("\(item.name)、\(item.kind.title)")
-                            if index < store.editorProfile.items.count - 1 { Divider().padding(.leading, 60) }
+                            if index < visibleEditorItems.count - 1 { Divider().padding(.leading, 60) }
                         }
                         if visibleEditorItems.isEmpty {
                             ContentUnavailableView("項目を追加", systemImage: "plus.circle",
@@ -131,18 +142,18 @@ struct ProfileEditorPreview: View {
                     Button { if let selectedItemID { store.moveItem(selectedItemID, by: -1) } } label: {
                         Image(systemName: "arrow.up")
                     }
-                    .disabled(selectedIndex == nil || selectedIndex == 0)
+                    .disabled(selectedIndex == nil || selectedIndex == 0 || selectedItemLocked)
                     .accessibilityLabel("上に移動")
                     Button { if let selectedItemID { store.moveItem(selectedItemID, by: 1) } } label: {
                         Image(systemName: "arrow.down")
                     }
-                    .disabled(selectedIndex == nil || selectedIndex == store.editorProfile.items.count - 1)
+                    .disabled(selectedIndex == nil || selectedIndex == store.editorProfile.items.count - 1 || selectedItemLocked)
                     .accessibilityLabel("下に移動")
                     Button {
                         if let selectedItemID { store.removeItem(selectedItemID) }
                         selectedItemID = nil
                     } label: { Image(systemName: "trash") }
-                    .disabled(selectedIndex == nil).accessibilityLabel("選択した項目を削除")
+                    .disabled(selectedIndex == nil || selectedItemLocked).accessibilityLabel("選択した項目を削除")
                     Spacer()
                     Button("変更を保存") { store.saveProfile() }
                         .buttonStyle(.borderedProminent).tint(StudioColor.accent)

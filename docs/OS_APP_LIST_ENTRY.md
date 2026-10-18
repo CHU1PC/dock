@@ -29,7 +29,7 @@
 
 | 確認 | 結果 |
 |---|---|
-| `swift test` | 338 件成功、失敗 0 |
+| `swift test` | 344 件成功、失敗 0 |
 | Release ビルド | `BUILD SUCCEEDED` |
 | `build-for-testing` | `TEST BUILD SUCCEEDED` |
 
