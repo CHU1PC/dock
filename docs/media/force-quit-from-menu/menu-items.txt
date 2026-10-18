@@ -1,0 +1,13 @@
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem 強制終了… value ni
+     AXMenuItem Dock に保持 value nil
+     AXMenuItem 終了 value nil pos Opt
+---finder
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem 終了 value nil pos Opt
+     AXMenuItem 強制終了… value ni
+     AXMenuItem Dock に保持 value nil
+     AXMenuItem 終了 value nil pos Opt
