@@ -26,7 +26,7 @@ Accessibility を許可した場合に、標準 Dock のアプリ項目から `A
 
 ## 自動テスト
 
-- `swift test`: 339件すべて成功
+- `swift test`: 340件すべて成功
 - Release ビルド: 成功
 - Debug の `build-for-testing`: 成功
 
