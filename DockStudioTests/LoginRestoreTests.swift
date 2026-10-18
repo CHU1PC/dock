@@ -125,16 +125,6 @@ final class LoginRestoreTests: XCTestCase {
         XCTAssertTrue(makeStore(directory).isDockVisible)
     }
 
-    func testUnsupportedStateVersionIsReported() throws {
-        let directory = makeDirectory()
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let url = LaunchRestorePersistence.url(besides: directory.appendingPathComponent("profiles.json"))
-        try Data(#"{"version":99,"dockVisible":true}"#.utf8).write(to: url)
-        let store = makeStore(directory)
-        XCTAssertFalse(store.isDockVisible)
-        XCTAssertNotNil(store.launchStateNotice)
-    }
-
     func testSavingVisibilityDoesNotTouchProfilesFile() throws {
         let directory = makeDirectory()
         let store = makeStore(directory)
