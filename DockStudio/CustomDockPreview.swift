@@ -47,16 +47,25 @@ struct CustomDockPreview: View {
 
     private func dockPreview(in size: CGSize) -> some View {
         let vertical = store.document.settings.position != .bottom
+        let position = store.document.settings.position
         let alignment: Alignment = switch store.document.settings.position {
         case .left: .leading
         case .bottom: .bottom
         case .right: .trailing
         }
+        let previewSize = DockPreviewLayout.frameSize(
+            containerSize: size,
+            position: position,
+            length: DockMetrics.length(for: store),
+            thickness: DockMetrics.thickness(for: store)
+        )
         return DockBar(vertical: vertical)
             .environment(store)
-            .frame(width: vertical ? 190 : min(size.width - 50, DockMetrics.length(for: store)),
-                   height: vertical ? min(size.height - 120, DockMetrics.length(for: store)) : DockMetrics.thickness(for: store))
+            .frame(width: previewSize.width, height: previewSize.height)
+            .clipShape(Rectangle())
             .padding(24)
+            .padding(.bottom, position == .bottom ? 90 : 0)
+            .padding(.vertical, vertical ? 70 : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
     }
 }
@@ -69,6 +78,7 @@ struct DockBar: View {
     @FocusState private var focused: UUID?
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
+    @State private var folderContentsItem: DockItem?
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
@@ -106,6 +116,10 @@ struct DockBar: View {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
+                                                    iconStyle: store.appearance.iconStyle,
+                                                    controller: store.minimizedWindowController,
+                                                    enabled: isPanel && store.isDockVisible)
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
                 }
@@ -221,8 +235,8 @@ struct DockBar: View {
             && !store.appearance.reduceMotion && !systemReduceMotion
         return VStack(spacing: 5) {
             Button {
-                store.clickItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
-                                                                                 current: NSEvent.modifierFlags))
+                clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
+                                                                                current: NSEvent.modifierFlags))
             } label: {
                 let icon = ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
                                     availability: store.itemAvailability.status(of: item),
@@ -237,6 +251,17 @@ struct DockBar: View {
                 }
             }
             .buttonStyle(.plain)
+            .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
+                if let folder = folderContentsItem {
+                    FolderContentsPopover(folder: folder) { child in
+                        folderContentsItem = nil
+                        store.openItem(child)
+                    } openInFinder: { folder in
+                        store.clickItem(folder, modifiers: .command)
+                        folderContentsItem = nil
+                    }
+                }
+            }
             .focusable(false)
             .task(id: item.target) { await store.itemAvailability.refresh([item]) }
             .accessibilityLabel(running ? "\(item.name)、起動中" : item.name)
@@ -247,8 +272,8 @@ struct DockBar: View {
                 return handleKey(key, items: store.displayedItems) ? .handled : .ignored
             }
             .onKeyPress(.tab) { keyboardNavigating = true; return .ignored }
-            .onKeyPress(.return) { store.openItem(item); return .handled }
-            .onKeyPress(.space) { store.openItem(item); return .handled }
+            .onKeyPress(.return) { activateDockItem(item); return .handled }
+            .onKeyPress(.space) { activateDockItem(item); return .handled }
             .accessibilityActions {
                 ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
                     Button(action.title, action: action.perform)
@@ -267,10 +292,49 @@ struct DockBar: View {
         .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
-                                                                           thickness: DockMetrics.barThickness(for: store))) {
+                                                                           thickness: DockMetrics.barThickness(for: store)),
+                                  onRemove: {
             store.removeFromActiveProfile(item)
-        })
+        }, isEjectable: {
+            VolumeEjector().isEjectable(item)
+        }, onEject: {
+            store.ejectVolume(item)
+        }))
         .onHover { if $0 { hovered = item.id } }
+    }
+
+    private func folderPopoverBinding(for item: DockItem) -> Binding<Bool> {
+        Binding(
+            get: { folderContentsItem?.id == item.id },
+            set: { isPresented in
+                if !isPresented, folderContentsItem?.id == item.id { folderContentsItem = nil }
+            }
+        )
+    }
+
+    private var folderPopoverEdge: Edge {
+        if vertical {
+            return store.document.settings.position == .left ? .leading : .trailing
+        }
+        return .bottom
+    }
+
+    private func clickDockItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if item.kind == .folder,
+           !ItemClickPolicy.isRevealClick(modifiers),
+           !ItemClickPolicy.isHideOthersClick(modifiers) {
+            folderContentsItem = item
+        } else {
+            store.clickItem(item, modifiers: modifiers)
+        }
+    }
+
+    private func activateDockItem(_ item: DockItem) {
+        if item.kind == .folder {
+            folderContentsItem = item
+        } else {
+            store.openItem(item)
+        }
     }
 }
 
@@ -297,8 +361,14 @@ extension DockBar {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.name)
-            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
-            .contextMenu { Button("開く") { store.openTrash() } }
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : store.trashStateGuidance)
+            .help(state == .unknown ? store.trashStateGuidance : "")
+            .contextMenu {
+                Button("開く") { store.openTrash() }
+                if state == .unknown {
+                    Button("状態の確認方法") { store.explainTrashState() }
+                }
+            }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, 5)
@@ -645,7 +715,7 @@ struct ItemIcon: View {
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
             } else if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: symbol ?? item.kind.symbol)
@@ -737,7 +807,8 @@ enum DockMetrics {
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
+        let minimizedWindows = Double(store.minimizedWindowController.windows.count) * (10 + store.effectiveIconSize)
+        let total = itemsTotal + minimizedWindows + (10 + 11) + (10 + store.effectiveIconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
@@ -753,6 +824,19 @@ enum DockMetrics {
         let maximum = enabled ? store.appearance.magnificationScale : 1
         return store.document.settings.position == .bottom ? CGFloat(max(store.effectiveIconSize * maximum, 54) + 65) :
             barThickness(for: store, magnificationEnabled: enabled)
+    }
+}
+
+enum DockPreviewLayout {
+    static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat) -> CGSize {
+        let availableWidth = max(0, containerSize.width - 50)
+        let availableHeight = max(0, containerSize.height - 188)
+        if position == .bottom {
+            return CGSize(width: min(availableWidth, max(0, length)),
+                          height: min(availableHeight, max(0, thickness)))
+        }
+        return CGSize(width: min(190, availableWidth),
+                      height: min(availableHeight, max(0, length)))
     }
 }
 
