@@ -492,6 +492,19 @@ final class DockStore {
         editorProfile = profile
     }
 
+    @discardableResult
+    func moveActiveItem(_ id: UUID, by offset: Int) -> Int? {
+        guard !storageIsReadOnly, let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              document.profiles[profileIndex].items.indices.contains(itemIndex + offset) else { return nil }
+        var candidate = document
+        candidate.profiles[profileIndex].items.swapAt(itemIndex, itemIndex + offset)
+        guard commit(candidate) else { return nil }
+        let newIndex = itemIndex + offset
+        status = "\(document.profiles[profileIndex].items[newIndex].name) を\(newIndex + 1)番目に移動しました"
+        return newIndex
+    }
+
     func removeItem(_ id: UUID) {
         var profile = editorProfile
         guard let index = profile.items.firstIndex(where: { $0.id == id }) else { return }

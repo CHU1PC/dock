@@ -3,7 +3,7 @@ import SwiftUI
 
 enum DockKeyboardNavigation {
     enum Arrow { case up, down, left, right }
-    enum Key: Equatable { case arrow(Arrow), home, end, character(String) }
+    enum Key: Equatable { case arrow(Arrow), reorder(Arrow), home, end, character(String) }
     enum Command: Equatable { case previous, next, first, last, openMenu }
     enum Outcome: Equatable { case focus(Int), leave, ignore }
 
@@ -18,6 +18,15 @@ enum DockKeyboardNavigation {
         case (.bottom, .left), (.left, .up), (.right, .up): .previous
         case (.bottom, .right), (.left, .down), (.right, .down): .next
         case (.bottom, .up), (.left, .right), (.right, .left): .openMenu
+        default: nil
+        }
+    }
+
+    /// Option+矢印で項目を動かす順方向を返す。Dock の並びと直交する方向は扱わない。
+    static func reorderOffset(for arrow: Arrow, position: DockPosition) -> Int? {
+        switch (position, arrow) {
+        case (.bottom, .left), (.left, .up), (.right, .up): -1
+        case (.bottom, .right), (.left, .down), (.right, .down): 1
         default: nil
         }
     }
@@ -61,6 +70,16 @@ enum DockKeyboardNavigation {
 extension DockKeyboardNavigation.Key {
     /// Command、Control、Option を伴う入力は OS やアプリのショートカットに任せる。
     init?(_ press: KeyPress) {
+        if press.modifiers == [.option] {
+            switch press.key {
+            case .upArrow: self = .reorder(.up)
+            case .downArrow: self = .reorder(.down)
+            case .leftArrow: self = .reorder(.left)
+            case .rightArrow: self = .reorder(.right)
+            default: return nil
+            }
+            return
+        }
         guard press.modifiers.isDisjoint(with: [.command, .control, .option]) else { return nil }
         switch press.key {
         case .upArrow: self = .arrow(.up)

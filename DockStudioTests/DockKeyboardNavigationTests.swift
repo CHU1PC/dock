@@ -29,6 +29,19 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertNil(Nav.command(for: .right, position: .right))
     }
 
+    func testOptionArrowReordersAlongDockAndIgnoresOtherDirections() {
+        XCTAssertEqual(Nav.reorderOffset(for: .left, position: .bottom), -1)
+        XCTAssertEqual(Nav.reorderOffset(for: .right, position: .bottom), 1)
+        XCTAssertNil(Nav.reorderOffset(for: .up, position: .bottom))
+        XCTAssertNil(Nav.reorderOffset(for: .down, position: .bottom))
+        for position in [DockPosition.left, .right] {
+            XCTAssertEqual(Nav.reorderOffset(for: .up, position: position), -1)
+            XCTAssertEqual(Nav.reorderOffset(for: .down, position: position), 1)
+            XCTAssertNil(Nav.reorderOffset(for: .left, position: position))
+            XCTAssertNil(Nav.reorderOffset(for: .right, position: position))
+        }
+    }
+
     func testNextAndPreviousSkipSpacers() {
         XCTAssertEqual(Nav.outcome(.next, entries: entries, current: 1), .focus(3))
         XCTAssertEqual(Nav.outcome(.previous, entries: entries, current: 3), .focus(1))
