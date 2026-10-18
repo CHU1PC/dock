@@ -122,6 +122,11 @@ struct SettingsPreview: View {
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
                 Divider()
+                Toggle("最小化したウインドウをアプリアイコンにまとめる",
+                       isOn: setting(\.minimizeWindowsIntoAppIcon))
+                Text("有効にすると、アプリのアイコンのメニューから復元するウインドウを選べます。Apple Dock のシステム設定には影響しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
                 Toggle("最近使ったアプリを表示", isOn: setting(\.showRecentApps))
                 Text("固定済みと実行中のアプリを除き、最近使ったアプリを最大3件表示します。オフにすると履歴を消去します。")
                     .font(.caption).foregroundStyle(StudioColor.muted)

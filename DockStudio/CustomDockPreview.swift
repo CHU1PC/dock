@@ -119,6 +119,7 @@ struct DockBar: View {
                         MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
                                                     iconStyle: store.appearance.iconStyle,
                                                     controller: store.minimizedWindowController,
+                                                    groupedByApplication: store.document.settings.minimizeWindowsIntoAppIcon,
                                                     enabled: isPanel && store.isDockVisible)
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }

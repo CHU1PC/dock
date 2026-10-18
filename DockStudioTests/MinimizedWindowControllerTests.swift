@@ -4,7 +4,8 @@ import XCTest
 @MainActor
 final class MinimizedWindowControllerTests: XCTestCase {
     func testRefreshDisplaysWindowsReturnedByProvider() {
-        let window = MinimizedWindow(id: "42:0:Budget", title: "Budget", applicationName: "Numbers", applicationIcon: nil)
+        let window = MinimizedWindow(id: "42:0:Budget", applicationIdentifier: "com.apple.Numbers",
+                                     title: "Budget", applicationName: "Numbers", applicationIcon: nil)
         let provider = FakeMinimizedWindowProvider(state: .available([window]))
         let controller = MinimizedWindowController(provider: provider)
 
@@ -25,7 +26,8 @@ final class MinimizedWindowControllerTests: XCTestCase {
     }
 
     func testRestoreTargetsWindowAndRefreshRemovesClosedWindow() {
-        let window = MinimizedWindow(id: "42:0:Budget", title: "Budget", applicationName: "Numbers", applicationIcon: nil)
+        let window = MinimizedWindow(id: "42:0:Budget", applicationIdentifier: "com.apple.Numbers",
+                                     title: "Budget", applicationName: "Numbers", applicationIcon: nil)
         let provider = FakeMinimizedWindowProvider(state: .available([window]))
         let controller = MinimizedWindowController(provider: provider)
 
@@ -35,6 +37,20 @@ final class MinimizedWindowControllerTests: XCTestCase {
         XCTAssertTrue(restored)
         XCTAssertEqual(provider.restoredWindowIDs, [window.id])
         XCTAssertTrue(controller.windows.isEmpty)
+    }
+
+    func testGroupingKeepsWindowsTogetherByApplicationAndPreservesWindowIDs() {
+        let budget = MinimizedWindow(id: "42:0:Budget", applicationIdentifier: "com.apple.Numbers",
+                                     title: "Budget", applicationName: "Numbers", applicationIcon: nil)
+        let forecast = MinimizedWindow(id: "42:1:Forecast", applicationIdentifier: "com.apple.Numbers",
+                                       title: "Forecast", applicationName: "Numbers", applicationIcon: nil)
+        let notes = MinimizedWindow(id: "77:0:Notes", applicationIdentifier: "com.apple.Notes",
+                                    title: "Notes", applicationName: "Notes", applicationIcon: nil)
+
+        let groups = MinimizedWindowGrouping.groups([budget, forecast, notes])
+
+        XCTAssertEqual(groups.map(\.applicationName), ["Notes", "Numbers"])
+        XCTAssertEqual(groups.last?.windows.map(\.id), [budget.id, forecast.id])
     }
 
     private final class FakeMinimizedWindowProvider: MinimizedWindowProviding {
