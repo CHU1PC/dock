@@ -74,6 +74,37 @@ final class DockStoreTests: XCTestCase {
         XCTAssertEqual(DockStore(persistence: persistence).document.settings, settings)
     }
 
+    func testFinderEntryIsFirstAndUniqueWhenEnabled() {
+        let other = DockItem(name: "Mail", kind: .application, target: "file:///Applications/Mail.app/", bundleIdentifier: "com.apple.mail")
+        let existingFinder = DockItem(name: "My Finder", kind: .application,
+                                      target: "file:///System/Library/CoreServices/Finder.app/",
+                                      bundleIdentifier: FinderDockEntry.bundleIdentifier)
+        let profile = DockProfile(name: "Custom", items: [other, existingFinder])
+        var document = DockDocument(profiles: [profile], activeProfileID: profile.id)
+        document.settings.finderEntryEnabled = true
+        let store = DockStore(persistence: persistence, initial: document)
+
+        XCTAssertEqual(store.displayedItems.map(\.name), ["My Finder", "Mail"])
+        XCTAssertTrue(store.isPinned(store.displayedItems[0]))
+    }
+
+    func testFinderEntrySettingAllowsFreeProfileOrderAndMigrationDefaultsToDisabled() throws {
+        let other = DockItem(name: "Mail", kind: .application, target: "file:///Applications/Mail.app/", bundleIdentifier: "com.apple.mail")
+        let finder = DockItem(name: "Finder", kind: .application,
+                              target: "file:///System/Library/CoreServices/Finder.app/",
+                              bundleIdentifier: FinderDockEntry.bundleIdentifier)
+        let profile = DockProfile(name: "Custom", items: [other, finder])
+        var document = DockDocument(profiles: [profile], activeProfileID: profile.id)
+        document.settings.finderEntryEnabled = false
+        let store = DockStore(persistence: persistence, initial: document)
+        XCTAssertEqual(store.displayedItems, [other, finder])
+        store.removeFromActiveProfile(finder)
+        XCTAssertEqual(store.displayedItems, [other])
+
+        let legacy = Data(#"{"mode":"custom","position":"bottom","iconSize":52,"autoHide":false,"showRunningApps":false}"#.utf8)
+        XCTAssertFalse(try JSONDecoder().decode(DockSettings.self, from: legacy).finderEntryEnabled)
+    }
+
     func testManualDockVisibilityToggleIsIndependentOfAutoHide() {
         let store = DockStore(persistence: persistence)
         var settings = store.document.settings

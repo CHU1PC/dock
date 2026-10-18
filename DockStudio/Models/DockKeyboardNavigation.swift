@@ -107,9 +107,15 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep }
+    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows }
 
-    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false, canQuit: Bool, isPinned: Bool) -> [Kind] {
+    static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
+                      canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false) -> [Kind] {
+        if isFinder {
+            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows]
+            guard !finderEntryEnabled else { return actions }
+            return actions + (hasFileURL ? [.reveal] : []) + [isPinned ? .remove : .keep]
+        }
         let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
         return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
@@ -127,6 +133,8 @@ extension DockItemMenu.Kind {
         case .forceQuit: "強制終了…"
         case .remove: "Dock から取り外す"
         case .keep: "Dock に保持"
+        case .finderNewWindow: "新規 Finder ウインドウ"
+        case .finderShowAllWindows: "Finder を表示"
         }
     }
 
