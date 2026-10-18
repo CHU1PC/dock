@@ -60,6 +60,7 @@ final class ItemAvailabilityMonitor {
     private var entries: [UUID: Entry] = [:]
     @ObservationIgnored private let checker: ItemAvailabilityChecker
     @ObservationIgnored private let allItems: () -> [DockItem]
+    @ObservationIgnored private var lastFullRefresh: Date?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
     init(checker: ItemAvailabilityChecker = .init(), allItems: @escaping () -> [DockItem] = { [] }) {
@@ -80,7 +81,12 @@ final class ItemAvailabilityMonitor {
         for (item, status) in results { record(item, status) }
     }
 
-    func refreshAll() async { await refresh(allItems()) }
+    func refreshAll(minInterval: TimeInterval = 0) async {
+        let now = Date()
+        if let last = lastFullRefresh, now.timeIntervalSince(last) < minInterval { return }
+        lastFullRefresh = now
+        await refresh(allItems())
+    }
 
     func record(_ item: DockItem, _ status: ItemAvailability) {
         entries[item.id] = Entry(target: item.target, status: status)
@@ -92,7 +98,6 @@ final class ItemAvailabilityMonitor {
         let names: [(NotificationCenter, Notification.Name)] = [
             (workspace, NSWorkspace.didMountNotification),
             (workspace, NSWorkspace.didUnmountNotification),
-            (NotificationCenter.default, NSApplication.didBecomeActiveNotification),
         ]
         for (center, name) in names {
             let token = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in

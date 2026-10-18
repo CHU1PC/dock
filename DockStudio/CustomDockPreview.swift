@@ -66,6 +66,10 @@ struct DockBar: View {
     @State private var hovered: UUID?
     let vertical: Bool
     var isPanel = false
+    private func refreshAvailability() {
+        Task { await store.itemAvailability.refreshAll(minInterval: 1) }
+    }
+
     private var motion: Animation? {
         store.appearance.reduceMotion || systemReduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82)
     }
@@ -114,8 +118,11 @@ struct DockBar: View {
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
         .onChange(of: store.document.settings.position) { hovered = nil }
-        .onHover { if !$0 { hovered = nil } }
-        .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
+        .onHover { if $0 { refreshAvailability() } else { hovered = nil } }
+        .onChange(of: store.isDockPointerInside) {
+            if store.isDockPointerInside { refreshAvailability() }
+            if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
                 if let labelID = hovered, let anchor = frames[labelID], let item = items.first(where: { $0.id == labelID }) {
