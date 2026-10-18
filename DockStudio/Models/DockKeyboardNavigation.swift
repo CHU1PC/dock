@@ -107,11 +107,11 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon }
+    enum Kind { case open, reveal, spacesAssignmentGuide, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon }
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
-                      folderDisplayStyle: FolderDisplayStyle? = nil) -> [Kind] {
+                      folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {
         if isFinder {
             let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows]
             guard !finderEntryEnabled else { return actions }
@@ -123,7 +123,7 @@ enum DockItemMenu {
         case .stack: [.setFolderIcon]
         case nil: []
         }
-        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + folderKinds
+        return [.open] + (hasFileURL ? [.reveal] : []) + (isApplication ? [.spacesAssignmentGuide] : []) + visibilityKinds + folderKinds
             + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
 }
@@ -133,6 +133,7 @@ extension DockItemMenu.Kind {
         switch self {
         case .open: "開く"
         case .reveal: "Finder で表示"
+        case .spacesAssignmentGuide: "Spaces への割り当て方法"
         case .hide: "隠す"
         case .show: "表示"
         case .hideOthers: "ほかを隠す"

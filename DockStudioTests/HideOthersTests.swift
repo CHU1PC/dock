@@ -53,6 +53,13 @@ final class HideOthersTests: XCTestCase {
         XCTAssertEqual(DockItemMenu.Kind.hideOthers.title, "ほかを隠す")
     }
 
+    func testApplicationMenuIncludesSpacesAssignmentGuide() {
+        XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: true, isApplication: true),
+                       [.open, .reveal, .spacesAssignmentGuide, .remove])
+        XCTAssertFalse(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: true).contains(.spacesAssignmentGuide))
+        XCTAssertEqual(DockItemMenu.Kind.spacesAssignmentGuide.title, "Spaces への割り当て方法")
+    }
+
     func testFolderMenuOffersOnlyTheAlternateDisplayStyle() {
         XCTAssertEqual(DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
                                           folderDisplayStyle: .folder),

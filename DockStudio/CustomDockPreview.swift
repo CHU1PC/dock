@@ -84,6 +84,7 @@ struct DockBar: View {
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
     @State private var confirmingTrashEmpty = false
+    @State private var showingSpacesAssignmentGuide = false
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
@@ -168,6 +169,11 @@ struct DockBar: View {
         .onChange(of: store.isDockPointerInside) {
             if store.isDockPointerInside { refreshAvailability() }
             if isPanel && !store.isDockPointerInside { hovered = nil }
+        }
+        .alert("Spaces への割り当て", isPresented: $showingSpacesAssignmentGuide) {
+            Button("閉じる", role: .cancel) {}
+        } message: {
+            Text("標準 Dock のアプリアイコンを Control キーを押しながらクリックし、「オプション」>「割り当て先」から設定してください。Spaces が2つ以上あると選択肢が表示されます。標準 Dock にアプリアイコンがない場合は、先にそのアプリを標準 Dock に追加してください。")
         }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
@@ -452,12 +458,14 @@ extension DockBar {
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
                                        isFinder: FinderDockEntry.isFinder(item),
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
-                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
+                                       isApplication: item.kind == .application)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .spacesAssignmentGuide: showingSpacesAssignmentGuide = true
                 case .hide, .show: store.toggleApplicationVisibility(item)
                 case .hideOthers: store.hideOthers(of: item)
                 case .quit: store.quitApplication(item)
