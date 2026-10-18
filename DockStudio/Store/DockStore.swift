@@ -714,7 +714,6 @@ final class DockStore {
             alert.addButton(withTitle: "キャンセル")
             guard alert.runModal() == .alertFirstButtonReturn else { return }
         }
-        if item.kind == .application, OptionClickPolicy.hideIfFrontmost(applicationAt: url) { return }
         if item.kind == .application {
             let alreadyRunning = Bundle(url: url)?.bundleIdentifier.map {
                 !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty

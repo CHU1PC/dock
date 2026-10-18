@@ -12,7 +12,7 @@ Custom Dock で、前面にある実行中のアプリのアイコンを Option 
 - Option に Command、Control、Shift を加えたクリック。
 - アプリ以外の項目（フォルダ、ファイル、URL）。
 
-判定は、`DockStudio/Services/OptionClickHide.swift` の `OptionClickPolicy.action` が行う純粋な関数になる。修飾キーは `NSEvent.modifierFlags` から、クリックの時点で読む。ホストの Dock の挙動は実測しておらず、前面ではないアプリへの Option クリックで「現在のアプリを隠す」動きは実装していない。
+判定は、`DockStudio/Services/OptionClickHide.swift` の `OptionClickPolicy.action` が行う純粋な関数になる。修飾キーは、`clickItem(_:modifiers:)` が受け取る値（クリックのイベントの修飾キー）を使う。Option のみのときに、この判定へ振り分ける。ホストの Dock の挙動は実測しておらず、前面ではないアプリへの Option クリックで「現在のアプリを隠す」動きは実装していない。
 
 ## 検証
 

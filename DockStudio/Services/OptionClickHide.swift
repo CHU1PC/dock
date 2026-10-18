@@ -18,7 +18,7 @@ enum OptionClickPolicy {
     }
 
     @MainActor
-    static func hideIfFrontmost(applicationAt url: URL, flags: NSEvent.ModifierFlags = NSEvent.modifierFlags) -> Bool {
+    static func hideIfFrontmost(applicationAt url: URL, flags: NSEvent.ModifierFlags) -> Bool {
         let identifier = Bundle(url: url)?.bundleIdentifier
         let running = identifier.map { NSRunningApplication.runningApplications(withBundleIdentifier: $0) } ?? []
         let action = action(flags: flags, targetBundleIdentifier: identifier,

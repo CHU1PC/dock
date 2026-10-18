@@ -36,6 +36,9 @@ struct ItemClickPolicy {
 
 extension DockStore {
     func clickItem(_ item: DockItem, modifiers: NSEvent.ModifierFlags) {
+        if OptionClickPolicy.isOptionOnly(modifiers), !isPreview, item.kind == .application,
+           let url = item.targetURL, url.isFileURL,
+           OptionClickPolicy.hideIfFrontmost(applicationAt: url, flags: modifiers) { return }
         let reveal = ItemClickPolicy.isRevealClick(modifiers)
         guard reveal else { openItem(item); return }
         guard !isPreview else { status = "\(item.name) を Finder で表示します"; return }
