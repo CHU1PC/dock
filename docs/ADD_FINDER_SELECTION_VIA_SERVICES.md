@@ -4,7 +4,7 @@ GitHub issue #140 の実装になる。
 
 ## 変更内容
 
-Finder の選択項目を受け取る macOS サービス「Dock Studio に追加」を登録した。ファイル URL と複数選択を受け取り、ファイル、フォルダ、アプリを Dock 項目へ分類して追加する。標準 Dock の Control-Shift-Command-T は登録せず、利用者がシステム設定のサービス一覧で任意のキーを割り当てる。
+Finder の選択項目を受け取る macOS サービス「Dock Studio に追加」を生成 Info.plist の `NSServices` に登録した。定義は `project.yml` に置き、XcodeGen で再生成しても保持する。ファイル URL と複数選択を受け取り、ファイル、フォルダ、アプリを Dock 項目へ分類して追加する。標準 Dock の Control-Shift-Command-T は登録せず、利用者がシステム設定のサービス一覧で任意のキーを割り当てる。
 
 ## 仕様
 
@@ -16,7 +16,7 @@ Finder の選択項目を受け取る macOS サービス「Dock Studio に追加
 
 ## 自動テスト
 
-`FinderSelectionTests` で、複数 URL のファイル、フォルダ、アプリ分類、非ローカル URL と存在しない対象の拒否、拒否理由、アクティブプロファイルへの追加、編集中の下書きの保持、読み取り専用データの保護を確認した。2026-10-18 に `swift test` は340件すべて成功し、Release ビルドと `build-for-testing` も成功した。
+`FinderSelectionTests` で、複数 URL のファイル、フォルダ、アプリ分類、非ローカル URL と存在しない対象の拒否、拒否理由、アクティブプロファイルへの追加、編集中の下書きの保持、読み取り専用データの保護を確認した。2026-10-18 に `swift test` は362件すべて成功し、Release ビルドと `build-for-testing` も成功した。
 
 ## 未検証
 

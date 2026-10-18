@@ -13,6 +13,17 @@ targets:
       - path: DockStudio
     info:
       path: DockStudio/Info.plist
+      properties:
+        NSServices:
+          - NSMenuItem:
+              default: Dock Studio に追加
+            NSMessage: addFinderSelection
+            NSPortName: Dock Studio
+            NSSendTypes:
+              - public.file-url
+              - NSFilenamesPboardType
+            NSSendFileTypes:
+              - public.item
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.dockstudio.preview
