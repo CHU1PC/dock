@@ -116,7 +116,8 @@ enum DockItemMenu {
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
-                      folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {
+                      folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false,
+                      optionKeyDown: Bool = false) -> [Kind] {
         let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings, .spacesAssignmentGuide] : []
         if isFinder {
             let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds
@@ -129,8 +130,9 @@ enum DockItemMenu {
         case .stack: [.setFolderIcon]
         case nil: []
         }
+        let quitKinds: [Kind] = canQuit ? (optionKeyDown ? [.forceQuit] : [.quit, .forceQuit]) : []
         return [.open] + (hasFileURL ? [.reveal] : []) + applicationKinds + visibilityKinds + folderKinds
-            + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
+            + (canHideOthers ? [.hideOthers] : []) + quitKinds + [isPinned ? .remove : .keep]
     }
 }
 
