@@ -13,6 +13,7 @@ final class DockStore {
     private(set) var isUsingFallbackData = false
     var errorMessage: String?
     var status = ""
+    var dockFocusShortcutMessage: String?
     var isDockVisible = false {
         didSet { if oldValue != isDockVisible { saveLaunchState() } }
     }
@@ -20,6 +21,8 @@ final class DockStore {
     @ObservationIgnored private var launchStateReady = false
     @ObservationIgnored let loginItem: LoginItemController
     var runningItems: [DockItem] = []
+    @ObservationIgnored let minimizedWindowController: MinimizedWindowController
+    var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     var isEmptyingTrash = false
     @ObservationIgnored var trashInspector = TrashInspector()
@@ -30,6 +33,7 @@ final class DockStore {
         try FileManager.default.trashItem(at: url, resultingItemURL: nil)
     }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationWindowAccess = ApplicationWindowAccess.live
     @ObservationIgnored var applicationHider = ApplicationHider.live
     @ObservationIgnored var otherApplicationsHider = OtherApplicationsHider.live
     private(set) var hiddenApplicationIdentities: Set<String> = []
@@ -71,12 +75,13 @@ final class DockStore {
     let isPreview: Bool
     @ObservationIgnored private(set) lazy var itemAvailability = ItemAvailabilityMonitor { [weak self] in
         guard let self else { return [] }
-        return self.document.profiles.flatMap(\.items) + self.drafts.values.flatMap(\.items)
+        return self.document.profiles.flatMap(\.items) + self.drafts.values.flatMap(\.items) + self.recentAppItems
     }
     private let persistence: ProfilePersistence?
 
     init(persistence: ProfilePersistence? = .applicationDefault, initial: DockDocument? = nil,
          loginItem: LoginItemController? = nil) {
+        minimizedWindowController = MinimizedWindowController(provider: AccessibilityMinimizedWindowProvider())
         self.persistence = persistence
         self.loginItem = loginItem ?? LoginItemController()
         isPreview = persistence == nil
@@ -98,6 +103,7 @@ final class DockStore {
             errorMessage = "保存済みの設定を読み込めませんでした。元のファイルを保護するため、保存を停止しています。\n\(error.localizedDescription)"
         }
         loadAppearance()
+        restoreRecentAppHistory()
         restoreLaunchState()
         startTrashMonitoring()
         if !isPreview { itemAvailability.startObserving() }
@@ -111,6 +117,10 @@ final class DockStore {
 
     private var launchStateURL: URL? {
         persistence.map { LaunchRestorePersistence.url(besides: $0.fileURL) }
+    }
+
+    var recentAppHistoryURL: URL? {
+        persistence?.fileURL.deletingLastPathComponent().appendingPathComponent("recent-apps.json")
     }
 
     private func restoreLaunchState() {
@@ -270,13 +280,23 @@ final class DockStore {
 
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
-    var displayedItems: [DockItem] {
-        guard document.settings.showRunningApps else { return activeProfile.items }
+    var displayedLayout: DockSectionLayoutResult {
         var seen = Set(activeProfile.items.compactMap(\.applicationIdentity))
-        return activeProfile.items + runningItems.filter { item in
+        let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
             return seen.insert(identity).inserted
-        }
+        } : []
+        let runningIdentities = document.settings.showRunningApps
+            ? Set(runningItems.compactMap(\.applicationIdentity)) : []
+        let recent = document.settings.showRecentApps
+            ? RecentAppHistory.visibleItems(recentAppItems, excluding: seen.union(runningIdentities))
+            : []
+        return DockSectionLayout.arrange(pinned: activeProfile.items, running: running, recent: recent,
+                                         arrangement: document.settings.arrangement)
+    }
+
+    var displayedItems: [DockItem] {
+        displayedLayout.items
     }
 
     @discardableResult
@@ -354,10 +374,29 @@ final class DockStore {
 
     @discardableResult
     func updateSettings(_ settings: DockSettings) -> Bool {
+        let wasShowingRecentApps = document.settings.showRecentApps
         var candidate = document
         candidate.settings = settings
         guard commit(candidate) else { return false }
+        if wasShowingRecentApps && !settings.showRecentApps { clearRecentAppHistory() }
         if settings.mode == .native { isDockVisible = false }
+        return true
+    }
+
+    @discardableResult
+    func updateFolderContentsDisplayStyle(_ style: FolderContentsDisplayStyle, for itemID: UUID) -> Bool {
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == itemID }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderContentsDisplayStyle = style
+        guard commit(candidate) else { return false }
+        if var draft = drafts[candidate.activeProfileID],
+           let draftIndex = draft.items.firstIndex(where: { $0.id == itemID }) {
+            draft.items[draftIndex].folderContentsDisplayStyle = style
+            drafts[draft.id] = draft
+            persistDrafts()
+        }
         return true
     }
 
@@ -489,6 +528,15 @@ final class DockStore {
         editorProfile = profile
     }
 
+    func setFolderSortOrder(_ order: FolderSortOrder, for folderID: UUID) {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == folderID }) else { return }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderSortOrder = order
+        _ = commit(candidate)
+    }
+
     func moveItem(_ id: UUID, by offset: Int) {
         var profile = editorProfile
         guard let index = profile.items.firstIndex(where: { $0.id == id }),
@@ -545,6 +593,20 @@ final class DockStore {
         removeSavedItem(item.id, fromProfile: document.activeProfileID)
     }
 
+    func ejectVolume(_ item: DockItem) {
+        let ejector = VolumeEjector()
+        guard ejector.isEjectable(item), let url = item.targetURL else {
+            errorMessage = "\(item.name) は取り出し可能なディスクではありません。"
+            return
+        }
+        do {
+            try ejector.ejectVolume(at: url)
+            status = "\(item.name) を取り出しました"
+        } catch {
+            errorMessage = "\(item.name) を取り出せませんでした。使用中の項目を閉じてから、もう一度お試しください。\n\(error.localizedDescription)"
+        }
+    }
+
     @discardableResult
     func removeSavedItem(_ id: UUID, fromProfile profileID: UUID) -> Bool {
         var candidate = document
@@ -581,14 +643,29 @@ final class DockStore {
             reportDropFailure(rejected: rejected)
             return (0, rejected)
         }
-        let position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
-        candidate.profiles[profileIndex].items.insert(contentsOf: items, at: position)
+        var position = min(max(index, 0), candidate.profiles[profileIndex].items.count)
+        let insertionStartPosition = position
+        for item in items {
+            if document.settings.arrangement == .standardSections {
+                position = DockSectionLayout.insertionIndex(for: item, in: candidate.profiles[profileIndex].items)
+            }
+            candidate.profiles[profileIndex].items.insert(item, at: position)
+            position += 1
+        }
         guard commit(candidate) else { return (0, rejected) }
         let profileID = candidate.profiles[profileIndex].id
         if var draft = drafts[profileID] {
-            let anchor = position > 0 ? candidate.profiles[profileIndex].items[position - 1].id : nil
-            let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
-            draft.items.insert(contentsOf: items, at: draftPosition)
+            if document.settings.arrangement == .standardSections {
+                for item in items {
+                    let draftPosition = DockSectionLayout.insertionIndex(for: item, in: draft.items)
+                    draft.items.insert(item, at: draftPosition)
+                }
+            } else {
+                let anchor = insertionStartPosition > 0
+                    ? candidate.profiles[profileIndex].items[insertionStartPosition - 1].id : nil
+                let draftPosition = anchor == nil ? 0 : (draft.items.firstIndex { $0.id == anchor }.map { $0 + 1 } ?? draft.items.count)
+                draft.items.insert(contentsOf: items, at: draftPosition)
+            }
             drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
             persistDrafts()
         }

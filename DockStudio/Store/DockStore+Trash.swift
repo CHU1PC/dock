@@ -9,6 +9,14 @@ extension DockStore {
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash")
     }
 
+    var trashStateGuidance: String {
+        "Finder の項目数を読み取れないため、ゴミ箱の状態を確認できません。システム設定の「プライバシーとセキュリティ」＞「オートメーション」で、Dock Studio から Finder への操作を許可してください。"
+    }
+
+    func explainTrashState() {
+        errorMessage = trashStateGuidance
+    }
+
     static func hoverableItems(_ items: [DockItem]) -> [DockItem] { items + [trashItem] }
 
     func startTrashMonitoring() {
