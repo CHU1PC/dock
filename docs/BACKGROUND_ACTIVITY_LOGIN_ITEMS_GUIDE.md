@@ -25,9 +25,9 @@
 
 ## 自動テスト
 
-`/private/tmp/cw/run-check.sh 134 test` を実行し、337 件のテストが成功した。メニューの文言と、選択時にログイン項目画面を開く処理へ進むことを単体テストで確認した。設定画面そのものは開いていない。
+`/private/tmp/cw/run-check.sh 134 test` を実行し、origin/main を取り込んだ後に 340 件のテストが成功した。メニューの文言と、選択時にログイン項目画面を開く処理へ進むことを単体テストで確認した。設定画面そのものは開いていない。
 
-`/private/tmp/cw/run-check.sh 134 release` は `BUILD SUCCEEDED` で終了した。`/private/tmp/cw/run-check.sh 134 testbuild` は `TEST BUILD SUCCEEDED` で終了した。
+origin/main 取り込み後の `/private/tmp/cw/run-check.sh 134 release` は `BUILD SUCCEEDED` で終了した。取り込み前の `/private/tmp/cw/run-check.sh 134 testbuild` は `TEST BUILD SUCCEEDED` で終了した。
 
 ## 撮影の手順
 
