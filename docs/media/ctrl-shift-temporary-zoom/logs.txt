@@ -1,0 +1,37 @@
+# off-log
+saved magnification="magnification": false
+hover only, no keys:      Finder 74.000000x73.000000      Calculator 74.000000x73.000000      TextEdit 74.000000x73.000000 
+HOLD Ctrl+Shift (t~4s):      Finder 91.000000x90.000000      Calculator 113.000000x111.000000      TextEdit 91.000000x90.000000 
+after release:      Finder 74.000000x73.000000      Calculator 74.000000x73.000000      TextEdit 74.000000x73.000000 
+appearance.json after: { "magnification": false, "magnificationScale": 1.6, "reduceMotion": false }
+
+# on-log
+panel: onscreen=1 x563 y819 w473 h184
+calc rect: 720.000000 912.000000 74.000000 73.000000
+## 6 saved=true: hover only:      Finder 91.000000x90.000000      Calculator 112.000000x111.000000      TextEdit 92.000000x90.000000 
+HOLD Ctrl+Shift:      Finder 74.000000x73.000000      Calculator 74.000000x73.000000      TextEdit 74.000000x73.000000 
+after release:      Finder 91.000000x90.000000      Calculator 112.000000x111.000000      TextEdit 92.000000x90.000000 
+appearance.json: { "magnification": true, "magnificationScale": 1.6, "reduceMotion": false }
+
+# on-left-log
+## 6: saved magnification=true, bottom
+hover only: 
+HOLD Ctrl+Shift: 
+after release: 
+## 7: saved=false, left position, reduceMotion=true
+windows: x10 y337 w438 h357
+calc rect: 73.000000 438.000000 64.000000 83.000000
+hover only:      Finder 64.000000x83.000000      Calculator 64.000000x83.000000      TextEdit 64.000000x83.000000 
+HOLD Ctrl+Shift (left, reduceMotion):      Finder 82.000000x100.000000      Calculator 102.000000x122.000000      TextEdit 82.000000x100.000000 
+after release:      Finder 64.000000x83.000000      Calculator 64.000000x83.000000      TextEdit 64.000000x83.000000 
+## 8: hold then move pointer out of the Dock
+holding:      Finder 82.000000x100.000000      Calculator 102.000000x122.000000      TextEdit 82.000000x100.000000 
+pointer outside, keys still held:      Finder 64.000000x83.000000      Calculator 64.000000x83.000000      TextEdit 64.000000x83.000000 
+
+# std-log
+std magnification=0
+std Dock items: 
+hover Safari, no keys: 
+HOLD Ctrl+Shift: 
+after release: 
+

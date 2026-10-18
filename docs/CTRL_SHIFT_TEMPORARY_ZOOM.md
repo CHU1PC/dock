@@ -84,3 +84,22 @@
 8. Control と Shift を保持したまま別アプリへ切り替える、ポインタを Dock の外へ出す、Dock を隠す操作をそれぞれ行い、一時状態が解除されることを確認する。
 
 撮影する画像は、拡大が一時的に有効な状態と無効な状態、左右配置と Reduce Motion の状態、設定ファイルが変化していないことを示す画面にする。動画は Control と Shift の押下、保持中、解放後の変化が一続きで分かるものにする。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `6c08341` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `5f1bc84c3b8ee6e721040378c5e469f7c19d37fd2868673c76af0e1d89974169` と一致した。Finder、Calculator、TextEdit のプロファイル、アイコン 64、拡大倍率 1.6。Control と Shift は、本物のキーダウン（Control、Shift の順）を先に送り、押したまま保持し、キーアップした。拡大は、AX のボタンの寸法（幅x高さ）で測った。ログは[logs.txt](media/ctrl-shift-temporary-zoom/logs.txt)にある。
+
+| 条件 | ホバーだけ | Control+Shift 保持中 | 離した後 |
+| --- | --- | --- | --- |
+| 保存設定 `magnification: false`、下配置 | 全アイコン 74x73 | Calculator 113x111、Finder と TextEdit 91x90（**拡大が有効になった**） | 74x73 に戻った。`appearance.json` は変わらず |
+| 保存設定 `magnification: true`、下配置 | Calculator 112x111 など（拡大中） | 全アイコン 74x73（**一時的に無効になった**） | 拡大に戻った。`appearance.json` は変わらず |
+| 保存設定 false、左配置、Reduce Motion 有効 | 64x83 | Calculator 102x122、ほか 82x100（拡大が有効） | 64x83 に戻った |
+| 保持したままポインタを Dock の外へ出す（左配置） | 保持中に拡大 | 外へ出ると 64x83 に戻った（一時状態が解除された） | — |
+
+画像と動画: [下配置の保持中（画像）](media/ctrl-shift-temporary-zoom/panel-hold-ctrl-shift-bottom-crop.jpg)（全体は[こちら](media/ctrl-shift-temporary-zoom/panel-hold-ctrl-shift-bottom-full.jpg)）、[動画](media/ctrl-shift-temporary-zoom/custom-dock-ctrl-shift-hold.mp4)（8fps。押下、保持、解放まで）。
+
+確認できなかったこと、手順との違い:
+- 右配置、別アプリへ切り替えたときの解除、Dock を隠したときの解除は、撮影していない。左配置の撮影は寸法の測定だけで、画像は撮っていない。
+- パネルは「設定」タブにしたが、保存設定 true の場合の画像は撮っていない（寸法のログのみ）。
+
+標準 Dock の同じ操作（標準 Dock の `magnification` は無効、アイコンのホバー中に同じ Control+Shift の保持を送った）: [動画](media/ctrl-shift-temporary-zoom/standard-dock-ctrl-shift-hold.mp4)、[コマ](media/ctrl-shift-temporary-zoom/standard-dock-frames.png)のとおり、**アイコンの拡大は観察できなかった**（ラベルは出るが、大きさは変わらない）。ただし、AX による大きさの測定は、標準 Dock の AX の構造に合わず、値が取れなかった。合成したキーが標準 Dock に届いたかは不明で、標準 Dock の挙動としては結論できない。撮影後、標準 Dock の設定は元に戻した。
