@@ -1,0 +1,28 @@
+# 第1回（ショートカット 1回目は効かなかった）
+menu item key equivalent (System Events):
+Custom Dock の表示を切り替える, K, 14
+start: panel-onscreen=1
+after Ctrl+Option+K #1: panel-onscreen=1
+after Ctrl+Option+K #2: panel-onscreen=false
+
+# 第2回
+front=DockStudio start: panel-onscreen=false
+Ctrl+Option+K #1: panel-onscreen=false | toggle-button=1
+Ctrl+Option+K #2: panel-onscreen=1 | toggle-button=1
+Ctrl+Option+K #3: panel-onscreen=false | toggle-button=1
+Ctrl+Option+K #4: panel-onscreen=1 | toggle-button=1
+
+# 標準 Dock の Command+Option+D
+panel before: panel-onscreen=1; standard Dock autohide before: 1
+after Command+Option+D #1: panel: panel-onscreen=1; standard Dock autohide: 0
+after Command+Option+D #2: panel: panel-onscreen=1; standard Dock autohide: 1
+
+# 自動非表示
+1
+Press 設定 result 0
+Press 使用していないときに隠す result 0
+owner=Dock Studio id=5780 layer=21 alpha=1 onscreen=1 name= bounds=x615 y829 w370 h174
+autohide on, pointer away: onscreen=1 bounds=x615 y829 w370 h174 | "autoHide" : true
+key #1 (collapsed -> expect shown?): onscreen=false bounds=x615 y829 w370 h174 | "autoHide" : true
+key #2: onscreen=1 bounds=x615 y829 w370 h174 | "autoHide" : true
+key #3: onscreen=false bounds=x615 y829 w370 h174 | "autoHide" : true
