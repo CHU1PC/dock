@@ -376,6 +376,23 @@ final class DockStore {
         return true
     }
 
+    @discardableResult
+    func updateFolderContentsDisplayStyle(_ style: FolderContentsDisplayStyle, for itemID: UUID) -> Bool {
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == itemID }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderContentsDisplayStyle = style
+        guard commit(candidate) else { return false }
+        if var draft = drafts[candidate.activeProfileID],
+           let draftIndex = draft.items.firstIndex(where: { $0.id == itemID }) {
+            draft.items[draftIndex].folderContentsDisplayStyle = style
+            drafts[draft.id] = draft
+            persistDrafts()
+        }
+        return true
+    }
+
     var effectiveIconSize: Double { transientIconSize ?? document.settings.iconSize }
     var effectiveRevealAnimationDuration: Double { transientRevealAnimationDuration ?? document.settings.revealAnimationDuration }
     var isDockEffectivelyVisible: Bool { isDockVisible && document.settings.mode != .native }
