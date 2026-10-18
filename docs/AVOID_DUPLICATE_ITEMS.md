@@ -12,9 +12,24 @@
 
 ## 未検証
 
-標準 Dock が、アプリ、フォルダ、ファイルのそれぞれで、重複をどう扱うかは、まだ確認していない（この担当は VM を使わない）。`deduplicatedKinds` をアプリだけにしたのは、暫定の判断になる。撮影の担当が、下の手順の「標準 Dock の確認」で挙動を記録し、結果が違えば `deduplicatedKinds` を直す。
+標準 Dock が、アプリ、フォルダ、ファイルのそれぞれで、重複をどう扱うかは、確認できていない（VM で試したが、合成したドラッグでは標準 Dock に追加されなかった。上の「実画面の確認」を参照）。`deduplicatedKinds` をアプリだけにしたのは、暫定の判断になる。撮影の担当が、下の手順の「標準 Dock の確認」で挙動を記録し、結果が違えば `deduplicatedKinds` を直す。
 
 利用者への通知は `status` に入れただけで、画面のどこにどう見えるかは未確認になる。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `ce66c90` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `ceb40da6e9ee0525306703848901b8bf7621bcd81c1687cbdd00dad1c0a2e11e` と一致した。空のディレクトリを `DOCKSTUDIO_DATA_DIR` に指定して起動した（ゲストの言語は日本語で、既定のプロファイル「仕事」から始まる）。ドラッグはゲスト内の CGEvent で合成した。
+
+確認できたこと:
+
+- Finder の Applications から Calculator をデスクトップ用パネルへドロップすると、1 つ追加された。同じ Calculator をもう一度ドロップしても、追加されなかった。保存ファイルの「仕事」は、Finder、Safari、メール、ターミナル、Calculator、スペーサーで、Calculator は 1 件だった（[profiles-after-two-drops.json](media/avoid-duplicate-items/profiles-after-two-drops.json)、[動画](media/avoid-duplicate-items/drop-twice-same-app.mp4)、[after-two-drops.jpg](media/avoid-duplicate-items/after-two-drops.jpg)）。
+
+確認できなかったこと:
+
+- **標準 Dock の重複の扱いは、確認できなかった**（[standard-dock-attempt.txt](media/avoid-duplicate-items/standard-dock-attempt.txt)）。合成したドラッグでは、Calculator が標準 Dock に追加されなかった（`persistent-apps` は 18 件のまま）。アプリ、フォルダ、ファイルのどれも、標準 Dock の結果を記録できていない。このため `deduplicatedKinds` をアプリだけにした判断の根拠は、まだ得られていない。
+- 重複を避けたときの通知（「○○ は既に Dock にあるため、追加しませんでした」）の文言は、画像で確認できなかった。Finder のウィンドウが、状態の表示を隠した。
+- 「アプリ…」での重複の確認（手順 4）は、撮影していない。
+- 撮影後、ゲストの標準 Dock の設定は、`defaults import` で元に戻した。
 
 ## 自動テスト
 
