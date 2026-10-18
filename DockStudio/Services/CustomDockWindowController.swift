@@ -70,6 +70,7 @@ final class CustomDockWindowController {
     private let store: DockStore
     private let panel: NSPanel
     private let layout = DockPanelLayout()
+    private let globalFocusShortcut: GlobalDockFocusShortcutController
     private var observers: [NSObjectProtocol] = []
     private var timer: Timer?
     private var visibility = DockVisibilityState()
@@ -82,6 +83,7 @@ final class CustomDockWindowController {
 
     init(store: DockStore) {
         self.store = store
+        globalFocusShortcut = GlobalDockFocusShortcutController(store: store)
         panel = DockPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "Dock Studio — Custom Dock"
         panel.isFloatingPanel = true
@@ -247,6 +249,7 @@ final class CustomDockWindowController {
     }
 
     private func update() {
+        globalFocusShortcut.update(shortcut: store.document.settings.dockFocusShortcut)
         updateVisibility()
         panel.appearance = store.appearance.colorMode.nsAppearance
         if store.dockKeyboardExitRequested {
