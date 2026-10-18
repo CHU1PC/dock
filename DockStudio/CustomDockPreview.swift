@@ -452,12 +452,14 @@ extension DockBar {
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
                                        isFinder: FinderDockEntry.isFinder(item),
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
-                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
+                                       isApplication: item.kind == .application)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+                case .openLoginItemsSettings: store.loginItem.openSystemSettings()
                 case .hide, .show: store.toggleApplicationVisibility(item)
                 case .hideOthers: store.hideOthers(of: item)
                 case .quit: store.quitApplication(item)
