@@ -23,6 +23,13 @@ private final class FakeLoginItemService: LoginItemService {
 
 @MainActor
 final class LoginRestoreTests: XCTestCase {
+    private func makePreferences() -> UserDefaults {
+        let suiteName = "LoginRestoreTests.\(UUID().uuidString)"
+        let preferences = UserDefaults(suiteName: suiteName)!
+        addTeardownBlock { preferences.removePersistentDomain(forName: suiteName) }
+        return preferences
+    }
+
     private func makeDirectory() -> URL {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
@@ -69,6 +76,41 @@ final class LoginRestoreTests: XCTestCase {
         service.status = .notRegistered
         controller.refresh()
         XCTAssertFalse(controller.isOn)
+        XCTAssertNil(controller.message)
+    }
+
+    func testLoginItemStateDistinguishesIntentionalUnregisterFromSystemDisablement() {
+        XCTAssertEqual(LoginItemState.resolve(status: .notRegistered, userEnabled: false), .disabled)
+        XCTAssertEqual(LoginItemState.resolve(status: .notRegistered, userEnabled: true), .disabledBySystem)
+        XCTAssertEqual(LoginItemState.resolve(status: .requiresApproval, userEnabled: true), .requiresApproval)
+        XCTAssertEqual(LoginItemState.resolve(status: .requiresApproval, userEnabled: false), .requiresApproval)
+        XCTAssertEqual(LoginItemState.resolve(status: .enabled, userEnabled: false), .enabled)
+        XCTAssertFalse(LoginItemState.disabled.shouldOpenSystemSettings)
+        XCTAssertTrue(LoginItemState.disabledBySystem.shouldOpenSystemSettings)
+        XCTAssertTrue(LoginItemState.requiresApproval.shouldOpenSystemSettings)
+    }
+
+    func testSystemDisablementAfterRegistrationIsPersistedAndExplained() {
+        let service = FakeLoginItemService()
+        let preferences = makePreferences()
+        let controller = LoginItemController(service: service, preferences: preferences)
+        controller.setEnabled(true)
+
+        service.status = .notRegistered
+        let refreshed = LoginItemController(service: service, preferences: preferences)
+
+        XCTAssertEqual(refreshed.state, .disabledBySystem)
+        XCTAssertFalse(refreshed.isOn)
+        XCTAssertTrue(refreshed.message?.contains("システム設定") == true)
+    }
+
+    func testIntentionalUnregisterClearsPersistedEnabledPreference() {
+        let service = FakeLoginItemService()
+        let controller = LoginItemController(service: service, preferences: makePreferences())
+        controller.setEnabled(true)
+        controller.setEnabled(false)
+
+        XCTAssertEqual(controller.state, .disabled)
         XCTAssertNil(controller.message)
     }
 
@@ -119,12 +161,14 @@ final class LoginRestoreTests: XCTestCase {
         let store = makeStore(directory)
         var settings = store.document.settings
         settings.autoHide = true
+        settings.displayID = 202
         XCTAssertTrue(store.updateSettings(settings))
         store.activateProfile(store.document.profiles[1].id)
         store.isDockVisible = true
         let reloaded = makeStore(directory)
         XCTAssertTrue(reloaded.isDockVisible)
         XCTAssertTrue(reloaded.document.settings.autoHide)
+        XCTAssertEqual(reloaded.document.settings.displayID, 202)
         XCTAssertEqual(reloaded.document.activeProfileID, store.document.activeProfileID)
     }
 
