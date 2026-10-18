@@ -288,6 +288,8 @@ extension DockBar {
         }
         Rectangle().fill(.primary.opacity(0.45))
             .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+            .contentShape(Rectangle())
+            .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: store.effectiveIconSize * scale, style: store.appearance.iconStyle,
