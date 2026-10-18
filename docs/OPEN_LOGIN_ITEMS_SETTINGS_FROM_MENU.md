@@ -16,9 +16,9 @@ DockStudio 自身のログイン時起動は、従来どおり「設定」>「�
 
 | 確認 | 結果 |
 | --- | --- |
-| `swift test` | 334件すべて成功した（追加分 `HideOthersTests` は1件） |
+| `swift test` | 337件すべて成功した（追加分 `HideOthersTests` は1件） |
 | Release ビルド | 成功した |
-| `build-for-testing` | 成功した |
+| `build-for-testing` | 337件を含むテストターゲットのビルドに成功した |
 
 ## 未検証
 

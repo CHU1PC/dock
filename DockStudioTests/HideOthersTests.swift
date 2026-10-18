@@ -56,7 +56,7 @@ final class HideOthersTests: XCTestCase {
     func testLoginItemsSettingsIsOnlyOfferedForApplicationItems() {
         let applicationKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: false, isPinned: false,
                                                   isApplication: true)
-        XCTAssertTrue(applicationKinds.contains(.openLoginItemsSettings))
+        XCTAssertEqual(applicationKinds, [.open, .reveal, .openLoginItemsSettings, .keep])
         XCTAssertEqual(DockItemMenu.Kind.openLoginItemsSettings.title, "システム設定のログイン項目を開く")
         XCTAssertFalse(DockItemMenu.Kind.openLoginItemsSettings.isAccessibilityAction)
 
