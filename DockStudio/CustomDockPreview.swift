@@ -64,6 +64,7 @@ struct DockBar: View {
     @Environment(DockStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var hovered: UUID?
+    @State private var barSize: CGSize = .zero
     let vertical: Bool
     var isPanel = false
     private var motion: Animation? {
@@ -111,6 +112,8 @@ struct DockBar: View {
             .scrollIndicators(.hidden)
             .scrollClipDisabled()
         }
+        .coordinateSpace(name: DockDragOutRemoval.space)
+        .onGeometryChange(for: CGSize.self, of: \.size) { barSize = $0 }
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
         .onChange(of: store.document.settings.position) { hovered = nil }
@@ -178,6 +181,9 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
+        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, barSize: barSize) {
+            store.removeFromActiveProfile(item)
+        })
         .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
         .onHover { if $0 { hovered = item.id } }
     }
