@@ -282,7 +282,8 @@ final class DockStore {
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
     var displayedLayout: DockSectionLayoutResult {
-        var seen = Set(activeProfile.items.compactMap(\.applicationIdentity))
+        let pinnedItems = FinderDockEntry.displayedItems(activeProfile.items, enabled: document.settings.finderEntryEnabled)
+        var seen = Set(pinnedItems.compactMap(\.applicationIdentity))
         let running = document.settings.showRunningApps ? runningItems.filter { item in
             guard let identity = item.applicationIdentity else { return false }
             return seen.insert(identity).inserted
@@ -292,7 +293,7 @@ final class DockStore {
         let recent = document.settings.showRecentApps
             ? RecentAppHistory.visibleItems(recentAppItems, excluding: seen.union(runningIdentities))
             : []
-        return DockSectionLayout.arrange(pinned: activeProfile.items, running: running, recent: recent,
+        return DockSectionLayout.arrange(pinned: pinnedItems, running: running, recent: recent,
                                          arrangement: document.settings.arrangement)
     }
 
@@ -588,7 +589,8 @@ final class DockStore {
     }
 
     func isPinned(_ item: DockItem) -> Bool {
-        activeProfile.items.contains { $0.id == item.id }
+        (document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)) ||
+            activeProfile.items.contains { $0.id == item.id }
     }
 
     @discardableResult
