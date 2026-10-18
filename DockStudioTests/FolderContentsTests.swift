@@ -123,6 +123,28 @@ final class FolderContentsTests: XCTestCase {
         XCTAssertTrue(FolderFanLayout.positions(count: 0, width: 256, height: 180).isEmpty)
     }
 
+    func testAutomaticFolderStyleUsesItemCountAndDockPosition() {
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 0, position: .bottom), .list)
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 1, position: .bottom), .fan)
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 8, position: .bottom), .fan)
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 9, position: .bottom), .grid)
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 1, position: .left), .list)
+        XCTAssertEqual(FolderContentsAutomaticStyle.resolve(itemCount: 20, position: .right), .list)
+    }
+
+    func testAutomaticFolderStylePersistsAndLegacyGridPreferenceIsPreserved() throws {
+        var automatic = DockItem(name: "Automatic", kind: .folder)
+        automatic.folderContentsDisplayStyle = .automatic
+        let restoredAutomatic = try JSONDecoder().decode(
+            DockItem.self, from: JSONEncoder().encode(automatic)
+        )
+        XCTAssertEqual(restoredAutomatic.effectiveFolderContentsDisplayStyle, .automatic)
+
+        var legacyGrid = DockItem(name: "Grid", kind: .folder)
+        legacyGrid.folderDisplayMode = .grid
+        XCTAssertEqual(legacyGrid.effectiveFolderContentsDisplayStyle, .grid)
+    }
+
     func testOlderFolderItemDecodesWithDefaultDisplayStyle() throws {
         let data = Data("""
         {"id":"00000000-0000-0000-0000-000000000001","name":"Folder","kind":"folder","target":"file:///tmp/"}
