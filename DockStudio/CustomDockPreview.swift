@@ -72,7 +72,7 @@ struct DockBar: View {
 
     var body: some View {
         let items = store.displayedItems
-        let hoverIndex = (items + [DockStore.trashItem]).firstIndex { $0.id == hovered }
+        let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
         ZStack(alignment: vertical ? .center : .bottom) {
             DockBackdrop(appearance: store.appearance)
@@ -114,18 +114,12 @@ struct DockBar: View {
         }
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { hovered = nil }
-        .task {
-            while !Task.isCancelled {
-                await store.refreshTrash()
-                try? await Task.sleep(for: .seconds(2))
-            }
-        }
         .onChange(of: store.document.settings.position) { hovered = nil }
         .onHover { if !$0 { hovered = nil } }
         .onChange(of: store.isDockPointerInside) { if isPanel && !store.isDockPointerInside { hovered = nil } }
         .overlayPreferenceValue(DockItemFrames.self) { frames in
             GeometryReader { geometry in
-                if let labelID = hovered, let anchor = frames[labelID], let item = (items + [DockStore.trashItem]).first(where: { $0.id == labelID }) {
+                if let labelID = hovered, let anchor = frames[labelID], let item = DockStore.hoverableItems(items).first(where: { $0.id == labelID }) {
                     let frame = geometry[anchor]
                     let measured = (item.name as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12, weight: .medium)]).width + 20
                     let width = DockLabelPlacement.width(measured: measured, available: vertical ? DockLabelPlacement.maxWidth : geometry.size.width - 16)
@@ -395,7 +389,7 @@ enum DockMetrics {
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        let total = itemsTotal + 21 + store.effectiveIconSize
+        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
         let reserve = store.appearance.magnification ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
     }

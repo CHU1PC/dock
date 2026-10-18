@@ -85,4 +85,15 @@ final class TrashItemTests: XCTestCase {
         XCTAssertFalse(store.displayedItems.contains { $0.id == DockStore.trashItem.id })
         XCTAssertFalse(store.isPinned(DockStore.trashItem))
     }
+
+    func testStoreIsReleasedWhileMonitoringTrash() async throws {
+        weak var released: DockStore?
+        do {
+            let store = DockStore(persistence: ProfilePersistence(fileURL: root.appendingPathComponent("m.json")))
+            XCTAssertNotNil(store.trashMonitor)
+            released = store
+        }
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertNil(released)
+    }
 }

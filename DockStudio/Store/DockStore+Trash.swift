@@ -9,6 +9,22 @@ extension DockStore {
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash")
     }
 
+    static func hoverableItems(_ items: [DockItem]) -> [DockItem] { items + [trashItem] }
+
+    func startTrashMonitoring() {
+        guard !isPreview else { return }
+        trashMonitor = Task { [weak self] in
+            while !Task.isCancelled {
+                guard await self?.pollTrash() != nil else { return }
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
+    }
+
+    private func pollTrash() async {
+        if isDockEffectivelyVisible { await refreshTrash() }
+    }
+
     func refreshTrash() async {
         let inspector = trashInspector
         let state = await Task.detached(priority: .utility) { inspector.state() }.value
