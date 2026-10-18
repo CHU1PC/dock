@@ -7,7 +7,7 @@ GitHub issue #16 の実装になる。通常終了（#15、`docs/QUIT_APP_FROM_M
 起動中のアプリの項目の右クリックメニューに「強制終了…」を追加した。VoiceOver のアクセシビリティアクションにも同じ「強制終了…」がある。
 
 - 強制終了は `NSRunningApplication.forceTerminate()` を使う。通常終了の `terminate()` とは別のメニュー項目で、別の経路になる。
-- 出る条件は「終了」と同じで、`canQuitApplication` が true の項目だけになる。未起動のアプリ、フォルダ、ファイル、リンク、時計、タイマー、Finder、Dock Studio 自身には出ない。
+- 出る条件は「終了」と同じで、`canQuitApplication` が true の項目だけになる。未起動のアプリ、フォルダ、ファイル、リンク、時計、タイマー、Finder、Dock Studio 自身には出ない。Finder を強制終了すると利用者がデスクトップを失い、標準の Dock も Finder には強制終了を出さない（Option で「再度開く」になる）ため、`ApplicationQuitter` の除外（Finder と自身）をそのまま使う。「終了」と「強制終了…」は同じ `canQuitApplication` で出し分けるので、Finder に出る経路は無い。
 - 選ぶと確認ダイアログを出す。見出しは「「○○」を強制終了しますか？」、本文は「未保存の変更は失われます。通常の終了で終わらない場合にだけ使ってください。」になる。ボタンは「強制終了」と「キャンセル」で、キャンセルすると何もしない。
 - 確認後に `forceTerminate()` を呼ぶ。同じ bundle identifier のインスタンスすべてに要求し、1つでも受理されれば「○○ に強制終了を要求しました」を出す。すべて拒否された場合はエラーを出す。
 - 終了したとは表示しない。起動中の表示は、既存の終了通知（`didTerminateApplication`）で更新する。
@@ -24,7 +24,7 @@ GitHub issue #16 の実装になる。通常終了（#15、`docs/QUIT_APP_FROM_M
 
 | 項目 | 結果 |
 | --- | --- |
-| `swift test` | 152件すべて成功した（追加分は `ApplicationQuitTests` の10件） |
+| `swift test` | 152件すべて成功した（追加分は `ApplicationQuitTests` の11件） |
 | Release ビルド | 成功した |
 | `build-for-testing` | 成功した |
 
@@ -35,8 +35,9 @@ GitHub issue #16 の実装になる。通常終了（#15、`docs/QUIT_APP_FROM_M
 - 拒否された場合はエラーを返す。同じ bundle identifier の全インスタンスに要求する。
 - 確認でキャンセルすると呼ばれず、確認後に1回呼ばれる。起動中でない項目では確認自体を出さない。
 - 確認の本文に「未保存」が含まれる。
+- Finder は `canQuitApplication` が false で、`forceQuitApplication` を呼んでも確認も `forceTerminate()` も起きない。
 
-未検証: 実画面でのメニューの見え方、確認ダイアログの表示、実際のアプリが強制終了する挙動、VoiceOver のアクション。
+未検証: 実画面でのメニューの見え方、確認ダイアログの画面（撮影できておらず、文言だけを単体テストで縛っている。AX 上には存在を確認した）、実際のアプリが強制終了する挙動、VoiceOver のアクション。
 
 ## 実画面の確認（専用ヘッドレス VM）
 

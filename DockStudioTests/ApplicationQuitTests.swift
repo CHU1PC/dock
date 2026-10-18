@@ -204,4 +204,17 @@ final class ApplicationQuitTests: XCTestCase {
     func testConfirmationTextWarnsAboutUnsavedData() {
         XCTAssertTrue(ForceQuitConfirmation.informativeText.contains("未保存"))
     }
+
+    func testStoreNeverOffersOrRunsForceQuitForFinder() {
+        let finder = FakeApplication("com.apple.finder")
+        let store = store([finder])
+        var asked = 0
+        store.confirmForceQuit = { _ in asked += 1; return true }
+        let item = app("com.apple.finder")
+        store.runningItems = [item]
+        XCTAssertFalse(store.canQuitApplication(item))
+        store.forceQuitApplication(item)
+        XCTAssertEqual(asked, 0)
+        XCTAssertEqual(finder.forceTerminateCalls + finder.terminateCalls, 0)
+    }
 }
