@@ -1,0 +1,13 @@
+before: front=Finder panel onscreen=false
+after Ctrl+Opt+Cmd+D: front=DockStudio panel onscreen=1 focused: role=AXScrollArea title= desc=
+Right: focused: role=AXScrollArea title= desc=
+Escape: front=Finder panel onscreen=1 focused: role=AXWindow title=Dock Studio — Custom Dock desc=
+
+  "dockFocusShortcut": "controlOptionCommandK"
+D (should NOT focus): before=Finder 
+  after D: front=Finder 
+K: before=Finder onscreen=false
+  after K: front=DockStudio onscreen=1 focused: role=AXScrollArea title= desc=
+
+std: autohide=0 orientation=bottom
+front-before=Finder

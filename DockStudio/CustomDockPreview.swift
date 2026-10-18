@@ -107,6 +107,10 @@ struct DockBar: View {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
                         }
+                        MinimizedWindowsDockSection(vertical: vertical, iconSize: store.effectiveIconSize,
+                                                    iconStyle: store.appearance.iconStyle,
+                                                    controller: store.minimizedWindowController,
+                                                    enabled: isPanel && store.isDockVisible)
                         trashSection(index: items.count, hoveredIndex: hoverIndex)
                     }
                 }
@@ -283,9 +287,14 @@ struct DockBar: View {
         .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
-                                                                           thickness: DockMetrics.barThickness(for: store))) {
+                                                                           thickness: DockMetrics.barThickness(for: store)),
+                                  onRemove: {
             store.removeFromActiveProfile(item)
-        })
+        }, isEjectable: {
+            VolumeEjector().isEjectable(item)
+        }, onEject: {
+            store.ejectVolume(item)
+        }))
         .onHover { if $0 { hovered = item.id } }
     }
 
@@ -347,8 +356,14 @@ extension DockBar {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.name)
-            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
-            .contextMenu { Button("開く") { store.openTrash() } }
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : store.trashStateGuidance)
+            .help(state == .unknown ? store.trashStateGuidance : "")
+            .contextMenu {
+                Button("開く") { store.openTrash() }
+                if state == .unknown {
+                    Button("状態の確認方法") { store.explainTrashState() }
+                }
+            }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, 5)
@@ -638,7 +653,7 @@ struct ItemIcon: View {
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
             } else if let url = item.targetURL, url.isFileURL {
-                Image(nsImage: DockIconRenderer.image(url: url, style: style, scheme: colorScheme))
+                Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
             } else {
                 Image(systemName: symbol ?? item.kind.symbol)
@@ -730,7 +745,8 @@ enum DockMetrics {
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        let total = itemsTotal + (10 + 11) + (10 + store.effectiveIconSize)
+        let minimizedWindows = Double(store.minimizedWindowController.windows.count) * (10 + store.effectiveIconSize)
+        let total = itemsTotal + minimizedWindows + (10 + 11) + (10 + store.effectiveIconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
