@@ -1,0 +1,29 @@
+# パネル（Dock Studio）の操作ログ。C1 から C5 が有効な結果。前の 2 回（seq-log、seq-log2）は、クリックの座標が外れていた可能性が高い失敗
+C1 plain click (guest-input) on non-front Calculator (TextEdit front)
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true 
+C2 Option click on front Calculator (prev TextEdit), real Option key
+  -> front=TextEdit | TextEdit=true Calculator=false DockStudio=true Finder=true 
+C3 Option click on non-front Calculator (TextEdit front), real Option key
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true 
+C4 plain click on front Calculator (guest-input)
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true 
+C5 Command click on Calculator (Finder reveal)
+  -> front=Finder | TextEdit=true Calculator=true DockStudio=true Finder=true 
+
+# 失敗した試行（座標 700,948 または合成クリックが当たらなかった）
+start: front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true   (previous app = TextEdit)
+1 Option click on front app Calculator
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true  | pids: TextEdit=31637 Calculator=31639
+2 plain click on front app Calculator
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true  | pids: TextEdit=31637 Calculator=31639
+3 Option click on non-front Calculator (TextEdit front)
+  -> front=TextEdit | TextEdit=true Calculator=true DockStudio=true Finder=true  | pids: TextEdit=31637 Calculator=31639
+4 Command click on Calculator (Finder reveal)
+  -> front=TextEdit | TextEdit=true Calculator=true DockStudio=true Finder=true  | pids: TextEdit=31637 Calculator=31639
+B1 plain click on non-front Calculator (TextEdit front)
+  -> front=TextEdit | TextEdit=true Calculator=true DockStudio=true Finder=true 
+B2 Option click on front Calculator, retry (prev=TextEdit)
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true 
+B3 Option click on front Calculator, flag-only (no real key)
+st: no such file or directory: /Users/admin/DockStudioVerification/guest-flagclick
+  -> front=Calculator | TextEdit=true Calculator=true DockStudio=true Finder=true 
