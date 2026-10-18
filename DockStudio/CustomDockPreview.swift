@@ -297,8 +297,14 @@ extension DockBar {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.name)
-            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : "状態を確認できません")
-            .contextMenu { Button("開く") { store.openTrash() } }
+            .accessibilityValue(state == .empty ? "空" : state == .hasItems ? "項目あり" : store.trashStateGuidance)
+            .help(state == .unknown ? store.trashStateGuidance : "")
+            .contextMenu {
+                Button("開く") { store.openTrash() }
+                if state == .unknown {
+                    Button("状態の確認方法") { store.explainTrashState() }
+                }
+            }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, 5)
