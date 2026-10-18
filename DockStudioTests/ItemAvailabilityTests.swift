@@ -39,7 +39,7 @@ final class ItemAvailabilityTests: XCTestCase {
         XCTAssertEqual(checker(["/Volumes/Disk": 0, path: 0]).check(item(path: path)), .available)
     }
 
-    func testVolumeRootItselfMissingIsVolumeNotMounted() {
+    func testMissingVolumeRootItselfIsMissingNotVolumeNotMounted() {
         XCTAssertEqual(checker([:]).check(item(.folder, path: "/Volumes/Disk")), .missing)
     }
 
@@ -78,13 +78,40 @@ final class ItemAvailabilityTests: XCTestCase {
     }
 
     @MainActor
-    func testOpeningMissingItemKeepsItInProfile() {
-        let store = DockStore.preview()
+    func testOpeningUnavailableItemsReportsDistinctMessagesAndKeepsThem() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = DockStore(persistence: ProfilePersistence(fileURL: directory.appendingPathComponent("profiles.json")))
         let missing = item(.folder, path: "/nonexistent/\(UUID().uuidString)")
+        let volume = item(.folder, path: "/Volumes/Detached-\(UUID().uuidString)/Project")
         store.addItem(missing)
+        store.addItem(volume)
         let before = store.activeProfile.items
-        store.itemAvailability.record(missing, .missing)
+
+        store.openItem(missing)
+        let missingMessage = try XCTUnwrap(store.errorMessage)
+        store.errorMessage = nil
+        store.openItem(volume)
+        let volumeMessage = try XCTUnwrap(store.errorMessage)
+
+        XCTAssertNotEqual(missingMessage, volumeMessage)
+        XCTAssertTrue(missingMessage.contains("見つかりません"))
+        XCTAssertTrue(volumeMessage.contains("接続されていません"))
+        XCTAssertEqual(store.itemAvailability.status(of: missing), .missing)
+        XCTAssertEqual(store.itemAvailability.status(of: volume), .volumeNotMounted)
         XCTAssertEqual(store.activeProfile.items, before)
-        XCTAssertTrue(store.itemAvailability.status(of: missing).isUnavailable)
+    }
+
+    @MainActor
+    func testRefreshAllHonorsMinInterval() async {
+        let missing = item(path: "/nonexistent/\(UUID().uuidString)")
+        let monitor = ItemAvailabilityMonitor(allItems: { [missing] })
+        await monitor.refreshAll(minInterval: 60)
+        XCTAssertEqual(monitor.status(of: missing), .missing)
+        monitor.record(missing, .available)
+        await monitor.refreshAll(minInterval: 60)
+        XCTAssertEqual(monitor.status(of: missing), .available)
+        await monitor.refreshAll()
+        XCTAssertEqual(monitor.status(of: missing), .missing)
     }
 }
