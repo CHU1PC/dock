@@ -2,23 +2,30 @@
 
 ## 仕様
 
-Custom Dock で、前面にある実行中のアプリのアイコンを Option キーだけを押してクリックすると、そのアプリを隠す。アプリが隠れると、macOS が直前のアプリを前面に戻す。
+Custom Dock で、実行中のアプリのアイコンを Option キーだけを押してクリックしたときの動作を、標準 Dock の実測に合わせた。
+
+- 前面アプリのアイコン: そのアプリを隠す。macOS が直前のアプリを前面に戻す。
+- 前面ではない実行中アプリのアイコン: 対象を前面にし、クリックの時点で前面だったアプリを隠す。前面だったアプリは、クリックの時点の `NSWorkspace.shared.frontmostApplication` で決める。標準 Dock の実測は `docs/media/option-click-hide/standard-dock-option-click-log.txt` の S3 にある。
 
 次の場合は、従来どおりの起動処理になる。
 
 - 通常のクリック。
-- 前面ではないアプリへの Option クリック。
 - 対象が起動していない場合、または終了済みの場合。ほかのアプリを隠すことはない。
+- 前面だったアプリが Dock Studio 自身の場合、または前面アプリを取得できない場合。Dock Studio は隠さない。
 - Option に Command、Control、Shift を加えたクリック。
 - アプリ以外の項目（フォルダ、ファイル、URL）。
 
-判定は、`DockStudio/Services/OptionClickHide.swift` の `OptionClickPolicy.action` が行う純粋な関数になる。修飾キーは、`clickItem(_:modifiers:)` が受け取る値（クリックのイベントの修飾キー）を使う。Option のみのときに、この判定へ振り分ける。ホストの Dock の挙動は実測しておらず、前面ではないアプリへの Option クリックで「現在のアプリを隠す」動きは実装していない。
+前面だったアプリが Finder の場合は、標準 Dock で隠れるか未測定のため、通常のアプリと同じに扱い、隠す。
+
+判定は、`DockStudio/Services/OptionClickHide.swift` の `OptionClickPolicy.action` が行う純粋な関数になる。修飾キーは、`clickItem(_:modifiers:)` が受け取る値（クリックのイベントの修飾キー）を使い、Option のみのときにこの判定へ振り分ける。対象の前面化は、非アクティブなパネルからでも効くように、`activates = true` の `NSWorkspace.openApplication(at:configuration:)` で行う。
 
 ## 検証
 
-自動テストは `DockStudioTests/OptionClickHideTests.swift` にあり、判定の組合せだけを縛る。実際のアプリを隠す動作と画面は、未検証になる。
+自動テストは `DockStudioTests/OptionClickHideTests.swift` にあり、判定の組合せだけを縛る。実際に隠す動作と画面の確認結果は、撮影の担当が追記する。
 
 ## 実画面の確認（専用ヘッドレス VM）
+
+この節の C1 から C3 は、非前面アプリの Option クリックを修正する前（コミット `bbbcc81`）の結果になる。修正後の VM での再確認は未実施（未検証）。
 
 2026-10-18 に、コミット `bbbcc81` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `ff6e52ea91558c38a79e308197b82899e347c87a000e6548fa10216ad4fc2ee3` と一致した。パネルだけが写るよう、管理ウィンドウは「設定」タブにした（[画像](media/option-click-hide/panel-settings-tab-calculator-front-full.jpg)）。Option は、ゲスト内の CGEvent で、キーダウンを先に送り、押したままクリックし、キーアップした。アプリは Calculator と TextEdit で、`show`（隠れ解除）と `activate` で前面と「直前のアプリ」を整えた。操作の記録は[panel-option-click-log.txt](media/option-click-hide/panel-option-click-log.txt)にある。**最初の 2 回の試行は、クリックが当たらず（修飾なしの通常クリックも反応しなかった）、無効だった。アイコンの座標を AX で測り直した 3 回目が有効で、それだけを結果にした。**
 
@@ -47,7 +54,7 @@ Custom Dock で、前面にある実行中のアプリのアイコンを Option 
 
 プロセスはどれも終了していない。
 
-**所見（コードは直していない）**: 前面アプリを Option クリックしたときの動作（S2）は、標準 Dock と Dock Studio で一致した。一方、**非前面のアプリを Option クリックしたとき（S3）、標準 Dock は、それまで前面だったアプリを隠す。Dock Studio は隠さない（C3）。** この docs の撮影手順の手順 5（非前面は通常どおり前面に来て、直前の前面アプリは隠れない）は、標準 Dock の実測と食い違う。issue #19 の受け入れ条件と、docs の仕様を、確認してほしい。
+**所見**: 前面アプリを Option クリックしたとき（S2）は、標準 Dock と Dock Studio が一致した。非前面のアプリを Option クリックしたとき（S3）、標準 Dock は、それまで前面だったアプリを隠す。Dock Studio は隠さなかった（C3）。この食い違いは、上の「仕様」のとおり、標準 Dock に合わせて実装を直した。撮影手順の手順 5 も、実測に合わせて直してある。
 
 確認できなかったこと:
 - 手順 6（Calculator を終了してから、前面を TextEdit にして、未起動の Calculator を Option クリック）は、撮影していない。
@@ -62,7 +69,7 @@ Custom Dock で、前面にある実行中のアプリのアイコンを Option 
 2. 検証用データは空のディレクトリでよい（`DOCKSTUDIO_DATA_DIR=<空のディレクトリ>`）。既定のプロファイルで起動し、デスクトップに Dock を表示する。Calculator と TextEdit をプロファイルに追加する。
 3. Calculator を前面にした状態で、Dock の Calculator を Option を押しながらクリックする。Calculator が隠れ、直前のアプリが前面に戻る。
 4. 通常のクリックで Calculator を再び前面にし、Option を押さずにクリックしても隠れないことを確認する。
-5. TextEdit が前面のとき、Calculator を Option クリックする。Calculator が通常どおり前面に来て、TextEdit は隠れないことを確認する。
+5. TextEdit が前面のとき、非前面の Calculator を Option クリックする。Calculator が前面になり、TextEdit が隠れることを確認する（標準 Dock と同じ）。
 6. Calculator を終了し、前面を TextEdit にしてから Dock の Calculator を Option クリックする。TextEdit が隠れず、Calculator が起動する（または何もしない）ことを確認する。
 
 撮る画像と動画は次になる。
