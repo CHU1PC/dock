@@ -107,13 +107,18 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep, setFolderIcon, setStackIcon }
+    enum Kind { case open, reveal, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon }
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
-                      canQuit: Bool, isPinned: Bool, folderDisplayStyle: FolderDisplayStyle? = nil,
-                      isApplication: Bool = false) -> [Kind] {
-        let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
+                      canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
+                      folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false) -> [Kind] {
         let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings] : []
+        if isFinder {
+            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds
+            guard !finderEntryEnabled else { return actions }
+            return actions + (hasFileURL ? [.reveal] : []) + [isPinned ? .remove : .keep]
+        }
+        let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
         let folderKinds: [Kind] = switch folderDisplayStyle {
         case .folder: [.setStackIcon]
         case .stack: [.setFolderIcon]
@@ -137,6 +142,8 @@ extension DockItemMenu.Kind {
         case .forceQuit: "強制終了…"
         case .remove: "Dock から取り外す"
         case .keep: "Dock に保持"
+        case .finderNewWindow: "新規 Finder ウインドウ"
+        case .finderShowAllWindows: "Finder を表示"
         case .setFolderIcon: "フォルダとして表示"
         case .setStackIcon: "Stack として表示"
         }

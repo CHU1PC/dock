@@ -131,6 +131,16 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(Menu.kinds(hasFileURL: false, visibility: .hidden, canQuit: true, isPinned: false), [.open, .show, .quit, .forceQuit, .keep])
     }
 
+    func testFinderMenuUsesFinderActionsAndRespectsFixedEntrySetting() {
+        typealias Menu = DockItemMenu
+        XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: false, isPinned: true,
+                                  isFinder: true, finderEntryEnabled: true),
+                       [.open, .finderNewWindow, .finderShowAllWindows])
+        XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: false, isPinned: true,
+                                  isFinder: true, finderEntryEnabled: false),
+                       [.open, .finderNewWindow, .finderShowAllWindows, .reveal, .remove])
+    }
+
     func testAccessibilityActionsExcludeOpenAndReveal() {
         let kinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true)
         XCTAssertEqual(kinds.filter(\.isAccessibilityAction), [.quit, .forceQuit, .remove])

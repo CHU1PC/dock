@@ -312,7 +312,8 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
-        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
+        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly &&
+                                  !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)), vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
                                                                            thickness: DockMetrics.barThickness(for: store)),
                                   onRemove: {
@@ -449,6 +450,8 @@ extension DockBar {
         let kinds = DockItemMenu.kinds(hasFileURL: item.targetURL?.isFileURL == true,
                                        visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
+                                       isFinder: FinderDockEntry.isFinder(item),
+                                       finderEntryEnabled: store.document.settings.finderEntryEnabled,
                                        folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
                                        isApplication: item.kind == .application)
         return kinds.map { kind in
@@ -463,6 +466,8 @@ extension DockBar {
                 case .forceQuit: store.forceQuitApplication(item)
                 case .remove: store.removeFromActiveProfile(item)
                 case .keep: store.keepInActiveProfile(item)
+                case .finderNewWindow: FinderDockEntry.openNewWindow()
+                case .finderShowAllWindows: FinderDockEntry.showFinder()
                 case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
                 case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
@@ -511,6 +516,7 @@ extension DockBar {
         if case .reorder(let arrow) = key {
             guard let offset = DockKeyboardNavigation.reorderOffset(for: arrow, position: store.document.settings.position),
                   let current, store.isPinned(items[current]),
+                  !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(items[current])),
                   let newIndex = store.moveActiveItem(items[current].id, by: offset) else { return false }
             let name = items[current].name
             NSAccessibility.post(element: NSApp.keyWindow ?? NSApp, notification: .announcementRequested,
