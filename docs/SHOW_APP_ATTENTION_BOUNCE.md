@@ -16,8 +16,8 @@
 
 | 項目 | 結果 |
 | --- | --- |
-| 自動テスト | 382件すべて成功（`/private/tmp/cw/run-check.sh 132 test`） |
-| Release ビルド | `BUILD SUCCEEDED`（`/private/tmp/cw/run-check.sh 132 release`） |
+| 自動テスト | 387件すべて成功（`/private/tmp/cw/run-check.sh 132 test`、origin/main とのマージ後） |
+| Release ビルド | `BUILD SUCCEEDED`（`/private/tmp/cw/run-check.sh 132 release`、origin/main とのマージ後） |
 | build-for-testing | `TEST BUILD SUCCEEDED`（`/private/tmp/cw/run-check.sh 132 testbuild`） |
 
 実画面の動きと Accessibility 経由での Dock 項目取得は確認していない。
