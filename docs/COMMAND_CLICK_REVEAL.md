@@ -43,7 +43,7 @@ Dock の項目を Command だけを押しながらクリックすると、対象
 
 **所見（コードは直していない）**: デスクトップ用パネル（非アクティブ）では、Command クリックで Finder の表示にならなかった。
 
-- TextEdit が前面の状態で、パネルの Calculator と Demo File を Command クリックした。Calculator は起動しなかったが、Finder は前面に出ず、前面は TextEdit のままだった（[panel-cmd-click-calculator-inactive.jpg](media/command-click-reveal/panel-cmd-click-calculator-inactive.jpg)、[panel-cmd-click-file-inactive.jpg](media/command-click-reveal/panel-cmd-click-file-inactive.jpg)）。
+- TextEdit が前面の状態で、パネルの Calculator と Demo File を Command クリックした。Calculator は起動しなかったが、Finder は前面に出ず、前面は TextEdit のままだった（[panel-cmd-click-calculator-inactive.jpg](media/command-click-reveal/old-custom-dock-tab-panel-cmd-click-calculator-inactive.jpg)、[panel-cmd-click-file-inactive.jpg](media/command-click-reveal/old-custom-dock-tab-panel-cmd-click-file-inactive.jpg)）。
 - Finder のウィンドウが背後に残っている様子はあるが、前面化も選択も確認できなかった。起動しなかったことは確認できたため、「通常の起動」にはなっていない。Command の修飾が `NSEvent.modifierFlags` で取れていない（未検証だった懸念）か、Finder 表示が前面化されていない可能性がある。切り分けは未実施。
 - 1 回目の Command クリックは、他の入力と同じく、環境の入力欠落の可能性もある。各ボタンを 1 回ずつしか試していない。
 
@@ -51,6 +51,21 @@ Dock の項目を Command だけを押しながらクリックすると、対象
 
 - パネルでの Command クリックの再試行による切り分け、Demo Folder、Demo File（ウィンドウ側）、Removed Folder のアラート、Example Link、修飾キーなしのクリックの回帰、Command+Option。
 - 動画。
+
+### 再撮影: パネルの Command クリック（コミット `513f9a6`、2026-10-18）
+
+専用 VM（macOS 26.6.2）で、最新のビルドを撮り直した。実行ファイルの SHA-256 は、ホストとゲストで `d4e135ba6eb2629419be974907a1acf9b29e8167dddcb236b7d11badd28c78f2` と一致した。パネルだけが写るように、管理ウィンドウは「設定」タブにした（「Custom Dock」タブでは、ウィンドウ内のプレビュー Dock とパネルが重なって二重に見える。上の「所見」の画像は、そのタブで撮った古いもので、`old-custom-dock-tab-` を付けた）。操作の記録は[panel-cmd-click-log.txt](media/command-click-reveal/panel-cmd-click-log.txt)にある。
+
+| 条件 | 結果 |
+| --- | --- |
+| TextEdit が前面で、パネルの Calculator を Command クリック | Calculator は起動せず、**Finder は前面に出なかった**。前面は TextEdit のままだった |
+| TextEdit が前面で、パネルの Demo File を Command クリック | 同じ。前面は TextEdit のままで、Finder のウィンドウも前面に出なかった |
+| Dock Studio が前面（管理ウィンドウをクリックした後）で、パネルの Calculator を Command クリック | Calculator は起動せず、Finder が前面に出て、Applications で Calculator.app が選択された |
+| Dock Studio が前面で、パネルの Demo File を Command クリック | Finder が前面に出て、Demo Folder の note.txt が選択された |
+| 修飾なしでパネルの Calculator をクリック | Calculator が起動し、前面になった（回帰なし） |
+
+- 結論: パネルの Command クリックは、**他のアプリが前面（パネルが非アクティブ）のときは Finder 表示にならず、Dock Studio が前面のときは動く**。どちらの場合も Calculator は起動していない（通常のクリックとしては扱われていない）。1 つめの条件で、`NSEvent.modifierFlags` が Command を返していないか、Finder 表示は実行されても前面化されないかは、切り分けていない。Dock Studio が前面のときは同じ操作で成功するため、前面化の処理ではなく、非アクティブなときの修飾キーの取得が疑わしい。
+- 画像と動画: [textedit-front-full](media/command-click-reveal/panel-cmd-click-textedit-front-full.jpg)、[crop](media/command-click-reveal/panel-cmd-click-textedit-front-crop.jpg)、[動画（TextEdit が前面。Finder は出ない）](media/command-click-reveal/panel-cmd-click-textedit-front.mp4)、[Dock Studio が前面の Calculator](media/command-click-reveal/panel-cmd-click-studio-front-calculator-full.jpg)、[同じ Demo File](media/command-click-reveal/panel-cmd-click-studio-front-demofile-full.jpg)、[動画（Dock Studio が前面）](media/command-click-reveal/panel-cmd-click-studio-front.mp4)、[修飾なしの回帰](media/command-click-reveal/panel-plain-click-calculator-full.jpg)、[操作前の全体](media/command-click-reveal/panel-settings-tab-before-full.jpg)。動画は 10fps で、撮影時刻の間隔を維持し、倍速にはしていない。
 
 ## 撮影の手順
 
