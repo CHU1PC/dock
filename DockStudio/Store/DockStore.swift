@@ -24,7 +24,9 @@ final class DockStore {
     @ObservationIgnored let minimizedWindowController: MinimizedWindowController
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
+    var isEmptyingTrash = false
     @ObservationIgnored var trashInspector = TrashInspector()
+    @ObservationIgnored var trashEmptyService = TrashEmptyService()
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var trashItemMover: (URL) throws -> Void = { url in
@@ -546,6 +548,27 @@ final class DockStore {
     }
 
     @discardableResult
+    func setFolderDisplayStyle(_ style: FolderDisplayStyle, for id: UUID) -> Bool {
+        guard !storageIsReadOnly,
+              let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
+              let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              document.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        guard document.profiles[profileIndex].items[itemIndex].effectiveFolderDisplayStyle != style else { return true }
+        var candidate = document
+        candidate.profiles[profileIndex].items[itemIndex].folderDisplayStyle = style
+        guard commit(candidate) else { return false }
+        let profileID = document.profiles[profileIndex].id
+        if var draft = drafts[profileID],
+           let draftItemIndex = draft.items.firstIndex(where: { $0.id == id }) {
+            draft.items[draftItemIndex].folderDisplayStyle = style
+            drafts[profileID] = draft == document.profiles[profileIndex] ? nil : draft
+            persistDrafts()
+        }
+        status = "\(document.profiles[profileIndex].items[itemIndex].name) を\(style == .stack ? "Stack" : "フォルダ")として表示しました"
+        return true
+    }
+
+    @discardableResult
     func moveActiveItem(_ id: UUID, by offset: Int) -> Int? {
         guard !storageIsReadOnly, let profileIndex = document.profiles.firstIndex(where: { $0.id == document.activeProfileID }),
               let itemIndex = document.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
@@ -606,6 +629,17 @@ final class DockStore {
         } catch {
             errorMessage = "\(item.name) を取り出せませんでした。使用中の項目を閉じてから、もう一度お試しください。\n\(error.localizedDescription)"
         }
+    }
+
+    @discardableResult
+    func setFolderDisplayMode(_ mode: FolderDisplayMode, forItem id: UUID) -> Bool {
+        guard !storageIsReadOnly else { return false }
+        var candidate = document
+        guard let profileIndex = candidate.profiles.firstIndex(where: { $0.id == candidate.activeProfileID }),
+              let itemIndex = candidate.profiles[profileIndex].items.firstIndex(where: { $0.id == id }),
+              candidate.profiles[profileIndex].items[itemIndex].kind == .folder else { return false }
+        candidate.profiles[profileIndex].items[itemIndex].folderDisplayMode = mode
+        return commit(candidate)
     }
 
     @discardableResult
@@ -846,6 +880,51 @@ final class DockStore {
             }
         } else if !NSWorkspace.shared.open(url) {
             errorMessage = "\(item.name) を開けませんでした。"
+        }
+    }
+
+    func openDroppedFiles(_ urls: [URL], with item: DockItem) {
+        guard !isPreview else { status = "\(item.name) でファイルを開きます"; return }
+        let files = urls.filter(\.isFileURL)
+        guard !files.isEmpty else { errorMessage = "開くファイルを読み込めませんでした。"; return }
+        let current = ItemAvailabilityChecker().check(item)
+        itemAvailability.record(item, current)
+        switch current {
+        case .missing:
+            errorMessage = "\(item.name) は見つかりません。参照先が移動または削除された可能性があります。"
+            return
+        case .volumeNotMounted:
+            errorMessage = "\(item.name) があるボリュームが接続されていません。接続してからもう一度開いてください。"
+            return
+        case .available, .inaccessible: break
+        }
+        let applicationURL: URL
+        do { applicationURL = try ItemLaunchPolicy().validate(item) }
+        catch { errorMessage = "項目を開けませんでした。\n\(error.localizedDescription)"; return }
+        if item.requiresLaunchConfirmation == true {
+            let alert = NSAlert()
+            alert.messageText = "読み込んだ項目を開きますか？"
+            alert.informativeText = "表示名: \(item.name)\n実際の対象: \(applicationURL.path)\n信頼できる対象であることを確認してください。"
+            alert.addButton(withTitle: "開く")
+            alert.addButton(withTitle: "キャンセル")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        }
+        let alreadyRunning = Bundle(url: applicationURL)?.bundleIdentifier.map {
+            !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty
+        } ?? false
+        if document.settings.launchBounce && !alreadyRunning { beginLaunch(item.id) }
+        NSWorkspace.shared.open(files, withApplicationAt: applicationURL, configuration: .init()) { [weak self] app, error in
+            Task { @MainActor in
+                guard let self else { return }
+                if let error {
+                    self.endLaunch(item.id)
+                    self.errorMessage = "ファイルを \(item.name) で開けませんでした。\n\(error.localizedDescription)"
+                } else if let app, self.launchingItemIDs.contains(item.id) {
+                    self.finishLaunch(item.id, when: { app.isFinishedLaunching || app.isTerminated })
+                } else {
+                    self.endLaunch(item.id)
+                }
+            }
         }
     }
 

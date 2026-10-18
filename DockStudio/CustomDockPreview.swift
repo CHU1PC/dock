@@ -79,9 +79,11 @@ struct DockBar: View {
     @State private var lastFocused: UUID?
     @State private var menuRequest: UUID?
     @State private var folderContentsItem: DockItem?
+    @State private var folderDisplayMode: FolderDisplayMode = .list
     @State private var keyboardNavigating = false
     @State private var focusTask: Task<Void, Never>?
     @State private var typeAhead = DockTypeAheadBuffer()
+    @State private var confirmingTrashEmpty = false
     @State private var barSize: CGSize = .zero
     @State private var itemRects: [UUID: CGRect] = [:]
     @State private var dropIndex: Int?
@@ -144,7 +146,7 @@ struct DockBar: View {
         .onPreferenceChange(DockItemFrames.self) { itemRects = $0 }
         .overlay { dropIndicator(items: items) }
         .onDrop(of: [.fileURL], delegate: DockDropDelegate(
-            store: store, vertical: vertical, frames: items.compactMap { itemRects[$0.id] },
+            store: store, items: items, vertical: vertical, frames: itemRects,
             isMeasured: items.allSatisfy { itemRects[$0.id] != nil }, index: $dropIndex))
         .animation(motion, value: hovered)
         .onChange(of: items.map(\.id)) { old, new in
@@ -260,19 +262,26 @@ struct DockBar: View {
             .buttonStyle(.plain)
             .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
                 if let folder = folderContentsItem {
-                    FolderContentsPopover(folder: folder,
-                                           dockPosition: store.document.settings.position,
-                                           reduceMotion: store.appearance.reduceMotion || systemReduceMotion) { child in
+                    FolderContentsPopover(folder: folder, displayMode: $folderDisplayMode,
+                                          onDisplayModeChange: { mode in
+                        if store.setFolderDisplayMode(mode, forItem: folder.id) {
+                            var updated = folder
+                            updated.folderDisplayMode = mode
+                            folderContentsItem = updated
+                        }
+                    }, dockPosition: store.document.settings.position,
+                                          reduceMotion: store.appearance.reduceMotion || systemReduceMotion,
+                                          openItem: { child in
                         folderContentsItem = nil
                         store.openItem(child)
-                    } openInFinder: { folder in
+                    }, openInFinder: { folder in
                         store.clickItem(folder, modifiers: .command)
                         folderContentsItem = nil
-                    } updateDisplayStyle: { folder, style in
+                    }, updateDisplayStyle: { folder, style in
                         store.updateFolderContentsDisplayStyle(style, for: folder.id)
-                    } onSortOrderChange: { order in
+                    }, onSortOrderChange: { order in
                         store.setFolderSortOrder(order, for: folder.id)
-                    }
+                    })
                 }
             }
             .focusable(false)
@@ -338,6 +347,7 @@ struct DockBar: View {
            !ItemClickPolicy.isRevealClick(modifiers),
            !ItemClickPolicy.isHideOthersClick(modifiers) {
             folderContentsItem = item
+            folderDisplayMode = item.folderDisplayMode ?? .list
         } else {
             store.clickItem(item, modifiers: modifiers)
         }
@@ -346,6 +356,7 @@ struct DockBar: View {
     private func activateDockItem(_ item: DockItem) {
         if item.kind == .folder {
             folderContentsItem = item
+            folderDisplayMode = item.folderDisplayMode ?? .list
         } else {
             store.openItem(item)
         }
@@ -383,6 +394,17 @@ extension DockBar {
                 if state == .unknown {
                     Button("状態の確認方法") { store.explainTrashState() }
                 }
+                if store.isEmptyingTrash {
+                    Button("ゴミ箱を空にしています…") {}.disabled(true)
+                } else {
+                    Button("ゴミ箱を空にする…", role: .destructive) { confirmingTrashEmpty = true }
+                }
+            }
+            .confirmationDialog("ゴミ箱を空にしますか？", isPresented: $confirmingTrashEmpty) {
+                Button("ゴミ箱を空にする", role: .destructive) { store.emptyTrash() }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("ゴミ箱内のすべての項目を完全に削除します。この操作は取り消せません。Finder がロックされた項目を確認する場合があります。")
             }
             Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
@@ -429,7 +451,8 @@ extension DockBar {
                                        visibility: store.applicationVisibility(item), canHideOthers: store.canHideOthers(item),
                                        canQuit: store.canQuitApplication(item), isPinned: store.isPinned(item),
                                        isFinder: FinderDockEntry.isFinder(item),
-                                       finderEntryEnabled: store.document.settings.finderEntryEnabled)
+                                       finderEntryEnabled: store.document.settings.finderEntryEnabled,
+                                       folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil)
         return kinds.map { kind in
             DockItemAction(kind: kind) {
                 switch kind {
@@ -443,6 +466,8 @@ extension DockBar {
                 case .keep: store.keepInActiveProfile(item)
                 case .finderNewWindow: FinderDockEntry.openNewWindow()
                 case .finderShowAllWindows: FinderDockEntry.showFinder()
+                case .setFolderIcon: store.setFolderDisplayStyle(.folder, for: item.id)
+                case .setStackIcon: store.setFolderDisplayStyle(.stack, for: item.id)
                 }
             }
         }
@@ -608,28 +633,41 @@ enum DockDropInsertion {
     }
 }
 
+enum DockDropRouting {
+    static func applicationTarget(at point: CGPoint, items: [DockItem], frames: [UUID: CGRect]) -> DockItem? {
+        items.first { item in
+            item.kind == .application && frames[item.id]?.contains(point) == true
+        }
+    }
+}
+
 private struct DockDropDelegate: DropDelegate {
     let store: DockStore
+    let items: [DockItem]
     let vertical: Bool
-    let frames: [CGRect]
+    let frames: [UUID: CGRect]
     let isMeasured: Bool
     @Binding var index: Int?
 
+    private var orderedFrames: [CGRect] { items.compactMap { frames[$0.id] } }
+
     func validateDrop(info: DropInfo) -> Bool {
-        !store.storageIsReadOnly && isMeasured && info.hasItemsConforming(to: [.fileURL])
+        isMeasured && info.hasItemsConforming(to: [.fileURL]) &&
+            (applicationTarget(at: info.location) != nil || !store.storageIsReadOnly)
     }
 
-    func dropEntered(info: DropInfo) { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+    func dropEntered(info: DropInfo) { updateInsertionIndex(at: info.location) }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        if index != nil { index = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical) }
+        updateInsertionIndex(at: info.location)
         return DropProposal(operation: .copy)
     }
 
     func dropExited(info: DropInfo) { index = nil }
 
     func performDrop(info: DropInfo) -> Bool {
-        let position = DockDropInsertion.index(at: info.location, frames: frames, vertical: vertical)
+        let position = insertionIndex(at: info.location)
+        let applicationTarget = applicationTarget(at: info.location)
         let providers = info.itemProviders(for: [.fileURL])
         index = nil
         guard !providers.isEmpty else { return false }
@@ -641,10 +679,26 @@ private struct DockDropDelegate: DropDelegate {
                 }
                 if let url { urls.append(url) }
             }
-            store.addDroppedItems(urls, at: position)
+            if let applicationTarget {
+                store.openDroppedFiles(urls, with: applicationTarget)
+            } else {
+                store.addDroppedItems(urls, at: position)
+            }
             index = nil
         }
         return true
+    }
+
+    private func applicationTarget(at point: CGPoint) -> DockItem? {
+        DockDropRouting.applicationTarget(at: point, items: items, frames: frames)
+    }
+
+    private func insertionIndex(at point: CGPoint) -> Int {
+        DockDropInsertion.index(at: point, frames: orderedFrames, vertical: vertical)
+    }
+
+    private func updateInsertionIndex(at point: CGPoint) {
+        index = applicationTarget(at: point) == nil ? insertionIndex(at: point) : nil
     }
 }
 
@@ -722,6 +776,7 @@ struct ItemIcon: View {
     var availability: ItemAvailability = .available
     var glassNeedsContrast = false
     var glassInteractive = true
+    var appliesGlassEffect = true
     var symbol: String?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -734,6 +789,8 @@ struct ItemIcon: View {
                     .frame(width: size, height: size)
                     .background(Color.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: size * 0.23))
                     .opacity(0.75)
+            } else if item.kind == .folder, item.effectiveFolderDisplayStyle == .stack {
+                FolderStackIcon(folder: item, size: size, style: style)
             } else if let url = item.targetURL, url.isFileURL {
                 Image(nsImage: DockIconRenderer.image(url: url, style: style, pointSize: size, scheme: colorScheme))
                     .resizable().interpolation(.high).scaledToFit()
@@ -748,7 +805,7 @@ struct ItemIcon: View {
             }
         }
         .frame(width: size, height: size)
-        .modifier(DockIconGlassEffect(enabled: style == .glass, size: size,
+        .modifier(DockIconGlassEffect(enabled: appliesGlassEffect && style == .glass, size: size,
                                       enhancedContrast: glassNeedsContrast, interactive: glassInteractive))
     }
 }

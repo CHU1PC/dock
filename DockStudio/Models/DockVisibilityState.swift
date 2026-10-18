@@ -6,11 +6,12 @@ struct DockVisibilityState {
     private var wasEnabled = false
     private var lastInteraction = Date.distantPast
 
-    mutating func update(visible: Bool, autoHide: Bool, hovering: Bool, interacting: Bool, now: Date) {
+    mutating func update(visible: Bool, autoHide: Bool, hovering: Bool, interacting: Bool,
+                         draggingOverRevealArea: Bool = false, now: Date) {
         if !visible || !autoHide || !wasVisible || !wasEnabled {
             isCollapsed = false
             lastInteraction = now
-        } else if hovering || interacting {
+        } else if hovering || interacting || draggingOverRevealArea {
             isCollapsed = false
             lastInteraction = now
         } else if now.timeIntervalSince(lastInteraction) >= 1 {

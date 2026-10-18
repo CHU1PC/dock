@@ -28,6 +28,24 @@ enum DockItemKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum FolderDisplayMode: String, Codable, CaseIterable, Identifiable {
+    case list, grid
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .list: "リスト"
+        case .grid: "グリッド"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .list: "list.bullet"
+        case .grid: "square.grid.2x2"
+        }
+    }
+}
+
 enum FolderContentsDisplayStyle: String, Codable, CaseIterable, Identifiable {
     case list, fan
 
@@ -49,6 +67,9 @@ struct DockItem: Codable, Equatable, Identifiable {
     var target: String?
     var bundleIdentifier: String?
     var requiresLaunchConfirmation: Bool?
+    var folderDisplayMode: FolderDisplayMode?
+    var folderDisplayStyle: FolderDisplayStyle?
+    var effectiveFolderDisplayStyle: FolderDisplayStyle { folderDisplayStyle ?? .folder }
     var folderSortOrder: FolderSortOrder?
     var folderContentsDisplayStyle: FolderContentsDisplayStyle?
 
@@ -74,6 +95,10 @@ struct DockItem: Codable, Equatable, Identifiable {
         }
         return bundleIdentifier.map { "bundle:\($0)" }
     }
+}
+
+enum FolderDisplayStyle: String, Codable {
+    case folder, stack
 }
 
 struct DockProfile: Codable, Equatable, Identifiable {

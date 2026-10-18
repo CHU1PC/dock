@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */; };
 		045F51B5371EDF7D8D51EDF9 /* FolderContentsPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA2524AA25A4B3F205E58B5 /* FolderContentsPopover.swift */; };
 		0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */; };
 		0E7E417876D39D31A369A3CD /* DockTemporaryMagnification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */; };
@@ -55,6 +56,7 @@
 		8D7E3F9645E7B031F50E3BB8 /* RecentAppHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F35B77560302C4F53AE5E5 /* RecentAppHistoryTests.swift */; };
 		8E5F8053DB25D0A42C5C63FF /* MinimizedWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1542575F3BF889CAEA9AF1E3 /* MinimizedWindowController.swift */; };
 		8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */; };
+		91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */; };
 		948F7CBA787B4B0D01DEBEE4 /* ApplicationQuitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */; };
 		96F78F3A01BFD0967D36EFF3 /* DockSectionLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A3901B9D1B4E33814B79B2 /* DockSectionLayoutTests.swift */; };
 		97000A48705869EBF0685E73 /* ProfileEditorPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */; };
@@ -107,6 +109,7 @@
 
 /* Begin PBXFileReference section */
 		08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockRevealDurationTests.swift; sourceTree = "<group>"; };
+		10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashEmptyService.swift; sourceTree = "<group>"; };
 		12E3047B8E792AEEE176CFBF /* DockDragOutRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemoval.swift; sourceTree = "<group>"; };
 		14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		1542575F3BF889CAEA9AF1E3 /* MinimizedWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimizedWindowController.swift; sourceTree = "<group>"; };
@@ -183,6 +186,7 @@
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRestorePersistence.swift; sourceTree = "<group>"; };
 		E60BD64A51F2320C85780284 /* TrashDropTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashDropTests.swift; sourceTree = "<group>"; };
+		E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashEmptyServiceTests.swift; sourceTree = "<group>"; };
 		E7FA201CC570AF21E46FC468 /* DockIconSizeResizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSizeResizeTests.swift; sourceTree = "<group>"; };
 		E8B4DF981D4D56D467629B9D /* DockSectionLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockSectionLayout.swift; sourceTree = "<group>"; };
 		E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHider.swift; sourceTree = "<group>"; };
@@ -248,6 +252,7 @@
 				25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */,
 				1EE155D28F10F8343EA2D95E /* RecentAppHistory.swift */,
 				FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */,
+				10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */,
 				3D05D419252EF0367C316635 /* TrashInspector.swift */,
 				2BF9C0D6213AF118595D5880 /* VolumeEjector.swift */,
 			);
@@ -291,6 +296,7 @@
 				A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */,
 				9A47BE7B777E2BCC8C022C1E /* ReviewRegressionTests.swift */,
 				E60BD64A51F2320C85780284 /* TrashDropTests.swift */,
+				E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */,
 				B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */,
 				F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */,
 			);
@@ -447,6 +453,7 @@
 				A90482099F2E73ED122C2AA9 /* RemoveDockItemTests.swift in Sources */,
 				323829CCA874716179B7818C /* ReviewRegressionTests.swift in Sources */,
 				5440E4841B93F588D7FA4128 /* TrashDropTests.swift in Sources */,
+				00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */,
 				0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */,
 				A2BACEE6CFA5F77522BEB3A1 /* VolumeEjectorTests.swift in Sources */,
 			);
@@ -503,6 +510,7 @@
 				4BC9C2BF0BA59109A76F607D /* RecentAppHistory.swift in Sources */,
 				9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */,
 				8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */,
+				91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */,
 				2B7670294DE39057E5B88C22 /* TrashInspector.swift in Sources */,
 				A97B3265B6DB064078459181 /* VolumeEjector.swift in Sources */,
 				28356FA051FC37E8A9DAD64E /* WorkspaceView.swift in Sources */,
@@ -585,7 +593,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio は、ゴミ箱の項目数を表示するため Finder に問い合わせます。";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio は、ゴミ箱の項目数の表示や内容を空にするため Finder に操作を依頼します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -703,7 +711,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio は、ゴミ箱の項目数を表示するため Finder に問い合わせます。";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio は、ゴミ箱の項目数の表示や内容を空にするため Finder に操作を依頼します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

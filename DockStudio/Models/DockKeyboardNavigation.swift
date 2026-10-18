@@ -107,17 +107,24 @@ extension DockKeyboardNavigation.Key {
 }
 
 enum DockItemMenu {
-    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows }
+    enum Kind { case open, reveal, hide, show, hideOthers, quit, forceQuit, remove, keep, finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon }
 
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
-                      canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false) -> [Kind] {
+                      canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
+                      folderDisplayStyle: FolderDisplayStyle? = nil) -> [Kind] {
         if isFinder {
             let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows]
             guard !finderEntryEnabled else { return actions }
             return actions + (hasFileURL ? [.reveal] : []) + [isPinned ? .remove : .keep]
         }
         let visibilityKinds: [Kind] = visibility.map { [$0 == .hidden ? .show : .hide] } ?? []
-        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
+        let folderKinds: [Kind] = switch folderDisplayStyle {
+        case .folder: [.setStackIcon]
+        case .stack: [.setFolderIcon]
+        case nil: []
+        }
+        return [.open] + (hasFileURL ? [.reveal] : []) + visibilityKinds + folderKinds
+            + (canHideOthers ? [.hideOthers] : []) + (canQuit ? [.quit, .forceQuit] : []) + [isPinned ? .remove : .keep]
     }
 }
 
@@ -135,6 +142,8 @@ extension DockItemMenu.Kind {
         case .keep: "Dock に保持"
         case .finderNewWindow: "新規 Finder ウインドウ"
         case .finderShowAllWindows: "Finder を表示"
+        case .setFolderIcon: "フォルダとして表示"
+        case .setStackIcon: "Stack として表示"
         }
     }
 
