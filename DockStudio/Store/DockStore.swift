@@ -442,10 +442,6 @@ final class DockStore {
         activeProfile.items.contains { $0.id == item.id }
     }
 
-    func canKeepInDock(_ item: DockItem) -> Bool {
-        item.kind == .application && !isPinned(item)
-    }
-
     @discardableResult
     func keepInActiveProfile(_ item: DockItem) -> Bool {
         let profileID = document.activeProfileID
@@ -453,7 +449,7 @@ final class DockStore {
               let profileIndex = document.profiles.firstIndex(where: { $0.id == profileID }) else { return false }
         if document.profiles[profileIndex].items.contains(where: { $0.applicationIdentity == identity }) { return true }
         do { _ = try ItemLaunchPolicy().validate(item) }
-        catch { errorMessage = error.localizedDescription; return false }
+        catch { errorMessage = "Dock に保持できませんでした。\n\(error.localizedDescription)"; return false }
         var candidate = document
         candidate.profiles[profileIndex].items.append(item)
         guard commit(candidate) else { return false }

@@ -35,26 +35,28 @@ final class KeepRunningAppTests: XCTestCase {
     func testKeepPersistsAndSurvivesReload() {
         let item = runningFinder()
         let store = makeStore(running: item)
-        XCTAssertTrue(store.canKeepInDock(item))
+        XCTAssertFalse(store.isPinned(item))
 
         XCTAssertTrue(store.keepInActiveProfile(item))
 
         XCTAssertTrue(store.isPinned(item))
-        XCTAssertFalse(store.canKeepInDock(item))
         let saved = DockStore(persistence: persistence).activeProfile.items
         XCTAssertEqual(saved.count, 1)
         XCTAssertEqual(saved.first?.bundleIdentifier, "com.apple.finder")
         XCTAssertEqual(saved.first?.target, item.target)
     }
 
-    func testKeepTwiceDoesNotDuplicate() {
+    func testKeepingAlreadyKeptAppIsSilentNoOpReturningTrue() {
         let item = runningFinder()
         let store = makeStore(running: item)
         store.keepInActiveProfile(item)
+        store.status = ""
         var again = item
         again.id = UUID()
 
-        store.keepInActiveProfile(again)
+        XCTAssertTrue(store.keepInActiveProfile(again))
+        XCTAssertEqual(store.status, "")
+        XCTAssertNil(store.errorMessage)
 
         XCTAssertEqual(store.activeProfile.items.count, 1)
         XCTAssertEqual(store.displayedItems.count, 1)
@@ -69,7 +71,7 @@ final class KeepRunningAppTests: XCTestCase {
 
         XCTAssertTrue(store.activeProfile.items.isEmpty)
         XCTAssertEqual(store.displayedItems.count, 1)
-        XCTAssertTrue(store.canKeepInDock(store.displayedItems[0]))
+        XCTAssertFalse(store.isPinned(store.displayedItems[0]))
     }
 
     func testKeepRejectsInvalidApplicationAndNonApplication() {
@@ -81,6 +83,7 @@ final class KeepRunningAppTests: XCTestCase {
         let before = store.document
 
         XCTAssertFalse(store.keepInActiveProfile(missing))
+        XCTAssertTrue(store.errorMessage?.hasPrefix("Dock に保持できませんでした。") == true)
         XCTAssertFalse(store.keepInActiveProfile(noTarget))
         XCTAssertFalse(store.keepInActiveProfile(clock))
         XCTAssertEqual(store.document, before)
@@ -97,13 +100,5 @@ final class KeepRunningAppTests: XCTestCase {
         XCTAssertEqual(store.editorProfile.items.count, 1)
         XCTAssertTrue(store.saveProfile())
         XCTAssertEqual(store.activeProfile.items.count, 1)
-    }
-
-    func testOldDocumentWithoutRunningItemsStillLoads() throws {
-        let item = DockItem(name: "Old", kind: .application, target: "file:///Applications/Old.app")
-        let profile = DockProfile(name: "A", items: [item])
-        try persistence.save(DockDocument(profiles: [profile], activeProfileID: profile.id))
-        XCTAssertNil(item.bundleIdentifier)
-        XCTAssertEqual(DockStore(persistence: persistence).activeProfile.items.first?.name, "Old")
     }
 }

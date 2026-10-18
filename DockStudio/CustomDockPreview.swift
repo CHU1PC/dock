@@ -162,7 +162,7 @@ struct DockBar: View {
                 if store.isPinned(item) {
                     Button("Dock から取り外す") { store.removeFromActiveProfile(item) }
                 }
-                if store.canKeepInDock(item) {
+                if !store.isPinned(item) {
                     Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
@@ -174,7 +174,7 @@ struct DockBar: View {
                 if store.isPinned(item) {
                     Button("Dock から取り外す", role: .destructive) { store.removeFromActiveProfile(item) }
                 }
-                if store.canKeepInDock(item) {
+                if !store.isPinned(item) {
                     Button("Dock に保持") { store.keepInActiveProfile(item) }
                 }
             }
