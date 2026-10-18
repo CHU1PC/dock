@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */; };
+		156F522A6DDFC46E4A8AD7C6 /* ItemAvailabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */; };
 		1E0FAFC7395D077CC4680391 /* DockAppearanceRendering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */; };
 		243B18C447B03FFBB600534D /* NativeDockReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3243251C3D1D413F413377E /* NativeDockReader.swift */; };
 		2621849FEBDE349A03BDC598 /* CustomDockPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2255DDF17826ECD819C17196 /* CustomDockPreview.swift */; };
@@ -18,6 +19,7 @@
 		473340A70AD470B40AFA37D4 /* DockAppearancePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
 		66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */; };
+		6A92F0038DF5C5011A9D9564 /* ItemAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60BF615CF975A8342E5731D /* ItemAvailability.swift */; };
 		6E86CB4559D851E7A44BC68D /* CustomDockWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B99B0B466B3539C3AE6090 /* CustomDockWindowController.swift */; };
 		7187D2A8A4A2E6697B6AD102 /* DockDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D9AF83EA901F0252C6A2A5 /* DockDocument.swift */; };
 		71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63433C32EE891D1543248B /* DockStoreTests.swift */; };
@@ -74,12 +76,14 @@
 		A3243251C3D1D413F413377E /* NativeDockReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockReader.swift; sourceTree = "<group>"; };
 		A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemLaunchPolicy.swift; sourceTree = "<group>"; };
 		B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileArchive.swift; sourceTree = "<group>"; };
+		B60BF615CF975A8342E5731D /* ItemAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailability.swift; sourceTree = "<group>"; };
 		BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorPreview.swift; sourceTree = "<group>"; };
 		BDF08A2FAB56E7BFFE8EE703 /* DockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStore.swift; sourceTree = "<group>"; };
 		BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearancePersistence.swift; sourceTree = "<group>"; };
 		C57C79F4A9A9341B158EECA3 /* DockStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStudioApp.swift; sourceTree = "<group>"; };
 		D821980A359C628760823676 /* DockIconSizeRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSizeRangeTests.swift; sourceTree = "<group>"; };
+		D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailabilityTests.swift; sourceTree = "<group>"; };
 		DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileTests.swift; sourceTree = "<group>"; };
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF63433C32EE891D1543248B /* DockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStoreTests.swift; sourceTree = "<group>"; };
@@ -111,6 +115,7 @@
 				950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */,
 				BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */,
 				68E5DE69E8A5358A2B50A605 /* DockAppearanceRendering.swift */,
+				B60BF615CF975A8342E5731D /* ItemAvailability.swift */,
 				A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */,
 				A3243251C3D1D413F413377E /* NativeDockReader.swift */,
 				43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */,
@@ -129,6 +134,7 @@
 				99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */,
 				08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */,
 				EF63433C32EE891D1543248B /* DockStoreTests.swift */,
+				D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */,
 				48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */,
 				238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */,
 				DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */,
@@ -253,6 +259,7 @@
 				66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */,
 				F5C84E70F070FFA50F2E0948 /* DockRevealDurationTests.swift in Sources */,
 				71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */,
+				156F522A6DDFC46E4A8AD7C6 /* ItemAvailabilityTests.swift in Sources */,
 				C4DF06E9172CF2A1D5CC95BA /* LaunchBounceTests.swift in Sources */,
 				BEAF94022D76484F25EF72B6 /* NativeDockTileRegressionTests.swift in Sources */,
 				345CC55B66C4F2FADF08F54C /* NativeDockTileTests.swift in Sources */,
@@ -277,6 +284,7 @@
 				F45A353F73F29ABB3A148CFB /* DockStudioApp.swift in Sources */,
 				2A6BD4BCBC208A75043539B8 /* DockVisibilityState.swift in Sources */,
 				B7564D75685CD01767BF01D3 /* ImportReviewSheet.swift in Sources */,
+				6A92F0038DF5C5011A9D9564 /* ItemAvailability.swift in Sources */,
 				0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */,
 				243B18C447B03FFBB600534D /* NativeDockReader.swift in Sources */,
 				FAB007C7F47E22009333276D /* NativeDockTileController.swift in Sources */,
