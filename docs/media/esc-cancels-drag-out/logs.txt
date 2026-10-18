@@ -1,0 +1,16 @@
+# Custom Dock
+start: items=Esc cancel demo,Calculator, calculator-button=1
+## A drag out + Esc during drag + release outside
+  -> items=Esc cancel demo,Calculator, calculator-button=1
+## C Esc without dragging (front app should be unchanged)
+  front-before=DockStudio
+  front-after=DockStudio items=Esc cancel demo,Calculator, calculator-button=1
+## B drag out, no Esc, release outside (regression: should remove)
+  -> items=Esc cancel demo, calculator-button=0
+
+# 標準 Dock
+std Dock: Safari persistent entries before: 0
+S1 drag Safari out WITH Esc
+  -> Safari entries: 0
+S2 drag Safari out WITHOUT Esc
+  -> Safari entries: 0

@@ -159,6 +159,9 @@ final class CustomDockWindowController {
                     self.panel.makeKeyAndOrderFront(nil)
                 }
                 if event.type == .keyDown {
+                    if event.keyCode == 53, DockDragOutCancellation.shared.cancelIfDragging() {
+                        return true
+                    }
                     if let self, self.panel.isKeyWindow, self.trackingMenus == 0 {
                         if event.keyCode == 53 { self.leaveKeyboard(); return true }
                     }
