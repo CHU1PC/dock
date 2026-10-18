@@ -1,0 +1,12 @@
+# ゲスト (macOS 26.6.2) の保存ファイル profiles.json から、Finder の 5 項目をドロップした直後の有効プロファイルの項目を抜き出した
+"kind" : "application"	"name" : "Finder"
+"kind" : "application"	"name" : "Safari"
+"kind" : "application"	"name" : "Calculator"
+"kind" : "file"	"name" : "plan.md"
+"kind" : "file"	"name" : "メモ.txt"
+"kind" : "folder"	"name" : "資料"
+"kind" : "application"	"name" : "Mail"
+"kind" : "application"	"name" : "Terminal"
+"kind" : "application"	"name" : "Calendar"
+"kind" : "folder"	"name" : "Downloads"
+# ドロップ後の元フォルダの内容（移動されていない）: Calculator.app plan.md setup.sh メモ.txt 資料
