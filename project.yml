@@ -11,6 +11,8 @@ targets:
     platform: macOS
     sources:
       - path: DockStudio
+    info:
+      path: DockStudio/Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.dockstudio.preview
