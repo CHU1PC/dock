@@ -25,7 +25,7 @@ Dock Studio のパネルを起動直後にキーボード操作するとき、�
 
 ## 未検証
 
-- この作業環境ではアプリを起動しない制約があるため、macOS VM での実画面、初回の矢印移動、2 回目以降の動作、Tab の停止順を未確認。
+- 2 回目以降の動作は、実画面で未確認。初回の矢印移動と下配置の Tab は、「実画面の確認」に記録した。
 - key view が実際に SwiftUI の最初の Dock 項目へ到達するかは、専用 VM での確認が必要。
 - macOS 15 以降の各バージョンでの差異は未確認。
 
@@ -42,3 +42,19 @@ Dock Studio のパネルを起動直後にキーボード操作するとき、�
 7. Dock の位置を左、右に変えて、それぞれ起動直後の初回操作で先頭項目がフォーカスされ、下矢印で次の項目へ移動することを確認して撮影する。
 
 撮影するものは、底・左・右それぞれの初回フォーカスが分かる画像と、初回の矢印移動、再入場、Tab 移動が分かる動画である。
+
+## 実画面の確認（専用ヘッドレス VM）
+
+2026-10-18 に、コミット `260394f` の Release ビルドを macOS 26.6.2 の専用ヘッドレス VM で確認した。実行ファイルの SHA-256 は、ホストとゲストで `a6c143a6c0b3481a3ecab8e1c7da06bfc7d7e0fdd27ae4b2163724a86478518e` と一致した。Finder、Mail、Safari の 3 項目で、起動済みアプリなし。管理ウィンドウは「設定」タブにした。毎回、アプリを終了し、保存状態を消して起動し直し、メニューバーの「Dock をキーボードで操作」を AX で押した。その直後の画面（初回）と、右矢印（左右配置では下矢印）の後の画面を、VNC で撮った。判定は、画面のフォーカス枠による（ログは[ax-focus-log.txt](media/first-keyboard-focus/ax-focus-log.txt)）。
+
+| 配置 | 回数 | 初回に先頭の Finder がフォーカスされたか | 矢印で Mail へ移ったか |
+| --- | --- | --- | --- |
+| 下 | 5 回 | 5 回すべて Finder | 5 回すべて Mail |
+| 左 | 5 回 | 5 回すべて Finder | 5 回すべて Mail |
+| 右 | 5 回 | 5 回すべて Finder | 5 回すべて Mail |
+
+回数は、各 15 回の目安に対して 5 回である。1 回の起動に約 30 秒かかったため、時間の制約で 5 回にとどめた。画像: [下](media/first-keyboard-focus/bottom-5runs-first-and-after-arrow.png)、[左](media/first-keyboard-focus/left-5runs-first-and-after-arrow.png)、[右](media/first-keyboard-focus/right-5runs-first-and-after-arrow.png)（各 5 回分の「初回」と「矢印の後」を並べた）、[下の初回の全体](media/first-keyboard-focus/bottom-first-focus-full.jpg)、[左](media/first-keyboard-focus/left-first-focus-full.jpg)、[右](media/first-keyboard-focus/right-first-focus-full.jpg)。
+
+- 下配置の Tab: 初回の入場の後、Tab を 1 回ずつ押すと、Finder から Mail、Safari へ、1 回ごとに 1 項目ずつ止まった（飛ばしも重複もなし。[動画](media/first-keyboard-focus/tab-stops-bottom.mp4)、[コマ](media/first-keyboard-focus/tab-sheet.png)）。4 回目の Tab（ゴミ箱）は、動画の終端で確認が取れていない。
+- 所見: **AX の `AXFocusedUIElement` は、画面ではフォーカスが Finder や Mail に当たっていても、すべての試行で `AXScrollArea` を返した**（ログのとおり）。以前の確認（#48）では、AX がボタンを返していた。AX の値は、今回のビルドでは、画面のフォーカス枠と一致しない。VoiceOver が読み上げる対象が、見た目のフォーカスと異なる可能性がある。
+- 確認していない: 2 回目以降の入場（Escape の後の再入場）。撮影用のコマンドの記述の誤りで、再入場の部分が実行されなかった。各配置での Tab。
