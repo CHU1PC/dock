@@ -106,6 +106,7 @@ final class CustomDockWindowController {
     private var localMonitor: Any?
     private var previousApp: NSRunningApplication?
     private var temporaryMagnificationSuppressed = false
+    private var dragRevealActive = false
 
     init(store: DockStore) {
         self.store = store
@@ -193,14 +194,18 @@ final class CustomDockWindowController {
                 }
             })
         }
-        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .flagsChanged]) { [weak self] event in
+        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .leftMouseUp, .flagsChanged]) { [weak self] event in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 if event.type == .flagsChanged { self.updateTemporaryMagnification(event.modifierFlags) }
-                else { self.updateAutoHide(); self.updatePointerPassThrough() }
+                else {
+                    self.updateDragReveal(for: event)
+                    self.updateAutoHide()
+                    self.updatePointerPassThrough()
+                }
             }
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDown, .keyDown, .flagsChanged]) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .leftMouseUp, .rightMouseDown, .keyDown, .flagsChanged]) { [weak self] event in
             let handled = MainActor.assumeIsolated {
                 if event.type == .flagsChanged { self?.updateTemporaryMagnification(event.modifierFlags) }
                 if event.type == .rightMouseDown, let self, event.window === self.panel {
@@ -215,7 +220,11 @@ final class CustomDockWindowController {
                     if let self, self.panel.isKeyWindow, self.trackingMenus == 0 {
                         if event.keyCode == 53 { self.leaveKeyboard(); return true }
                     }
-                } else { self?.updateAutoHide(); self?.updatePointerPassThrough() }
+                } else {
+                    self?.updateDragReveal(for: event)
+                    self?.updateAutoHide()
+                    self?.updatePointerPassThrough()
+                }
                 return false
             }
             return handled ? nil : event
@@ -288,7 +297,8 @@ final class CustomDockWindowController {
                           hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && interactionFrame.contains(point))),
                           interacting: trackingMenus > 0 || !store.activePopoverTokens.isEmpty
                             || panel.isKeyWindow || store.dockKeyboardFocusRequested
-                            || DockDragOutCancellation.shared.isDragging, now: .now)
+                            || DockDragOutCancellation.shared.isDragging,
+                          draggingOverRevealArea: dragRevealActive, now: .now)
     }
 
     private func update() {
@@ -383,6 +393,15 @@ final class CustomDockWindowController {
         let targetScreenID = selectedScreen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32
         updateVisibility()
         if oldValue != visibility.isCollapsed || oldScreenID != targetScreenID { update() }
+    }
+
+    private func updateDragReveal(for event: NSEvent) {
+        if event.type == .leftMouseUp {
+            dragRevealActive = false
+        } else if event.type == .leftMouseDragged, autoHideEnabled, panel.isVisible,
+                  revealFrame.contains(NSEvent.mouseLocation) {
+            dragRevealActive = true
+        }
     }
 
     private func refreshRunningApps() {
