@@ -59,7 +59,7 @@ Issue #7 が基準として挙げる PR #5 と PR #6 は Issue ではないた�
 | [#58 Launchpad、アプリ一覧](https://github.com/CHU1PC/dock/issues/58) | OPEN | アプリ一覧や Launchpad 専用の入口はない。 |
 | [#59 ライト、ダーク外観](https://github.com/CHU1PC/dock/issues/59) | CLOSED、PR #78 MERGED | システムのライト、ダーク外観に Dock の色を追従させられる。 |
 | [#60 左右配置の項目名](https://github.com/CHU1PC/dock/issues/60) | CLOSED、PR #73 MERGED | 左右配置でもホバーした項目名を表示する。 |
-| [#61 ログイン後の表示復元](https://github.com/CHU1PC/dock/issues/61) | OPEN | 起動時に Dock の表示状態を復元し、ログイン起動を登録するコードがある。OS ログイン後の実画面確認は別途必要になる。 |
+| [#61 ログイン後の表示復元](https://github.com/CHU1PC/dock/issues/61) | OPEN | Dock の表示状態復元とログイン起動時に Dock だけを表示する方針がコードにあるが、最新 VM のログイン風起動では約16秒後に Studio 画面も出た。実ログインでの確認は未完了になる。 |
 | [#62 Control+Shift で一時拡大](https://github.com/CHU1PC/dock/issues/62) | OPEN | Control+Shift を押している間に拡大状態を一時切替できる。 |
 | [#63 Option+矢印で並べ替え](https://github.com/CHU1PC/dock/issues/63) | OPEN | Dock のフォーカス中に Option+矢印で項目を並べ替えられる。 |
 | [#64 Finder 選択項目をキーで追加](https://github.com/CHU1PC/dock/issues/64) | OPEN | Finder Services を登録する `NSServices` はなく、選択項目の受取りには対応しない。 |
