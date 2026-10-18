@@ -1,0 +1,3 @@
+     AXMenuItem 開く value nil pos Opt
+     AXMenuItem Finder で表示 value n
+     AXMenuItem Dock から取り外す 

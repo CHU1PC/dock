@@ -1,0 +1,5 @@
+hidden=false
+     AXMenuItem 開く value n
+     AXMenuItem 隠す value n
+     AXMenuItem 終了 value n
+     AXMenuItem 終了 value n
