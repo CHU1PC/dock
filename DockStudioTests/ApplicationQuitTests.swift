@@ -6,10 +6,12 @@ private final class FakeApplication: QuittableApplication {
     var isTerminated: Bool
     let accepts: Bool
     private(set) var terminateCalls = 0
+    private(set) var forceTerminateCalls = 0
     init(_ id: String, isTerminated: Bool = false, accepts: Bool = true) {
         bundleIdentifier = id; self.isTerminated = isTerminated; self.accepts = accepts
     }
     func terminate() -> Bool { terminateCalls += 1; return accepts }
+    func forceTerminate() -> Bool { forceTerminateCalls += 1; return accepts }
 }
 
 @MainActor
@@ -113,5 +115,106 @@ final class ApplicationQuitTests: XCTestCase {
         store.runningItems = [item]
         store.quitApplication(item)
         XCTAssertNotNil(store.errorMessage)
+    }
+
+    func testForceQuitCallsForceTerminateOnly() {
+        let calculator = FakeApplication("com.example.calc")
+        XCTAssertEqual(quitter([calculator]).forceQuit(app("com.example.calc")), .requested)
+        XCTAssertEqual(calculator.forceTerminateCalls, 1)
+        XCTAssertEqual(calculator.terminateCalls, 0)
+    }
+
+    func testNormalQuitDoesNotForceTerminate() {
+        let calculator = FakeApplication("com.example.calc")
+        _ = quitter([calculator]).quit(app("com.example.calc"))
+        XCTAssertEqual(calculator.forceTerminateCalls, 0)
+    }
+
+    func testForceQuitSkipsFinderSelfAndOtherApplications() {
+        let finder = FakeApplication("com.apple.finder")
+        let other = FakeApplication("com.example.other")
+        let q = quitter([finder, other])
+        XCTAssertEqual(q.forceQuit(app("com.apple.finder")), .notQuittable)
+        XCTAssertEqual(q.forceQuit(app("com.example.calc")), .notRunning)
+        XCTAssertEqual(finder.forceTerminateCalls + other.forceTerminateCalls, 0)
+    }
+
+    func testForceQuitReportsRejection() {
+        let stubborn = FakeApplication("com.example.calc", accepts: false)
+        XCTAssertEqual(quitter([stubborn]).forceQuit(app("com.example.calc")), .rejected)
+    }
+
+    func testForceQuitReachesEveryInstance() {
+        let first = FakeApplication("com.example.calc")
+        let second = FakeApplication("com.example.calc")
+        XCTAssertEqual(quitter([first, second]).forceQuit(app("com.example.calc")), .requested)
+        XCTAssertEqual(first.forceTerminateCalls + second.forceTerminateCalls, 2)
+    }
+
+    private func store(_ apps: [FakeApplication]) -> DockStore {
+        let store = DockStore(persistence: ProfilePersistence(fileURL: FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString).appendingPathComponent("profiles.json")))
+        store.applicationQuitter = quitter(apps)
+        return store
+    }
+
+    func testStoreForceQuitDoesNothingWhenConfirmationIsDeclined() {
+        let calculator = FakeApplication("com.example.calc")
+        let store = store([calculator])
+        store.confirmForceQuit = { _ in false }
+        let item = app("com.example.calc")
+        store.runningItems = [item]
+        store.forceQuitApplication(item)
+        XCTAssertEqual(calculator.forceTerminateCalls, 0)
+        XCTAssertNil(store.errorMessage)
+    }
+
+    func testStoreForceQuitRunsAfterConfirmation() {
+        let calculator = FakeApplication("com.example.calc")
+        let store = store([calculator])
+        var asked: [String] = []
+        store.confirmForceQuit = { asked.append($0.name); return true }
+        let item = app("com.example.calc")
+        store.runningItems = [item]
+        store.forceQuitApplication(item)
+        XCTAssertEqual(asked, ["com.example.calc"])
+        XCTAssertEqual(calculator.forceTerminateCalls, 1)
+        XCTAssertEqual(calculator.terminateCalls, 0)
+        XCTAssertTrue(store.status.contains("強制終了"))
+        XCTAssertNil(store.errorMessage)
+    }
+
+    func testStoreForceQuitSkipsConfirmationForNonRunningItems() {
+        let store = store([])
+        var asked = 0
+        store.confirmForceQuit = { _ in asked += 1; return true }
+        store.forceQuitApplication(app("com.example.calc"))
+        XCTAssertEqual(asked, 0)
+    }
+
+    func testStoreReportsRejectedForceQuit() {
+        let store = store([FakeApplication("com.example.calc", accepts: false)])
+        store.confirmForceQuit = { _ in true }
+        let item = app("com.example.calc")
+        store.runningItems = [item]
+        store.forceQuitApplication(item)
+        XCTAssertNotNil(store.errorMessage)
+    }
+
+    func testConfirmationTextWarnsAboutUnsavedData() {
+        XCTAssertTrue(ForceQuitConfirmation.informativeText.contains("未保存"))
+    }
+
+    func testStoreNeverOffersOrRunsForceQuitForFinder() {
+        let finder = FakeApplication("com.apple.finder")
+        let store = store([finder])
+        var asked = 0
+        store.confirmForceQuit = { _ in asked += 1; return true }
+        let item = app("com.apple.finder")
+        store.runningItems = [item]
+        XCTAssertFalse(store.canQuitApplication(item))
+        store.forceQuitApplication(item)
+        XCTAssertEqual(asked, 0)
+        XCTAssertEqual(finder.forceTerminateCalls + finder.terminateCalls, 0)
     }
 }

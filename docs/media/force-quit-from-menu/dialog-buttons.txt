@@ -1,0 +1,3 @@
+Press 強制終了… result 0
+   AXButton キャンセル value nil po
+   AXButton 強制終了 value nil pos O
