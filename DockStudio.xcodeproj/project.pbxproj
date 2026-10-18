@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */; };
 		0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */; };
 		0E7E417876D39D31A369A3CD /* DockTemporaryMagnification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */; };
 		0F794BB17A7FCC2D8FBD6A70 /* ItemLaunchPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91D702582D95D39C92A9737 /* ItemLaunchPolicy.swift */; };
@@ -41,6 +42,7 @@
 		8B121F3720AEE0D5FC07D09D /* DockAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */; };
 		8C9DA63FF1601ABC24F66CC0 /* ProfilePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */; };
 		8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */; };
+		91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */; };
 		948F7CBA787B4B0D01DEBEE4 /* ApplicationQuitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */; };
 		97000A48705869EBF0685E73 /* ProfileEditorPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */; };
 		9842CF11BF9460B3AAD9A557 /* HideOthersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4103144EE0168C0C2F74DD68 /* HideOthersTests.swift */; };
@@ -81,6 +83,7 @@
 
 /* Begin PBXFileReference section */
 		08AA7134614C71D6708A5FE6 /* DockRevealDurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockRevealDurationTests.swift; sourceTree = "<group>"; };
+		10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashEmptyService.swift; sourceTree = "<group>"; };
 		12E3047B8E792AEEE176CFBF /* DockDragOutRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockDragOutRemoval.swift; sourceTree = "<group>"; };
 		14DB1D6F3245E8E3EAF5695E /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncProcessRunner.swift; sourceTree = "<group>"; };
@@ -136,6 +139,7 @@
 		DEBCF14FF2A3EF3857CC9442 /* DockStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DockStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRestorePersistence.swift; sourceTree = "<group>"; };
 		E60BD64A51F2320C85780284 /* TrashDropTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashDropTests.swift; sourceTree = "<group>"; };
+		E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashEmptyServiceTests.swift; sourceTree = "<group>"; };
 		E9790F0964FFE49E6A27F544 /* ApplicationHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationHider.swift; sourceTree = "<group>"; };
 		E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropDockItemsTests.swift; sourceTree = "<group>"; };
 		EAC9706EBD666C1599DF3870 /* DockTemporaryMagnification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTemporaryMagnification.swift; sourceTree = "<group>"; };
@@ -185,6 +189,7 @@
 				B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */,
 				25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */,
 				FA499E30631DB5D1E9E1C4E4 /* TrashDropService.swift */,
+				10A599B8D147278FE0CC7DCC /* TrashEmptyService.swift */,
 				3D05D419252EF0367C316635 /* TrashInspector.swift */,
 			);
 			path = Services;
@@ -216,6 +221,7 @@
 				A2F9C0E6BEA45D32F3694272 /* RemoveDockItemTests.swift */,
 				9A47BE7B777E2BCC8C022C1E /* ReviewRegressionTests.swift */,
 				E60BD64A51F2320C85780284 /* TrashDropTests.swift */,
+				E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */,
 				B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */,
 			);
 			path = DockStudioTests;
@@ -358,6 +364,7 @@
 				A90482099F2E73ED122C2AA9 /* RemoveDockItemTests.swift in Sources */,
 				323829CCA874716179B7818C /* ReviewRegressionTests.swift in Sources */,
 				5440E4841B93F588D7FA4128 /* TrashDropTests.swift in Sources */,
+				00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */,
 				0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -400,6 +407,7 @@
 				8C9DA63FF1601ABC24F66CC0 /* ProfilePersistence.swift in Sources */,
 				9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */,
 				8FAAF7C5733A16B7274A9246 /* TrashDropService.swift in Sources */,
+				91877D5C53DF0EC7B6B71F0A /* TrashEmptyService.swift in Sources */,
 				2B7670294DE39057E5B88C22 /* TrashInspector.swift in Sources */,
 				28356FA051FC37E8A9DAD64E /* WorkspaceView.swift in Sources */,
 			);
@@ -481,6 +489,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio はゴミ箱を空にするため Finder に操作を依頼します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -598,6 +607,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Dock Studio";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Dock Studio はゴミ箱を空にするため Finder に操作を依頼します。";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
