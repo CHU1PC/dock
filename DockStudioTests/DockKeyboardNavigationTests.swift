@@ -94,6 +94,8 @@ final class DockKeyboardNavigationTests: XCTestCase {
         XCTAssertEqual(Menu.kinds(hasFileURL: true, canQuit: false, isPinned: false), [.open, .reveal, .keep])
         XCTAssertEqual(Menu.kinds(hasFileURL: false, canQuit: false, isPinned: true), [.open, .remove])
         XCTAssertEqual(Menu.kinds(hasFileURL: false, canQuit: true, isPinned: false), [.open, .quit, .forceQuit, .keep])
+        XCTAssertEqual(Menu.kinds(hasFileURL: true, visibility: .visible, canQuit: true, isPinned: true), [.open, .reveal, .hide, .quit, .forceQuit, .remove])
+        XCTAssertEqual(Menu.kinds(hasFileURL: false, visibility: .hidden, canQuit: true, isPinned: false), [.open, .show, .quit, .forceQuit, .keep])
     }
 
     func testAccessibilityActionsExcludeOpenAndReveal() {

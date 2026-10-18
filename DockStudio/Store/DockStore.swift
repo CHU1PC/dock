@@ -25,6 +25,8 @@ final class DockStore {
     @ObservationIgnored var trashMonitor: Task<Void, Never>?
     @ObservationIgnored var trashOpener: (URL) -> Bool = { NSWorkspace.shared.open($0) }
     @ObservationIgnored var applicationQuitter = ApplicationQuitter.live
+    @ObservationIgnored var applicationHider = ApplicationHider.live
+    private(set) var hiddenApplicationIdentities: Set<String> = []
     @ObservationIgnored var confirmForceQuit: (DockItem) -> Bool = { item in
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -652,6 +654,29 @@ final class DockStore {
         case .notQuittable: errorMessage = "\(item.name) は Dock から終了できません。"
         case .rejected: errorMessage = "\(item.name) に終了を要求できませんでした。"
         }
+    }
+
+    func applicationVisibility(_ item: DockItem) -> ApplicationVisibility? {
+        guard applicationHider.hideableBundleIdentifier(for: item) != nil, let identity = item.applicationIdentity,
+              runningItems.contains(where: { $0.applicationIdentity == identity }) else { return nil }
+        return hiddenApplicationIdentities.contains(identity) ? .hidden : .visible
+    }
+
+    func refreshHiddenApplications() {
+        hiddenApplicationIdentities = Set(runningItems.compactMap { item in
+            applicationHider.visibility(of: item) == .hidden ? item.applicationIdentity : nil
+        })
+    }
+
+    func toggleApplicationVisibility(_ item: DockItem) {
+        guard !isPreview else { status = "\(item.name) を選択しました"; return }
+        switch applicationHider.toggle(item) {
+        case .hidden: status = "\(item.name) を隠しました"
+        case .shown: status = "\(item.name) を表示しました"
+        case .notRunning: status = "\(item.name) は起動していません"
+        case .notHideable: errorMessage = "\(item.name) は Dock から隠せません。"
+        }
+        refreshHiddenApplications()
     }
 
     func forceQuitApplication(_ item: DockItem) {

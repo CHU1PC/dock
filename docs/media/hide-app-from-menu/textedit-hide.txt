@@ -1,0 +1,4 @@
+before-textedit-hide
+true
+textedit-visible=true
+calc-visible=false
