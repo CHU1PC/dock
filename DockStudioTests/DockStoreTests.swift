@@ -54,6 +54,18 @@ final class DockStoreTests: XCTestCase {
         XCTAssertTrue(store.status.contains("3番目に移動しました"))
     }
 
+    func testFolderSortOrderPersistsOnItsDockItem() {
+        let folder = DockItem(name: "Downloads", kind: .folder, target: "file:///tmp/Downloads/")
+        var document = DockStore.initialDocument()
+        document.profiles[0].items = [folder]
+        let store = DockStore(persistence: persistence, initial: document)
+
+        store.setFolderSortOrder(.dateModified, for: folder.id)
+
+        let reloaded = DockStore(persistence: persistence)
+        XCTAssertEqual(reloaded.activeProfile.items.first?.folderSortOrder, .dateModified)
+    }
+
     func testSavingInactiveProfileDoesNotActivateIt() {
         let store = DockStore(persistence: persistence)
         let activeID = store.document.activeProfileID
@@ -70,6 +82,7 @@ final class DockStoreTests: XCTestCase {
         settings.position = .right
         settings.iconSize = 72
         settings.autoHide = true
+        settings.minimizeWindowsIntoAppIcon = true
         store.updateSettings(settings)
         XCTAssertEqual(DockStore(persistence: persistence).document.settings, settings)
     }
@@ -103,6 +116,18 @@ final class DockStoreTests: XCTestCase {
 
         let legacy = Data(#"{"mode":"custom","position":"bottom","iconSize":52,"autoHide":false,"showRunningApps":false}"#.utf8)
         XCTAssertFalse(try JSONDecoder().decode(DockSettings.self, from: legacy).finderEntryEnabled)
+    }
+
+    func testFolderDisplayStyleIsSavedPerItem() {
+        let store = DockStore(persistence: persistence)
+        let folder = DockItem(name: "Folder", kind: .folder, target: "file:///tmp/")
+        store.addItem(folder)
+        XCTAssertTrue(store.saveProfile())
+
+        XCTAssertTrue(store.updateFolderContentsDisplayStyle(.fan, for: folder.id))
+
+        let reloaded = DockStore(persistence: persistence)
+        XCTAssertEqual(reloaded.activeProfile.items.first(where: { $0.id == folder.id })?.folderContentsDisplayStyle, .fan)
     }
 
     func testManualDockVisibilityToggleIsIndependentOfAutoHide() {

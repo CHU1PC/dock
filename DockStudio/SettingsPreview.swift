@@ -60,6 +60,28 @@ struct SettingsPreview: View {
             }
             settingsGroup("Custom Dock の配置") {
                 HStack {
+                    Text("項目の並び方")
+                    Spacer()
+                    Picker("項目の並び方", selection: setting(\.arrangement)) {
+                        ForEach(DockArrangement.allCases) { Text($0.title).tag($0) }
+                    }.labelsHidden().pickerStyle(.segmented).frame(width: 220)
+                }
+                Text("標準の区画では、アプリ、最近使ったアプリ、書類を分けます。保存済みの項目順は変更しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                HStack {
+                    Text("画面の選び方")
+                    Spacer()
+                    Picker("画面の選び方", selection: setting(\.displayMode)) {
+                        ForEach(DockDisplayMode.allCases) { Text($0.title).tag($0) }
+                    }.labelsHidden().pickerStyle(.segmented).frame(width: 210)
+                }
+                Text(store.document.settings.displayMode == .edgeFollowing
+                     ? "ポインタが各画面の Dock 側の端に入ると、その画面へ移動します。Dock は1つだけ表示します。"
+                     : "選択した画面に固定して表示します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                HStack {
                     Text("画面の位置")
                     Spacer()
                     Picker("画面の位置", selection: setting(\.position)) {
@@ -68,7 +90,7 @@ struct SettingsPreview: View {
                 }
                 Divider()
                 HStack {
-                    Text("表示先")
+                    Text(store.document.settings.displayMode == .edgeFollowing ? "戻り先" : "表示先")
                     Spacer()
                     Picker("表示先", selection: setting(\.displayID)) {
                         Text("メインディスプレイ").tag(Optional<UInt32>.none)
@@ -114,6 +136,31 @@ struct SettingsPreview: View {
                     .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("実行中のアプリを表示", isOn: setting(\.showRunningApps))
+                Divider()
+                Toggle("最小化したウインドウをアプリアイコンにまとめる",
+                       isOn: setting(\.minimizeWindowsIntoAppIcon))
+                Text("有効にすると、アプリのアイコンのメニューから復元するウインドウを選べます。Apple Dock のシステム設定には影響しません。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Divider()
+                Toggle("最近使ったアプリを表示", isOn: setting(\.showRecentApps))
+                Text("固定済みと実行中のアプリを除き、最近使ったアプリを最大3件表示します。オフにすると履歴を消去します。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+            }
+            settingsGroup("グローバルショートカット") {
+                Picker("Dock にフォーカス", selection: setting(\.dockFocusShortcut)) {
+                    ForEach(DockFocusShortcut.allCases) { shortcut in
+                        Text(shortcut.title).tag(shortcut)
+                    }
+                }
+                .frame(maxWidth: 260, alignment: .leading)
+                Text("どのアプリを使っていても Custom Dock にフォーカスします。Control+Option+Command を使うため、Control+F3 など macOS 標準の Dock 操作キーは変更しません。アクセシビリティの許可は不要です。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                Text("別のアプリや macOS が選んだキーを使っている場合は登録できません。キーを選び直してください。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
+                if let message = store.dockFocusShortcutMessage {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout).foregroundStyle(.orange)
+                }
             }
         }
     }
