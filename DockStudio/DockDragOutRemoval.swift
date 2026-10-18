@@ -5,15 +5,27 @@ enum DockDragOutRemoval {
     static let minimumDistance: CGFloat = 6
     static let margin: CGFloat = 12
 
-    static func isOutside(location: CGPoint, barSize: CGSize, margin: CGFloat = margin) -> Bool {
-        guard barSize.width > 0, barSize.height > 0 else { return false }
-        return !CGRect(origin: .zero, size: barSize).insetBy(dx: -margin, dy: -margin).contains(location)
+    /// DockBar 全体の寸法から、見える背景の矩形を求める。ラベル用の透明な領域は含めない。
+    static func visibleBounds(barSize: CGSize, vertical: Bool, thickness: CGFloat) -> CGRect {
+        guard barSize.width > 0, barSize.height > 0 else { return .zero }
+        if vertical {
+            let width = min(thickness, barSize.width)
+            return CGRect(x: (barSize.width - width) / 2, y: 0, width: width, height: barSize.height)
+        }
+        let height = min(thickness, barSize.height)
+        return CGRect(x: 0, y: barSize.height - height, width: barSize.width, height: height)
+    }
+
+    static func isOutside(location: CGPoint, bounds: CGRect, margin: CGFloat = margin) -> Bool {
+        guard !bounds.isEmpty else { return false }
+        return !bounds.insetBy(dx: -margin, dy: -margin).contains(location)
     }
 }
 
 struct DragOutToRemove: ViewModifier {
     let enabled: Bool
-    let barSize: CGSize
+    let vertical: Bool
+    let bounds: CGRect
     let onRemove: () -> Void
     @State private var translation: CGSize = .zero
     @State private var outside = false
@@ -22,16 +34,16 @@ struct DragOutToRemove: ViewModifier {
     func body(content: Content) -> some View {
         content
             .opacity(outside ? 0.45 : 1)
-            .overlay(alignment: .top) {
+            .offset(translation)
+            .overlay(alignment: vertical ? .center : .top) {
                 if outside {
                     Text("取り外す").font(.caption.weight(.medium)).lineLimit(1)
                         .padding(.horizontal, 8).padding(.vertical, 4)
                         .background(.regularMaterial, in: Capsule())
-                        .fixedSize().offset(y: -26)
+                        .fixedSize().offset(y: vertical ? 0 : -26)
                         .allowsHitTesting(false).accessibilityHidden(true)
                 }
             }
-            .offset(translation)
             .zIndex(translation == .zero ? 0 : 1)
             .highPriorityGesture(enabled ? drag : nil)
             .onChange(of: tracking) { if !tracking { reset() } }
@@ -42,10 +54,10 @@ struct DragOutToRemove: ViewModifier {
             .updating($tracking) { _, state, _ in state = true }
             .onChanged { value in
                 translation = value.translation
-                outside = DockDragOutRemoval.isOutside(location: value.location, barSize: barSize)
+                outside = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
             }
             .onEnded { value in
-                let remove = DockDragOutRemoval.isOutside(location: value.location, barSize: barSize)
+                let remove = DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
                 reset()
                 if remove { onRemove() }
             }

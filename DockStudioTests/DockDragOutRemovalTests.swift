@@ -2,27 +2,69 @@ import XCTest
 @testable import DockStudio
 
 final class DockDragOutRemovalTests: XCTestCase {
-    private let bar = CGSize(width: 400, height: 80)
+    private let margin = DockDragOutRemoval.margin
 
-    func testInsideBarIsNotOutside() {
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 40), barSize: bar))
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 0, y: 0), barSize: bar))
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 400, y: 80), barSize: bar))
+    func testBottomVisibleBoundsExcludeTransparentLabelArea() {
+        // パネルの下配置: DockBar の高さは icon+65、見える背景は icon+30（icon=64）
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 400, height: 129), vertical: false, thickness: 94)
+        XCTAssertEqual(bounds, CGRect(x: 0, y: 35, width: 400, height: 94))
     }
 
-    func testWithinMarginIsNotOutside() {
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: -DockDragOutRemoval.margin), barSize: bar))
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 400 + DockDragOutRemoval.margin - 1, y: 40), barSize: bar))
+    func testVerticalVisibleBoundsAreCenteredInPreviewWidth() {
+        // プレビューの左右配置: 幅 190 の中に barThickness の背景が中央にある
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 190, height: 300), vertical: true, thickness: 174)
+        XCTAssertEqual(bounds, CGRect(x: 8, y: 0, width: 174, height: 300))
     }
 
-    func testBeyondMarginIsOutsideOnEverySide() {
-        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: -60), barSize: bar))
-        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 200), barSize: bar))
-        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: -60, y: 40), barSize: bar))
-        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 600, y: 40), barSize: bar))
+    func testVerticalVisibleBoundsFillPanelWidth() {
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 174, height: 300), vertical: true, thickness: 174)
+        XCTAssertEqual(bounds, CGRect(x: 0, y: 0, width: 174, height: 300))
     }
 
-    func testUnmeasuredBarNeverRemoves() {
-        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 900, y: 900), barSize: .zero))
+    func testThicknessLargerThanBarIsClamped() {
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 400, height: 80), vertical: false, thickness: 94)
+        XCTAssertEqual(bounds, CGRect(x: 0, y: 0, width: 400, height: 80))
+    }
+
+    func testUnmeasuredBarHasNoBoundsAndNeverRemoves() {
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: .zero, vertical: false, thickness: 94)
+        XCTAssertTrue(bounds.isEmpty)
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 900, y: 900), bounds: bounds))
+    }
+
+    func testBottomPanelJudgesFromVisibleBackground() {
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 400, height: 129), vertical: false, thickness: 94)
+        // 透明領域の中（背景の上端から margin 以内）は外ではない
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 35 - margin), bounds: bounds))
+        // 背景の上端から margin を超えると外になる（DockBar 全体の矩形なら内側の位置）
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 35 - margin - 1), bounds: bounds))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 10), bounds: bounds))
+    }
+
+    func testVerticalPreviewJudgesFromVisibleBackground() {
+        let bounds = DockDragOutRemoval.visibleBounds(barSize: CGSize(width: 190, height: 300), vertical: true, thickness: 174)
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 8 - margin, y: 150), bounds: bounds))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 8 - margin - 1, y: 150), bounds: bounds))
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 100, y: 150), bounds: bounds))
+    }
+
+    func testInnerEdgesBoundaryUsesHalfOpenRect() {
+        let bounds = CGRect(x: 0, y: 0, width: 400, height: 80)
+        // contains は max 辺を含まない: 右端は x = 412、下端は y = 92 で外になる
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 411, y: 40), bounds: bounds))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 412, y: 40), bounds: bounds))
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 91), bounds: bounds))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 92), bounds: bounds))
+        // min 辺は含む
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: -12, y: -12), bounds: bounds))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: -13, y: 40), bounds: bounds))
+    }
+
+    func testExplicitMarginArgument() {
+        let bounds = CGRect(x: 0, y: 0, width: 400, height: 80)
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: -1), bounds: bounds, margin: 0))
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: -1), bounds: bounds, margin: 5))
+        XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 84), bounds: bounds, margin: 5))
+        XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 85), bounds: bounds, margin: 5))
     }
 }

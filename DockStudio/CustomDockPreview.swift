@@ -181,7 +181,9 @@ struct DockBar: View {
         }
         .padding(vertical ? .vertical : .horizontal, 5)
         .contentShape(Rectangle())
-        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, barSize: barSize) {
+        .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly, vertical: vertical,
+                                  bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
+                                                                           thickness: DockMetrics.barThickness(for: store))) {
             store.removeFromActiveProfile(item)
         })
         .anchorPreference(key: DockItemFrames.self, value: .bounds) { [item.id: $0] }
