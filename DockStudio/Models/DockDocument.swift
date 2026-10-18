@@ -99,9 +99,22 @@ enum DockPosition: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum DockDisplayMode: String, Codable, CaseIterable, Identifiable {
+    case selectedDisplay, edgeFollowing
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .selectedDisplay: "指定画面"
+        case .edgeFollowing: "画面端に追従"
+        }
+    }
+}
+
 struct DockSettings: Codable, Equatable {
     var mode: DockMode = .both
     var position: DockPosition = .bottom
+    var displayMode: DockDisplayMode = .selectedDisplay
     var iconSize = 52.0
     var autoHide = false
     var revealAnimationDuration = 0.22
@@ -116,13 +129,14 @@ extension DockSettings {
     static let iconSizeRange = 16.0...128.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, position, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID, dockFocusShortcut
+        case mode, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, showRunningApps, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         mode = try values.decode(DockMode.self, forKey: .mode)
         position = try values.decode(DockPosition.self, forKey: .position)
+        displayMode = try values.decodeIfPresent(DockDisplayMode.self, forKey: .displayMode) ?? .selectedDisplay
         iconSize = try values.decode(Double.self, forKey: .iconSize)
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
         revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
