@@ -83,6 +83,11 @@ struct FolderStackIcon: View {
 }
 
 struct FolderContentsPopover: View {
+    private enum FocusTarget: Hashable {
+        case container
+        case gridItem(UUID)
+    }
+
     @Environment(\.dismiss) private var dismiss
     let folder: DockItem
     @Binding var displayMode: FolderDisplayMode
@@ -98,7 +103,12 @@ struct FolderContentsPopover: View {
     @State private var result: Result<[DockItem], Error>?
     @State private var sortOrder: FolderSortOrder = .name
     @State private var displayStyle: FolderContentsDisplayStyle
-    @FocusState private var focusedGridItemID: UUID?
+    @FocusState private var focusedTarget: FocusTarget?
+
+    private var focusedGridItemID: UUID? {
+        guard case .gridItem(let id) = focusedTarget else { return nil }
+        return id
+    }
 
     init(folder: DockItem, displayMode: Binding<FolderDisplayMode>,
          onDisplayModeChange: @escaping (FolderDisplayMode) -> Void,
@@ -195,6 +205,14 @@ struct FolderContentsPopover: View {
         }
         .padding(12)
         .frame(width: 320)
+        .focusable()
+        .focused($focusedTarget, equals: .container)
+        .background {
+            PopoverWindowKeyRequester {
+                focusedTarget = .container
+            }
+            .frame(width: 0, height: 0)
+        }
         .onKeyPress(.escape) {
             dismiss()
             return .handled
@@ -226,7 +244,9 @@ struct FolderContentsPopover: View {
             result = loaded
             if case .success(let items) = loaded {
                 updateResolvedDisplayMode(for: items)
-                if displayMode == .grid { focusedGridItemID = items.first?.id }
+                if let id = FolderPopoverKeyboardFocus.initialGridItemID(mode: displayMode, items: items) {
+                    focusedTarget = .gridItem(id)
+                }
             }
         }
     }
@@ -287,8 +307,8 @@ struct FolderContentsPopover: View {
                     }
                 }
             }
-            .onChange(of: focusedGridItemID) {
-                if let focusedGridItemID { proxy.scrollTo(focusedGridItemID, anchor: .center) }
+            .onChange(of: focusedTarget) {
+                if case .gridItem(let id) = focusedTarget { proxy.scrollTo(id, anchor: .center) }
             }
             .frame(maxHeight: 320)
         }
@@ -330,7 +350,7 @@ struct FolderContentsPopover: View {
         .help(item.targetURL?.path ?? item.name)
         .accessibilityLabel(item.name)
         .id(item.id)
-        .focused($focusedGridItemID, equals: item.id)
+        .focused($focusedTarget, equals: .gridItem(item.id))
         .onKeyPress(phases: [.down]) { press in
             guard let key = DockKeyboardNavigation.Key(press), case .arrow(let direction) = key else {
                 return .ignored
@@ -351,7 +371,7 @@ struct FolderContentsPopover: View {
         }
         let target = current + offset
         guard items.indices.contains(target) else { return .ignored }
-        focusedGridItemID = items[target].id
+        focusedTarget = .gridItem(items[target].id)
         return .handled
     }
 
@@ -360,7 +380,9 @@ struct FolderContentsPopover: View {
         displayStyle = style
         if case .success(let items) = result {
             updateResolvedDisplayMode(for: items)
-            if displayMode == .grid { focusedGridItemID = items.first?.id }
+            if let id = FolderPopoverKeyboardFocus.initialGridItemID(mode: displayMode, items: items) {
+                focusedTarget = .gridItem(id)
+            }
         } else {
             updateDisplayMode(.list)
         }
