@@ -48,6 +48,31 @@ enum DockInteractionGeometry {
     }
 }
 
+enum DockPanelSizing {
+    static let accessibilityNoticeHeight: CGFloat = 64
+    static let accessibilityNoticeSpacing: CGFloat = 6
+
+    static func hasAccessibilityNotice(permissionGranted: Bool, items: [DockItem]) -> Bool {
+        !permissionGranted && items.contains { $0.kind == .application }
+    }
+
+    static func size(position: DockPosition, dockLength: CGFloat, dockThickness: CGFloat,
+                     panelPadding: CGFloat, sideLabelGutter: CGFloat, maximumLength: CGFloat,
+                     accessibilityNoticeHeight: CGFloat = 0,
+                     accessibilityNoticeSpacing: CGFloat = 0) -> NSSize {
+        let noticeHeight = max(0, accessibilityNoticeHeight)
+            + (accessibilityNoticeHeight > 0 ? max(0, accessibilityNoticeSpacing) : 0)
+        switch position {
+        case .bottom:
+            return NSSize(width: min(dockLength + panelPadding, maximumLength),
+                          height: dockThickness + panelPadding + noticeHeight)
+        case .left, .right:
+            return NSSize(width: dockThickness + panelPadding + sideLabelGutter,
+                          height: min(dockLength + panelPadding + noticeHeight, maximumLength))
+        }
+    }
+}
+
 struct DockDisplayGeometry {
     struct Screen: Equatable {
         let id: UInt32
@@ -331,10 +356,21 @@ final class CustomDockWindowController {
         let padding = DockInteractionGeometry.panelPadding * 2
         let maximumLength = vertical ? visible.height : screen.frame.insetBy(dx: 10, dy: 10).width
         let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
-        let length = min(DockMetrics.length(for: store, magnificationEnabled: magnificationEnabled) + padding, maximumLength)
-        let thickness = DockMetrics.thickness(for: store, magnificationEnabled: magnificationEnabled)
-            + padding + (vertical ? DockMetrics.sideLabelGutter : 0)
-        var frame = NSRect(origin: .zero, size: vertical ? NSSize(width: thickness, height: length) : NSSize(width: length, height: thickness))
+        let hasAccessibilityNotice = DockPanelSizing.hasAccessibilityNotice(
+            permissionGranted: store.notificationBadgeAccessibilityGranted,
+            items: store.displayedLayout.items
+        )
+        let frameSize = DockPanelSizing.size(
+            position: store.document.settings.position,
+            dockLength: DockMetrics.length(for: store, magnificationEnabled: magnificationEnabled),
+            dockThickness: DockMetrics.thickness(for: store, magnificationEnabled: magnificationEnabled),
+            panelPadding: padding,
+            sideLabelGutter: vertical ? DockMetrics.sideLabelGutter : 0,
+            maximumLength: maximumLength,
+            accessibilityNoticeHeight: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeHeight : 0,
+            accessibilityNoticeSpacing: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0
+        )
+        var frame = NSRect(origin: .zero, size: frameSize)
         frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
                                                            size: frame.size, position: store.document.settings.position)
         layout.position = store.document.settings.position
@@ -437,13 +473,23 @@ private struct PanelDockContent: View {
         return DockTemporaryMagnification.isMagnified(configured: store.appearance.magnification,
                                                        modifiersHeld: true)
     }
+    private var hasAccessibilityNotice: Bool {
+        DockPanelSizing.hasAccessibilityNotice(permissionGranted: store.notificationBadgeAccessibilityGranted,
+                                               items: store.displayedLayout.items)
+    }
+    private var dockAvailableLength: CGFloat {
+        let noticeSpace = hasAccessibilityNotice
+            ? DockPanelSizing.accessibilityNoticeHeight + DockPanelSizing.accessibilityNoticeSpacing
+            : 0
+        return max(0, (layout.vertical ? layout.size.height : layout.size.width)
+            - DockInteractionGeometry.panelPadding * 2 - (layout.vertical ? noticeSpace : 0))
+    }
 
     var body: some View {
         ZStack {
             DockBar(vertical: layout.vertical, isPanel: true,
                     temporaryMagnificationEnabled: temporaryMagnificationEnabled,
-                    availableLength: max(0, (layout.vertical ? layout.size.height : layout.size.width)
-                        - DockInteractionGeometry.panelPadding * 2))
+                    availableLength: dockAvailableLength)
                 .frame(width: layout.vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil)
                 .padding(DockInteractionGeometry.panelPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity,
