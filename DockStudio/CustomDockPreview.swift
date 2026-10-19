@@ -401,11 +401,34 @@ struct DockBar: View {
                     Button(action.title, action: action.perform)
                         .disabled(!action.isEnabled)
                 }
+                if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
+                    ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
+                        switch entry {
+                        case .window(let id, let title):
+                            Button("ウィンドウを前面に表示: \(title)") { store.activateApplicationWindow(id, for: item) }
+                        case .unavailable(let title):
+                            Button(title) {}.disabled(true)
+                        }
+                    }
+                }
             }
             .contextMenu {
                 ForEach(actions(for: item)) { action in
-                    Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
-                        .disabled(!action.isEnabled)
+                    if action.kind == .windowList {
+                        Menu(action.title) {
+                            ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
+                                switch entry {
+                                case .window(let id, let title):
+                                    Button(title) { store.activateApplicationWindow(id, for: item) }
+                                case .unavailable(let title):
+                                    Button(title) {}.disabled(true)
+                                }
+                            }
+                        }
+                    } else {
+                        Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
+                            .disabled(!action.isEnabled)
+                    }
                 }
                 if supportsApplicationDockMenu(item) {
                     Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
@@ -587,6 +610,7 @@ extension DockBar {
                                        finderEntryEnabled: store.document.settings.finderEntryEnabled,
                                        folderDisplayStyle: item.kind == .folder ? item.effectiveFolderDisplayStyle : nil,
                                        isApplication: item.kind == .application,
+                                       hasWindowList: item.kind == .application && item.applicationIdentity?.hasPrefix("bundle:") == true,
                                        optionKeyDown: (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags).contains(.option))
         let appExposeAction = item.kind == .application && item.targetURL?.isFileURL == true
             ? [DockItemMenu.Kind.showAllWindows]
@@ -597,6 +621,7 @@ extension DockBar {
                 case .open: store.openItem(item)
                 case .reveal: if let url = item.targetURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
                 case .showAllWindows: store.showAllWindows(for: item)
+                case .windowList: break
                 case .spacesAssignmentGuide: showingSpacesAssignmentGuide = true
                 case .openLoginItemsSettings: store.loginItem.openSystemSettings()
                 case .hide, .show: store.toggleApplicationVisibility(item)
@@ -729,6 +754,18 @@ extension DockBar {
         guard let window = NSApp.keyWindow else { return }
         let menu = NSMenu()
         for action in actions(for: item) {
+            if action.kind == .windowList {
+                let windowMenu = NSMenuItem(title: action.title, action: nil, keyEquivalent: "")
+                let submenu = NSMenu()
+                let controller = DockApplicationWindowMenuController(
+                    listing: { store.applicationWindowListing(for: item) },
+                    activate: { windowID in store.activateApplicationWindow(windowID, for: item) })
+                submenu.delegate = controller
+                windowMenu.submenu = submenu
+                windowMenu.representedObject = controller
+                menu.addItem(windowMenu)
+                continue
+            }
             let entry = NSMenuItem(title: action.title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
             entry.target = DockMenuHandler.shared
             entry.representedObject = action.perform
@@ -753,17 +790,6 @@ extension DockBar {
             }
             recentItem.submenu = submenu
             menu.addItem(recentItem)
-        }
-        if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
-            let windowMenu = NSMenuItem(title: "ウィンドウを前面に表示", action: nil, keyEquivalent: "")
-            let submenu = NSMenu()
-            let controller = DockApplicationWindowMenuController(
-                listing: { store.applicationWindowListing(for: item) },
-                activate: { windowID in store.activateApplicationWindow(windowID, for: item) })
-            submenu.delegate = controller
-            windowMenu.submenu = submenu
-            windowMenu.representedObject = controller
-            menu.addItem(windowMenu)
         }
         let left = window.frame.minX + origin.x + itemFrame.minX
         let top = window.frame.maxY - (origin.y + itemFrame.minY)
@@ -794,30 +820,16 @@ private final class DockApplicationWindowMenuController: NSObject, NSMenuDelegat
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        switch listing() {
-        case .windows(let windows) where !windows.isEmpty:
-            var totals: [String: Int] = [:]
-            for window in windows { totals[window.title, default: 0] += 1 }
-            var titleCounts: [String: Int] = [:]
-            for window in windows {
-                titleCounts[window.title, default: 0] += 1
-                let duplicateNumber = titleCounts[window.title, default: 0]
-                let duplicateSuffix = (totals[window.title, default: 0] > 1) ? " (\(duplicateNumber))" : ""
-                let minimizedSuffix = window.isMinimized ? "（最小化）" : ""
-                let entry = NSMenuItem(title: "\(window.title)\(duplicateSuffix)\(minimizedSuffix)",
-                                       action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
-                entry.target = DockMenuHandler.shared
-                entry.representedObject = { [activate] in activate(window.id) }
-                menu.addItem(entry)
+        for entry in DockApplicationWindowMenuModel.entries(from: listing()) {
+            switch entry {
+            case .window(let id, let title):
+                let item = NSMenuItem(title: title, action: #selector(DockMenuHandler.run(_:)), keyEquivalent: "")
+                item.target = DockMenuHandler.shared
+                item.representedObject = { [activate] in activate(id) }
+                menu.addItem(item)
+            case .unavailable(let title):
+                menu.addItem(disabledItem(title))
             }
-        case .windows:
-            menu.addItem(disabledItem("開いているウィンドウはありません"))
-        case .applicationNotRunning:
-            menu.addItem(disabledItem("アプリは起動していません"))
-        case .accessibilityPermissionDenied:
-            menu.addItem(disabledItem("アクセシビリティ権限が必要です（システム設定で Dock Studio を許可）"))
-        case .failed:
-            menu.addItem(disabledItem("ウィンドウ一覧を取得できませんでした"))
         }
     }
 
