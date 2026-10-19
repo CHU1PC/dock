@@ -1174,7 +1174,7 @@ enum DockMetrics {
         let scalableItems = store.displayedItems.filter {
             ![.spacer, .clock, .focusTimer].contains($0.kind)
         }.count
-        let minimizedWindowCount = store.minimizedWindowController.windows.count
+        let minimizedWindowCount = store.minimizedWindowController.state.reservedSlots
         let fixedLength = fixedItemsLength + 21
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let magnificationReserve = enabled
@@ -1191,13 +1191,18 @@ enum DockMetrics {
                                        scalableLength: scalableLength)
     }
 
+    static func minimizedSectionLength(slots: Int, iconSize: Double) -> Double {
+        Double(slots) * (10 + iconSize)
+    }
+
     static func length(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + 10 + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
-        let minimizedWindows = Double(store.minimizedWindowController.windows.count) * (10 + store.effectiveIconSize)
+        let minimizedWindows = minimizedSectionLength(slots: store.minimizedWindowController.state.reservedSlots,
+                                                      iconSize: store.effectiveIconSize)
         let total = itemsTotal + minimizedWindows + (10 + 11) + (10 + store.effectiveIconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0

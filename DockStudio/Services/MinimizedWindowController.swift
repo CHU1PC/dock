@@ -46,6 +46,11 @@ enum MinimizedWindowState {
         guard case .available(let windows) = self else { return [] }
         return windows
     }
+
+    var reservedSlots: Int {
+        if case .permissionDenied = self { return 1 }
+        return windows.count
+    }
 }
 
 @MainActor
@@ -161,11 +166,15 @@ struct MinimizedWindowsDockSection: View {
                                 NSWorkspace.shared.open(url)
                             }
                         } label: {
-                            Label("アクセシビリティの許可が必要", systemImage: "lock.fill")
-                                .font(.caption).padding(8)
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: iconSize * 0.4, weight: .medium))
+                                .frame(width: iconSize, height: iconSize)
                                 .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                                .padding(vertical ? .vertical : .horizontal, 5)
                         }
                         .buttonStyle(.plain)
+                        .help("ウインドウの最小化表示にはアクセシビリティの許可が必要です")
+                        .accessibilityLabel("アクセシビリティの許可が必要")
                         .accessibilityHint("システム設定のプライバシーとセキュリティを開きます")
                     case .available(let windows):
                         if groupedByApplication {
