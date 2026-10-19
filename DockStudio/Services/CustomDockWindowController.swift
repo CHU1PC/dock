@@ -51,24 +51,34 @@ enum DockInteractionGeometry {
 enum DockPanelSizing {
     static let accessibilityNoticeHeight: CGFloat = 64
     static let accessibilityNoticeSpacing: CGFloat = 6
+    static let accessibilityNoticeWidth: CGFloat = 320
 
     static func hasAccessibilityNotice(permissionGranted: Bool, items: [DockItem]) -> Bool {
         !permissionGranted && items.contains { $0.kind == .application }
     }
 
+    static func boundedLength(dockLength: CGFloat, noticeLength: CGFloat = 0,
+                              panelPadding: CGFloat, maximumLength: CGFloat) -> CGFloat {
+        min(max(dockLength, noticeLength) + panelPadding, maximumLength)
+    }
+
     static func size(position: DockPosition, dockLength: CGFloat, dockThickness: CGFloat,
                      panelPadding: CGFloat, sideLabelGutter: CGFloat, maximumLength: CGFloat,
                      accessibilityNoticeHeight: CGFloat = 0,
-                     accessibilityNoticeSpacing: CGFloat = 0) -> NSSize {
+                     accessibilityNoticeSpacing: CGFloat = 0,
+                     accessibilityNoticeWidth: CGFloat = 0) -> NSSize {
         let noticeHeight = max(0, accessibilityNoticeHeight)
             + (accessibilityNoticeHeight > 0 ? max(0, accessibilityNoticeSpacing) : 0)
         switch position {
         case .bottom:
-            return NSSize(width: min(dockLength + panelPadding, maximumLength),
+            return NSSize(width: boundedLength(dockLength: dockLength,
+                                               noticeLength: accessibilityNoticeHeight > 0 ? accessibilityNoticeWidth : 0,
+                                               panelPadding: panelPadding, maximumLength: maximumLength),
                           height: dockThickness + panelPadding + noticeHeight)
         case .left, .right:
             return NSSize(width: dockThickness + panelPadding + sideLabelGutter,
-                          height: min(dockLength + panelPadding + noticeHeight, maximumLength))
+                          height: boundedLength(dockLength: dockLength + noticeHeight,
+                                                panelPadding: panelPadding, maximumLength: maximumLength))
         }
     }
 }
@@ -373,7 +383,8 @@ final class CustomDockWindowController {
             sideLabelGutter: vertical ? DockMetrics.sideLabelGutter : 0,
             maximumLength: maximumLength,
             accessibilityNoticeHeight: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeHeight : 0,
-            accessibilityNoticeSpacing: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0
+            accessibilityNoticeSpacing: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0,
+            accessibilityNoticeWidth: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeWidth : 0
         )
         var frame = NSRect(origin: .zero, size: frameSize)
         frame.origin = DockInteractionGeometry.panelOrigin(screen: screen.frame, available: visible,
