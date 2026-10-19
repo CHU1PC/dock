@@ -78,6 +78,10 @@ enum DockDragOutRemoval {
                                         hasActivePopover: Bool, isDragging: Bool) -> Bool {
         !pointerIsInteractive && !trackingMenus && !hasActivePopover && !isDragging
     }
+
+    static func shouldRelinquishKeyboardFocusAfterDrag(panelIsKey: Bool) -> Bool {
+        panelIsKey
+    }
 }
 
 struct DragOutToRemove: ViewModifier {

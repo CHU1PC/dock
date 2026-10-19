@@ -30,6 +30,18 @@ final class DockDragOutRemovalTests: XCTestCase {
         assertDragEnds(for: .externalDrop)
     }
 
+    func testDragCompletionReleasesKeyboardFocusPinSoAutoHideCanResume() {
+        XCTAssertTrue(DockDragOutRemoval.shouldRelinquishKeyboardFocusAfterDrag(panelIsKey: true))
+        XCTAssertFalse(DockDragOutRemoval.shouldRelinquishKeyboardFocusAfterDrag(panelIsKey: false))
+
+        var visibility = DockVisibilityState()
+        let start = Date(timeIntervalSince1970: 100)
+        visibility.update(visible: true, autoHide: true, hovering: false, interacting: true, now: start)
+        visibility.update(visible: true, autoHide: true, hovering: false, interacting: false,
+                          now: start.addingTimeInterval(1.1))
+        XCTAssertTrue(visibility.isCollapsed)
+    }
+
     func testAutoHideStaysExpandedDuringDragAndResumesAfterward() {
         var drag = DockDragOutStateMachine()
         var visibility = DockVisibilityState()
