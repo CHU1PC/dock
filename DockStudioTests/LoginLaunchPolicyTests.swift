@@ -17,11 +17,77 @@ final class LoginLaunchPolicyTests: XCTestCase {
         XCTAssertFalse(decision.showStudio)
     }
 
+    func testLoginLaunchWithVisibleDockShowsOnlyDock() {
+        let decision = LoginLaunchPolicy.decision(isLoginLaunch: true, dockVisible: true)
+
+        XCTAssertTrue(decision.showDock)
+        XCTAssertFalse(decision.showStudio)
+    }
+
     func testNormalLaunchShowsStudioWindow() {
         let decision = LoginLaunchPolicy.decision(isLoginLaunch: false, dockVisible: false)
 
         XCTAssertFalse(decision.showDock)
         XCTAssertTrue(decision.showStudio)
+    }
+
+    func testNormalLaunchWithVisibleDockShowsBoth() {
+        let decision = LoginLaunchPolicy.decision(isLoginLaunch: false, dockVisible: true)
+
+        XCTAssertTrue(decision.showDock)
+        XCTAssertTrue(decision.showStudio)
+    }
+
+    func testLoginEventArrivingAfterInitialDecisionChangesPolicy() {
+        var eventState = LoginLaunchPolicy.EventState()
+        let initialDecision = LoginLaunchPolicy.decision(
+            isLoginLaunch: eventState.usesLoginLaunchBehavior,
+            dockVisible: true
+        )
+        XCTAssertTrue(initialDecision.showStudio)
+
+        eventState.record(isLoginLaunch: true)
+        let lateDecision = LoginLaunchPolicy.decision(
+            isLoginLaunch: eventState.usesLoginLaunchBehavior,
+            dockVisible: true
+        )
+        XCTAssertTrue(lateDecision.showDock)
+        XCTAssertFalse(lateDecision.showStudio)
+    }
+
+    func testLoginEventArrivingBeforeInitialDecisionIsUsed() {
+        var eventState = LoginLaunchPolicy.EventState()
+        eventState.record(isLoginLaunch: true)
+        let decision = LoginLaunchPolicy.decision(
+            isLoginLaunch: eventState.usesLoginLaunchBehavior,
+            dockVisible: true
+        )
+
+        XCTAssertTrue(decision.showDock)
+        XCTAssertFalse(decision.showStudio)
+    }
+
+    func testMissingLaunchEventUsesNormalLaunchPolicy() {
+        let eventState = LoginLaunchPolicy.EventState()
+        let decision = LoginLaunchPolicy.decision(
+            isLoginLaunch: eventState.usesLoginLaunchBehavior,
+            dockVisible: false
+        )
+
+        XCTAssertFalse(decision.showDock)
+        XCTAssertTrue(decision.showStudio)
+    }
+
+    func testLateLoginEventWithHiddenDockStillSuppressesStudioWindow() {
+        var eventState = LoginLaunchPolicy.EventState()
+        eventState.record(isLoginLaunch: true)
+        let decision = LoginLaunchPolicy.decision(
+            isLoginLaunch: eventState.usesLoginLaunchBehavior,
+            dockVisible: false
+        )
+
+        XCTAssertFalse(decision.showDock)
+        XCTAssertFalse(decision.showStudio)
     }
 
     func testLoginItemOpenApplicationEventSuppressesStudioWindow() {
