@@ -20,7 +20,7 @@ struct DockStudioApp: App {
         _loginLaunchState = State(initialValue: loginLaunchState)
         appDelegate.store = store
         appDelegate.loginLaunchState = loginLaunchState
-        appDelegate.observeLoginLaunchEvents()
+        appDelegate.applyPendingLoginLaunchEvent()
         appDelegate.tileOnly = tileOnly
         appDelegate.tileNotice = preview?.notice ?? ""
     }
@@ -35,7 +35,7 @@ struct DockStudioApp: App {
             isLoginLaunch: loginLaunchState.isLoginLaunch,
             dockVisible: store.isDockVisible
         ).showStudio ? .suppressed : .automatic)
-        .restorationBehavior(tileOnly ? .disabled : .automatic)
+        .restorationBehavior(.disabled)
         .commands {
             CommandMenu("Custom Dock") {
                 Button("Custom Dock の表示を切り替える") { store.toggleDockVisibility() }

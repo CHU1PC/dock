@@ -3,6 +3,16 @@ import Carbon
 import Observation
 
 enum LoginLaunchPolicy {
+    struct EventState: Equatable {
+        private(set) var isLoginLaunch: Bool?
+
+        var usesLoginLaunchBehavior: Bool { isLoginLaunch ?? false }
+
+        mutating func record(isLoginLaunch: Bool) {
+            self.isLoginLaunch = isLoginLaunch
+        }
+    }
+
     struct Decision: Equatable {
         let showDock: Bool
         let showStudio: Bool
@@ -21,13 +31,11 @@ enum LoginLaunchPolicy {
 @MainActor
 @Observable
 final class LoginLaunchState {
-    private(set) var isLoginLaunch = false
+    private var eventState = LoginLaunchPolicy.EventState()
 
-    func recordOpenApplicationEvent(_ event: NSAppleEventDescriptor) {
-        let propertyDataCode = event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
-        isLoginLaunch = LoginLaunchPolicy.isLoginLaunch(
-            eventID: event.eventID,
-            propertyDataCode: propertyDataCode
-        )
+    var isLoginLaunch: Bool { eventState.usesLoginLaunchBehavior }
+
+    func recordLoginLaunch(_ isLoginLaunch: Bool) {
+        eventState.record(isLoginLaunch: isLoginLaunch)
     }
 }

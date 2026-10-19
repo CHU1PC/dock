@@ -9,8 +9,21 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
     private var nativeTile: NativeDockTileController?
     var tileOnly = false
     var tileNotice = ""
+    private var pendingLoginLaunch: Bool?
 
-    func observeLoginLaunchEvents() {
+    override init() {
+        super.init()
+        registerLoginLaunchEvents()
+    }
+
+    func applyPendingLoginLaunchEvent() {
+        if let pendingLoginLaunch {
+            loginLaunchState?.recordLoginLaunch(pendingLoginLaunch)
+            self.pendingLoginLaunch = nil
+        }
+    }
+
+    private func registerLoginLaunchEvents() {
         NSAppleEventManager.shared().setEventHandler(
             self,
             andSelector: #selector(handleOpenApplication(_:withReplyEvent:)),
@@ -23,7 +36,19 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
         _ event: NSAppleEventDescriptor,
         withReplyEvent replyEvent: NSAppleEventDescriptor
     ) {
-        loginLaunchState?.recordOpenApplicationEvent(event)
+        let propertyDataCode = event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
+        let isLoginLaunch = LoginLaunchPolicy.isLoginLaunch(
+            eventID: event.eventID,
+            propertyDataCode: propertyDataCode
+        )
+        if let loginLaunchState {
+            loginLaunchState.recordLoginLaunch(isLoginLaunch)
+        } else {
+            pendingLoginLaunch = isLoginLaunch
+        }
+        if isLoginLaunch, !tileOnly {
+            NSApp.windows.filter { $0.title == "Dock Studio" }.forEach { $0.close() }
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -70,7 +95,7 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        guard tileOnly else { return true }
+        if !tileOnly { return loginLaunchState?.isLoginLaunch != true }
         nativeTile?.showDetails()
         return false
     }
