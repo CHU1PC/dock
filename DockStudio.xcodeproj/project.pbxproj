@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0012FD4BCA6862F6CF2EF478 /* DockIconAutoShrinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F714D55BFD3802304D28395A /* DockIconAutoShrinkTests.swift */; };
 		00896F93EA01445982CF70FD /* TrashEmptyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73073543E5D5F7FCB5C1A6A /* TrashEmptyServiceTests.swift */; };
+		01281FCF32778C21FEC5E9FA /* DockItemHitGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24212538C12D85FF5CB415 /* DockItemHitGeometry.swift */; };
 		045F51B5371EDF7D8D51EDF9 /* FolderContentsPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA2524AA25A4B3F205E58B5 /* FolderContentsPopover.swift */; };
 		07E8780C2F3169583C8CB543 /* AttentionBounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9F6701FE1D0CF7500BBE55 /* AttentionBounceTests.swift */; };
 		0D15DB86FBB971E5885A04DC /* TrashItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */; };
@@ -66,6 +67,7 @@
 		79573FFB6A67D5D1587845C8 /* DockAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34683B59256856BB755CBF65 /* DockAppearance.swift */; };
 		85F5FE108D573D2ACDBC4E36 /* FolderContentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912971D9112E6027481785E5 /* FolderContentsTests.swift */; };
 		88B2BB36ABB28B3F9CE67F93 /* ApplicationWindowAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B939FE73C92190784C203A /* ApplicationWindowAccess.swift */; };
+		8A4B7B13CFD5000B6B62ABF1 /* DockItemHitGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C77814C3EA11F8739DCD187F /* DockItemHitGeometryTests.swift */; };
 		8B121F3720AEE0D5FC07D09D /* DockAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950107E7DC055CE0A17B2657 /* DockAppDelegate.swift */; };
 		8C9DA63FF1601ABC24F66CC0 /* ProfilePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */; };
 		8D7E3F9645E7B031F50E3BB8 /* RecentAppHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F35B77560302C4F53AE5E5 /* RecentAppHistoryTests.swift */; };
@@ -228,6 +230,7 @@
 		BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearancePersistence.swift; sourceTree = "<group>"; };
 		C421C99768D0EB5F321D6032 /* RecentDocumentAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentDocumentAccess.swift; sourceTree = "<group>"; };
 		C57C79F4A9A9341B158EECA3 /* DockStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DockStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C77814C3EA11F8739DCD187F /* DockItemHitGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockItemHitGeometryTests.swift; sourceTree = "<group>"; };
 		CAF2512B6A17862EFF5276F1 /* PanelFrameGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelFrameGeometryTests.swift; sourceTree = "<group>"; };
 		CC77AB9887FB9CBEB9A57C9C /* DockItemReordering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockItemReordering.swift; sourceTree = "<group>"; };
 		CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStudioApp.swift; sourceTree = "<group>"; };
@@ -237,6 +240,7 @@
 		D98477CC2A6409CA2F946767 /* ItemAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailabilityTests.swift; sourceTree = "<group>"; };
 		DA9F6701FE1D0CF7500BBE55 /* AttentionBounceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionBounceTests.swift; sourceTree = "<group>"; };
 		DAF5F480433D3E6A7031B33D /* ApplicationQuitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationQuitter.swift; sourceTree = "<group>"; };
+		DB24212538C12D85FF5CB415 /* DockItemHitGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockItemHitGeometry.swift; sourceTree = "<group>"; };
 		DC8D86D1D6CCECD975CEF975 /* AttentionBounceFocusStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionBounceFocusStatus.swift; sourceTree = "<group>"; };
 		DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationQuitTests.swift; sourceTree = "<group>"; };
 		DDFBE101B56462E445925FEC /* NativeDockTileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileTests.swift; sourceTree = "<group>"; };
@@ -268,6 +272,7 @@
 				2255DDF17826ECD819C17196 /* CustomDockPreview.swift */,
 				12E3047B8E792AEEE176CFBF /* DockDragOutRemoval.swift */,
 				683D675B8735C7282EC38D84 /* DockIconSizeResize.swift */,
+				DB24212538C12D85FF5CB415 /* DockItemHitGeometry.swift */,
 				5EE40C4A91F65930C9304921 /* DockSeparatorContextMenu.swift */,
 				CDBE12C94234B09E6A86BD95 /* DockStudioApp.swift */,
 				ECA2524AA25A4B3F205E58B5 /* FolderContentsPopover.swift */,
@@ -350,6 +355,7 @@
 				F714D55BFD3802304D28395A /* DockIconAutoShrinkTests.swift */,
 				D821980A359C628760823676 /* DockIconSizeRangeTests.swift */,
 				E7FA201CC570AF21E46FC468 /* DockIconSizeResizeTests.swift */,
+				C77814C3EA11F8739DCD187F /* DockItemHitGeometryTests.swift */,
 				9A09BF915EC3210A8D72C1CD /* DockItemReorderingTests.swift */,
 				6341E875506DD260FD3CF86B /* DockKeyboardNavigationTests.swift */,
 				99919642FBAA7B40CF494841 /* DockLabelPlacementTests.swift */,
@@ -525,6 +531,7 @@
 				0012FD4BCA6862F6CF2EF478 /* DockIconAutoShrinkTests.swift in Sources */,
 				E428F802ECEED015288377D2 /* DockIconSizeRangeTests.swift in Sources */,
 				17756CC9580CF9721B3E26CC /* DockIconSizeResizeTests.swift in Sources */,
+				8A4B7B13CFD5000B6B62ABF1 /* DockItemHitGeometryTests.swift in Sources */,
 				BFA68DE53A34CA5C6AD3DB81 /* DockItemReorderingTests.swift in Sources */,
 				EAD03C3C43BEB077BFC9F0E2 /* DockKeyboardNavigationTests.swift in Sources */,
 				66CA8D00D3AD013FDC116C86 /* DockLabelPlacementTests.swift in Sources */,
@@ -589,6 +596,7 @@
 				DE4A59591AEEAA2411D90B51 /* DockFocusShortcut.swift in Sources */,
 				FF0588EB74DAF2DBAEACB255 /* DockIconAutoShrink.swift in Sources */,
 				2AB5D8FA740964898EE5EF91 /* DockIconSizeResize.swift in Sources */,
+				01281FCF32778C21FEC5E9FA /* DockItemHitGeometry.swift in Sources */,
 				D30B61B9C4A122B21D5C9729 /* DockItemReordering.swift in Sources */,
 				5FF799F6B055B94E8DFF4DC8 /* DockKeyboardNavigation.swift in Sources */,
 				722530FCD7ACCB1B0FD72E27 /* DockSectionLayout.swift in Sources */,

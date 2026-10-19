@@ -42,10 +42,35 @@ final class PanelFrameGeometryTests: XCTestCase {
             position: .bottom
         )
 
-        XCTAssertEqual(origin.y + DockInteractionGeometry.panelPadding,
+        XCTAssertEqual(origin.y + DockInteractionGeometry.bottomGap,
                        screen.minY + DockInteractionGeometry.bottomGap)
-        XCTAssertEqual(origin.y, screen.minY + DockInteractionGeometry.bottomGap
-                       - DockInteractionGeometry.panelPadding)
+        XCTAssertEqual(origin.y, screen.minY)
+    }
+
+    func testMaximumIconSizePanelFitsWithinScreenHeight() {
+        let screen = NSRect(x: 0, y: 0, width: 1440, height: 900)
+        let size = DockSettings.iconSizeRange.upperBound
+        let panelSize = DockPanelSizing.size(
+            position: .bottom,
+            dockLength: 420,
+            dockThickness: CGFloat(size) + 65,
+            panelPadding: DockInteractionGeometry.panelPadding * 2,
+            sideLabelGutter: 0,
+            maximumLength: screen.width
+        )
+        let origin = DockInteractionGeometry.panelOrigin(
+            screen: screen,
+            available: screen.insetBy(dx: 10, dy: 10),
+            size: panelSize,
+            position: .bottom
+        )
+        let panelFrame = NSRect(origin: origin, size: panelSize)
+
+        XCTAssertLessThanOrEqual(panelSize.height + origin.y - screen.minY, screen.height)
+        XCTAssertGreaterThanOrEqual(panelFrame.minY, screen.minY)
+        XCTAssertLessThanOrEqual(panelFrame.maxY, screen.maxY)
+        XCTAssertEqual(panelSize.height, CGFloat(size) + 65 + DockInteractionGeometry.panelPadding
+                       + DockInteractionGeometry.bottomGap)
     }
 
     func testTrashFitsPanelWithAndWithoutAccessibilityNoticeAcrossDockSizes() {
@@ -91,7 +116,8 @@ final class PanelFrameGeometryTests: XCTestCase {
         )
 
         XCTAssertEqual(size.width, DockPanelSizing.accessibilityNoticeWidth + 16)
-        XCTAssertEqual(size.height, 117 + 16 + DockPanelSizing.accessibilityNoticeHeight
+        XCTAssertEqual(size.height, 117 + 8 + DockInteractionGeometry.bottomGap
+                       + DockPanelSizing.accessibilityNoticeHeight
                        + DockPanelSizing.accessibilityNoticeSpacing)
     }
 
