@@ -157,4 +157,36 @@ final class DockKeyboardNavigationTests: XCTestCase {
         let kinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true)
         XCTAssertEqual(kinds.filter(\.isAccessibilityAction), [.quit, .forceQuit, .remove])
     }
+
+    func testPointerAndKeyboardMenusShareWindowListKindForSameInputs() {
+        let pointerMenuKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true,
+                                                  isApplication: true, hasWindowList: true)
+        let keyboardMenuKinds = DockItemMenu.kinds(hasFileURL: true, canQuit: true, isPinned: true,
+                                                   isApplication: true, hasWindowList: true)
+
+        XCTAssertEqual(pointerMenuKinds, keyboardMenuKinds)
+        XCTAssertEqual(pointerMenuKinds.last, .windowList)
+        XCTAssertTrue(pointerMenuKinds.contains(.open))
+        XCTAssertEqual(DockItemMenu.Kind.windowList.title, "ウィンドウを前面に表示")
+    }
+
+    func testWindowMenuEntriesPreserveTitlesAndPermissionGuidance() {
+        let windows = ApplicationWindowListing.windows([
+            ApplicationWindow(id: "1", title: "Document", isMinimized: false),
+            ApplicationWindow(id: "2", title: "Document", isMinimized: true),
+            ApplicationWindow(id: "3", title: "Notes", isMinimized: false)
+        ])
+
+        XCTAssertEqual(DockApplicationWindowMenuModel.entries(from: windows), [
+            .window(id: "1", title: "Document (1)"),
+            .window(id: "2", title: "Document (2)（最小化）"),
+            .window(id: "3", title: "Notes")
+        ])
+        XCTAssertEqual(DockApplicationWindowMenuModel.entries(from: .accessibilityPermissionDenied), [
+            .unavailable("アクセシビリティ権限が必要です（システム設定で Dock Studio を許可）")
+        ])
+        XCTAssertEqual(DockApplicationWindowMenuModel.entries(from: .windows([])), [
+            .unavailable("開いているウィンドウはありません")
+        ])
+    }
 }

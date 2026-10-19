@@ -108,7 +108,7 @@ extension DockKeyboardNavigation.Key {
 
 enum DockItemMenu {
     enum Kind {
-        case open, reveal, showAllWindows, spacesAssignmentGuide, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep
+        case open, reveal, showAllWindows, windowList, spacesAssignmentGuide, openLoginItemsSettings, hide, show, hideOthers, quit, forceQuit, remove, keep
         case finderNewWindow, finderShowAllWindows, setFolderIcon, setStackIcon
     }
 
@@ -117,10 +117,11 @@ enum DockItemMenu {
     static func kinds(hasFileURL: Bool, visibility: ApplicationVisibility? = nil, canHideOthers: Bool = false,
                       canQuit: Bool, isPinned: Bool, isFinder: Bool = false, finderEntryEnabled: Bool = false,
                       folderDisplayStyle: FolderDisplayStyle? = nil, isApplication: Bool = false,
-                      optionKeyDown: Bool = false) -> [Kind] {
+                      hasWindowList: Bool = false, optionKeyDown: Bool = false) -> [Kind] {
         let applicationKinds: [Kind] = isApplication ? [.openLoginItemsSettings, .spacesAssignmentGuide] : []
+        let windowKinds: [Kind] = hasWindowList ? [.windowList] : []
         if isFinder {
-            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds
+            let actions: [Kind] = [.open, .finderNewWindow, .finderShowAllWindows] + applicationKinds + windowKinds
             guard !finderEntryEnabled else { return actions }
             return actions + (hasFileURL ? [.reveal] : []) + [isPinned ? .remove : .keep]
         }
@@ -132,7 +133,7 @@ enum DockItemMenu {
         }
         let quitKinds: [Kind] = canQuit ? (optionKeyDown ? [.forceQuit] : [.quit, .forceQuit]) : []
         return [.open] + (hasFileURL ? [.reveal] : []) + applicationKinds + visibilityKinds + folderKinds
-            + (canHideOthers ? [.hideOthers] : []) + quitKinds + [isPinned ? .remove : .keep]
+            + (canHideOthers ? [.hideOthers] : []) + quitKinds + [isPinned ? .remove : .keep] + windowKinds
     }
 }
 
@@ -142,6 +143,7 @@ extension DockItemMenu.Kind {
         case .open: "開く"
         case .reveal: "Finder で表示"
         case .showAllWindows: "全ウィンドウを表示"
+        case .windowList: "ウィンドウを前面に表示"
         case .spacesAssignmentGuide: "Spaces への割り当て方法"
         case .openLoginItemsSettings: "システム設定のログイン項目を開く"
         case .hide: "隠す"
@@ -158,7 +160,38 @@ extension DockItemMenu.Kind {
         }
     }
 
-    var isAccessibilityAction: Bool { self != .open && self != .reveal && self != .openLoginItemsSettings }
+    var isAccessibilityAction: Bool { self != .open && self != .reveal && self != .openLoginItemsSettings && self != .windowList }
+}
+
+enum DockApplicationWindowMenuModel {
+    enum Entry: Hashable {
+        case window(id: String, title: String)
+        case unavailable(String)
+    }
+
+    static func entries(from listing: ApplicationWindowListing) -> [Entry] {
+        switch listing {
+        case .windows(let windows) where !windows.isEmpty:
+            var totals: [String: Int] = [:]
+            for window in windows { totals[window.title, default: 0] += 1 }
+            var titleCounts: [String: Int] = [:]
+            return windows.map { window in
+                titleCounts[window.title, default: 0] += 1
+                let duplicateSuffix = totals[window.title, default: 0] > 1
+                    ? " (\(titleCounts[window.title, default: 0]))" : ""
+                let minimizedSuffix = window.isMinimized ? "（最小化）" : ""
+                return .window(id: window.id, title: "\(window.title)\(duplicateSuffix)\(minimizedSuffix)")
+            }
+        case .windows:
+            return [.unavailable("開いているウィンドウはありません")]
+        case .applicationNotRunning:
+            return [.unavailable("アプリは起動していません")]
+        case .accessibilityPermissionDenied:
+            return [.unavailable("アクセシビリティ権限が必要です（システム設定で Dock Studio を許可）")]
+        case .failed:
+            return [.unavailable("ウィンドウ一覧を取得できませんでした")]
+        }
+    }
 }
 
 struct DockTypeAheadBuffer {
