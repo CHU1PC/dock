@@ -78,6 +78,22 @@ final class ApplicationExposeTests: XCTestCase {
         XCTAssertFalse(StandardDockExposeMenu.matches(title: "Show All Windows Now", languageCode: "en"))
     }
 
+    func testPlanUsesShowExposeActionWhenDockItemOffersIt() {
+        XCTAssertEqual(
+            StandardDockExposePlan.plan(actionNames: ["AXPress", "AXShowMenu", "AXShowExpose"]),
+            .performAction("AXShowExpose")
+        )
+    }
+
+    func testPlanFallsBackToMenuItemWithoutShowExposeAction() {
+        XCTAssertEqual(StandardDockExposePlan.plan(actionNames: ["AXPress", "AXShowMenu"]), .chooseMenuItem)
+        XCTAssertEqual(StandardDockExposePlan.plan(actionNames: []), .chooseMenuItem)
+    }
+
+    func testMenuPollingWaitsLongerThanOneImmediateRead() {
+        XCTAssertGreaterThan(StandardDockExposePlan.menuPollTimeout, StandardDockExposePlan.menuPollInterval * 10)
+    }
+
     func testAppExposeActionIsLabeledSeparatelyFromIndividualWindowList() {
         XCTAssertEqual(DockItemMenu.Kind.showAllWindows.title, "全ウィンドウを表示")
         XCTAssertNotEqual(DockItemMenu.Kind.showAllWindows.title, "ウィンドウを前面に表示")
