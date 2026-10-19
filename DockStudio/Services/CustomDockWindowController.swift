@@ -27,8 +27,8 @@ enum DockInteractionGeometry {
     static func panelOrigin(screen: NSRect, available: NSRect, size: NSSize, position: DockPosition) -> NSPoint {
         switch position {
         case .bottom:
-            // 8pt の内側余白で、Dock 本体を画面下端から5pt離す。
-            return NSPoint(x: screen.midX - size.width / 2, y: screen.minY + bottomGap - panelPadding)
+            // 下側の余白を5ptにして、パネル枠を画面内に収める。
+            return NSPoint(x: screen.midX - size.width / 2, y: screen.minY)
         case .left: return NSPoint(x: available.minX, y: available.midY - size.height / 2)
         case .right: return NSPoint(x: available.maxX - size.width, y: available.midY - size.height / 2)
         }
@@ -62,6 +62,11 @@ enum DockPanelSizing {
         min(max(dockLength, noticeLength) + panelPadding, maximumLength)
     }
 
+    static func bottomPanelHeight(dockThickness: CGFloat, panelPadding: CGFloat,
+                                  bottomInset: CGFloat) -> CGFloat {
+        dockThickness + panelPadding / 2 + max(0, bottomInset)
+    }
+
     static func size(position: DockPosition, dockLength: CGFloat, dockThickness: CGFloat,
                      panelPadding: CGFloat, sideLabelGutter: CGFloat, maximumLength: CGFloat,
                      accessibilityNoticeHeight: CGFloat = 0,
@@ -74,7 +79,9 @@ enum DockPanelSizing {
             return NSSize(width: boundedLength(dockLength: dockLength,
                                                noticeLength: accessibilityNoticeHeight > 0 ? accessibilityNoticeWidth : 0,
                                                panelPadding: panelPadding, maximumLength: maximumLength),
-                          height: dockThickness + panelPadding + noticeHeight)
+                          height: bottomPanelHeight(dockThickness: dockThickness,
+                                                    panelPadding: panelPadding,
+                                                    bottomInset: DockInteractionGeometry.bottomGap) + noticeHeight)
         case .left, .right:
             return NSSize(width: dockThickness + panelPadding + sideLabelGutter,
                           height: boundedLength(dockLength: dockLength + noticeHeight,
@@ -515,7 +522,10 @@ private struct PanelDockContent: View {
                     temporaryMagnificationEnabled: temporaryMagnificationEnabled,
                     availableLength: dockAvailableLength)
                 .frame(width: layout.vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil)
-                .padding(DockInteractionGeometry.panelPadding)
+                .padding(.horizontal, DockInteractionGeometry.panelPadding)
+                .padding(.top, DockInteractionGeometry.panelPadding)
+                .padding(.bottom, layout.position == .bottom
+                         ? DockInteractionGeometry.bottomGap : DockInteractionGeometry.panelPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity,
                        alignment: layout.position == .left ? .leading : layout.position == .right ? .trailing : .center)
                 .offset(x: layout.collapsed ? (layout.position == .left ? -layout.size.width : layout.position == .right ? layout.size.width : 0) : 0,

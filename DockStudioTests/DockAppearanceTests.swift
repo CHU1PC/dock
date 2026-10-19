@@ -294,7 +294,7 @@ final class DockAppearanceTests: XCTestCase {
                     .insetBy(dx: 10, dy: 10)
                 let origin = DockInteractionGeometry.panelOrigin(screen: screen, available: available,
                                                                  size: size, position: .bottom)
-                XCTAssertEqual(origin.y + DockInteractionGeometry.panelPadding, screen.minY + 5)
+                XCTAssertEqual(origin.y + DockInteractionGeometry.bottomGap, screen.minY + 5)
                 XCTAssertEqual(origin.x + size.width / 2, screen.midX)
             }
         }

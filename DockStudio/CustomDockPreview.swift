@@ -323,40 +323,46 @@ struct DockBar: View {
         let attentionRequested = store.document.settings.attentionBounce
             && item.applicationIdentity.map(store.attentionRequestingIdentities.contains) == true
         let reduceMotion = store.appearance.reduceMotion || systemReduceMotion
-        return VStack(spacing: 5) {
-            Button {
+        return Button {
                 clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
                                                                                 current: NSEvent.modifierFlags))
             } label: {
-                let icon = ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
-                                    availability: store.itemAvailability.status(of: item),
-                                    glassNeedsContrast: store.appearance.background == .transparent,
-                                    glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
-                    .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
-                    .overlay(alignment: .topTrailing) {
-                        if let badge = NotificationBadgeSnapshot.badge(for: item, in: store.notificationBadges) {
-                            Text(badge)
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 5)
-                                .frame(minWidth: 18, minHeight: 18)
-                                .background(.red, in: Capsule())
-                                .offset(x: 5, y: -4)
-                                .accessibilityHidden(true)
+                VStack(spacing: 5) {
+                    let icon = ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
+                                        availability: store.itemAvailability.status(of: item),
+                                        glassNeedsContrast: store.appearance.background == .transparent,
+                                        glassInteractive: !store.appearance.reduceMotion && !systemReduceMotion)
+                        .shadow(color: .black.opacity(store.appearance.iconStyle == .glass ? 0 : 0.18), radius: 3, y: 2)
+                        .overlay(alignment: .topTrailing) {
+                            if let badge = NotificationBadgeSnapshot.badge(for: item, in: store.notificationBadges) {
+                                Text(badge)
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 5)
+                                    .frame(minWidth: 18, minHeight: 18)
+                                    .background(.red, in: Capsule())
+                                    .offset(x: 5, y: -4)
+                                    .accessibilityHidden(true)
+                            }
                         }
+                    if bouncing || (attentionRequested && !reduceMotion) {
+                        icon.modifier(LaunchBounce(position: store.document.settings.position,
+                                                   height: min(displayIconSize * 0.5, 28)))
+                    } else if attentionRequested {
+                        icon.overlay {
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.orange.opacity(0.9), lineWidth: 2)
+                                .padding(2)
+                        }
+                    } else {
+                        icon
                     }
-                if bouncing || (attentionRequested && !reduceMotion) {
-                    icon.modifier(LaunchBounce(position: store.document.settings.position,
-                                               height: min(displayIconSize * 0.5, 28)))
-                } else if attentionRequested {
-                    icon.overlay {
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.orange.opacity(0.9), lineWidth: 2)
-                            .padding(2)
-                    }
-                } else {
-                    icon
+                    Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
+                        .frame(width: 4, height: 4).opacity(running ? 1 : 0)
+                        .accessibilityHidden(true)
                 }
+                .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
+                .contentShape(DockItemHitShape())
             }
             .buttonStyle(.plain)
             .popover(isPresented: folderPopoverBinding(for: item), arrowEdge: folderPopoverEdge) {
@@ -435,12 +441,6 @@ struct DockBar: View {
                     Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
                 }
             }
-            Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
-                .frame(width: 4, height: 4).opacity(running ? 1 : 0)
-                .accessibilityHidden(true)
-        }
-        .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
-        .contentShape(Rectangle())
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly &&
                                   !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)), vertical: vertical,
                                   bounds: DockDragOutRemoval.visibleBounds(barSize: barSize, vertical: vertical,
