@@ -38,6 +38,47 @@ enum StandardDockExposeMenu {
     }
 }
 
+enum ApplicationExposeMatcher {
+    static func matches(
+        targetURL: URL,
+        targetBundleIdentifier: String?,
+        targetTitle: String,
+        dockURL: URL?,
+        dockBundleIdentifier: String?,
+        dockTitle: String?
+    ) -> Bool {
+        if let targetBundleIdentifier, let dockBundleIdentifier {
+            return targetBundleIdentifier == dockBundleIdentifier
+        }
+
+        if let dockURL,
+           normalizedPath(targetURL.path) == normalizedPath(dockURL.path) {
+            return true
+        }
+
+        guard let dockTitle else { return false }
+        return normalizedTitle(targetTitle) == normalizedTitle(dockTitle)
+    }
+
+    static func normalizedPath(_ path: String) -> String {
+        let standardized = URL(fileURLWithPath: path).standardizedFileURL.path
+        let cryptexPrefix = "/System/Volumes/Preboot/Cryptexes/App/System/Applications/"
+        if standardized.hasPrefix(cryptexPrefix) {
+            return "/System/Applications/" + String(standardized.dropFirst(cryptexPrefix.count))
+        }
+
+        let dataApplicationsPrefix = "/System/Volumes/Data/Applications/"
+        if standardized.hasPrefix(dataApplicationsPrefix) {
+            return "/Applications/" + String(standardized.dropFirst(dataApplicationsPrefix.count))
+        }
+        return standardized
+    }
+
+    private static func normalizedTitle(_ title: String) -> String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+}
+
 private final class AccessibilityApplicationExposer: ApplicationExposing {
     var isAccessibilityTrusted: Bool { AXIsProcessTrusted() }
 
@@ -48,7 +89,17 @@ private final class AccessibilityApplicationExposer: ApplicationExposing {
         }) else { return .failed }
 
         let dockElement = AXUIElementCreateApplication(dock.processIdentifier)
-        guard let item = findApplicationItem(in: dockElement, matching: normalizedPath(applicationURL), depth: 0) else {
+        let targetBundle = Bundle(url: applicationURL)
+        let targetBundleIdentifier = targetBundle?.bundleIdentifier
+        let targetTitle = targetBundle?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? applicationURL.deletingPathExtension().lastPathComponent
+        guard let item = findApplicationItem(
+            in: dockElement,
+            matching: applicationURL,
+            bundleIdentifier: targetBundleIdentifier,
+            title: targetTitle,
+            depth: 0
+        ) else {
             return .failed
         }
         _ = AXUIElementPerformAction(item, kAXShowMenuAction as CFString)
@@ -68,15 +119,35 @@ private final class AccessibilityApplicationExposer: ApplicationExposing {
         return .failed
     }
 
-    private func findApplicationItem(in element: AXUIElement, matching path: String, depth: Int) -> AXUIElement? {
+    private func findApplicationItem(
+        in element: AXUIElement,
+        matching applicationURL: URL,
+        bundleIdentifier: String?,
+        title: String,
+        depth: Int
+    ) -> AXUIElement? {
         guard depth < 5 else { return nil }
+        let dockURL = attribute(kAXURLAttribute as CFString, of: element) as? URL
+        let dockTitle = stringAttribute(kAXTitleAttribute as CFString, of: element)
         if stringAttribute(kAXSubroleAttribute as CFString, of: element) == (kAXApplicationDockItemSubrole as String),
-           let value = attribute(kAXURLAttribute as CFString, of: element) as? URL,
-           normalizedPath(value) == path {
+           ApplicationExposeMatcher.matches(
+               targetURL: applicationURL,
+               targetBundleIdentifier: bundleIdentifier,
+               targetTitle: title,
+               dockURL: dockURL,
+               dockBundleIdentifier: dockURL.flatMap { Bundle(url: $0)?.bundleIdentifier },
+               dockTitle: dockTitle
+           ) {
             return element
         }
         return children(of: element).lazy.compactMap {
-            self.findApplicationItem(in: $0, matching: path, depth: depth + 1)
+            self.findApplicationItem(
+                in: $0,
+                matching: applicationURL,
+                bundleIdentifier: bundleIdentifier,
+                title: title,
+                depth: depth + 1
+            )
         }.first
     }
 
@@ -109,10 +180,6 @@ private final class AccessibilityApplicationExposer: ApplicationExposing {
 
     private func cancelMenu(on item: AXUIElement) {
         _ = AXUIElementPerformAction(item, kAXCancelAction as CFString)
-    }
-
-    private func normalizedPath(_ url: URL) -> String {
-        url.standardizedFileURL.resolvingSymlinksInPath().path
     }
 }
 
