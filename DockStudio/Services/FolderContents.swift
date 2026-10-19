@@ -141,7 +141,8 @@ enum FolderContentsReader {
         )
         let candidates = children.map { child -> FolderContentsCandidate in
             let resolved = child.resolvingSymlinksInPath()
-            let values = try? resolved.resourceValues(forKeys: [.isDirectoryKey])
+            let values = try? resolved.resourceValues(forKeys: [.isDirectoryKey, .addedToDirectoryDateKey,
+                                                                 .contentModificationDateKey, .creationDateKey])
             let isApplication = resolved.pathExtension.lowercased() == "app"
                 && values?.isDirectory == true
                 && Bundle(url: resolved)?.bundleIdentifier != nil
