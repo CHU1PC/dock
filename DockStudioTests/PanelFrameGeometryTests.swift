@@ -64,8 +64,11 @@ final class PanelFrameGeometryTests: XCTestCase {
             size: panelSize,
             position: .bottom
         )
+        let panelFrame = NSRect(origin: origin, size: panelSize)
 
         XCTAssertLessThanOrEqual(panelSize.height + origin.y - screen.minY, screen.height)
+        XCTAssertGreaterThanOrEqual(panelFrame.minY, screen.minY)
+        XCTAssertLessThanOrEqual(panelFrame.maxY, screen.maxY)
         XCTAssertEqual(panelSize.height, CGFloat(size) + 65 + DockInteractionGeometry.panelPadding
                        + DockInteractionGeometry.bottomGap)
     }
