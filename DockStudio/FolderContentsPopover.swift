@@ -208,9 +208,9 @@ struct FolderContentsPopover: View {
         .focusable()
         .focused($focusedTarget, equals: .container)
         .background {
-            PopoverWindowKeyRequester {
+            PopoverWindowKeyRequester(onWindowKey: {
                 focusedTarget = .container
-            }
+            }, onKeyDown: handleRoutedKey)
             .frame(width: 0, height: 0)
         }
         .onKeyPress(.escape) {
@@ -373,6 +373,22 @@ struct FolderContentsPopover: View {
         guard items.indices.contains(target) else { return .ignored }
         focusedTarget = .gridItem(items[target].id)
         return .handled
+    }
+
+    private func handleRoutedKey(_ keyCode: UInt16) {
+        guard let route = FolderPopoverKeyboardFocus.keyRoute(keyCode: keyCode, isPopoverOpen: true) else { return }
+        switch route {
+        case .dismiss:
+            dismiss()
+        case .left:
+            _ = moveGridFocus(.left)
+        case .right:
+            _ = moveGridFocus(.right)
+        case .up:
+            _ = moveGridFocus(.up)
+        case .down:
+            _ = moveGridFocus(.down)
+        }
     }
 
     private func setDisplayStyle(_ style: FolderContentsDisplayStyle) {

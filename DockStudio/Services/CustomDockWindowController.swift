@@ -254,6 +254,9 @@ final class CustomDockWindowController {
                     self.panel.makeKeyAndOrderFront(nil)
                 }
                 if event.type == .keyDown {
+                    if FolderPopoverKeyboardFocus.ActiveKeyRouter.route(keyCode: event.keyCode) {
+                        return true
+                    }
                     if event.keyCode == 53, DockDragOutCancellation.shared.cancelIfDragging() {
                         return true
                     }
