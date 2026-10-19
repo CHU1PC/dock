@@ -4,33 +4,34 @@ import XCTest
 final class DockDragOutRemovalTests: XCTestCase {
     private let margin = DockDragOutRemoval.margin
 
-    @MainActor
-    func testEscapeCancelsOnlyAnActiveDrag() {
-        let state = DockDragOutCancellation.shared
-        _ = state.finish()
+    func testStateMachineEndsAfterDropInside() {
+        assertDragEnds(for: .dropInside)
+    }
 
-        XCTAssertFalse(state.cancelIfDragging())
+    func testStateMachineEndsAfterDropOutsideRemoval() {
+        assertDragEnds(for: .dropOutsideRemoval)
+    }
+
+    func testEscapeCancellationEndsDrag() {
+        var state = DockDragOutStateMachine()
         state.begin()
+
         XCTAssertTrue(state.cancelIfDragging())
-        XCTAssertTrue(state.finish())
+        XCTAssertTrue(state.finish(.cancelled))
         XCTAssertFalse(state.isDragging)
         XCTAssertFalse(state.isCancelled)
     }
 
-    @MainActor
-    func testFinishingUncancelledDragAllowsOutsideRemoval() {
-        let state = DockDragOutCancellation.shared
-        _ = state.finish()
-        state.begin()
-
-        XCTAssertFalse(state.finish())
-        XCTAssertFalse(state.isDragging)
+    func testGlobalMouseUpEndsDropOnTrash() {
+        assertDragEnds(for: .externalDrop)
     }
 
-    @MainActor
+    func testGlobalMouseUpEndsDropOnApplication() {
+        assertDragEnds(for: .externalDrop)
+    }
+
     func testAutoHideStaysExpandedDuringDragAndResumesAfterward() {
-        let drag = DockDragOutCancellation.shared
-        _ = drag.finish()
+        var drag = DockDragOutStateMachine()
         var visibility = DockVisibilityState()
         let start = Date(timeIntervalSince1970: 100)
 
@@ -40,7 +41,7 @@ final class DockDragOutRemovalTests: XCTestCase {
                           interacting: drag.isDragging, now: start.addingTimeInterval(1.1))
         XCTAssertFalse(visibility.isCollapsed)
 
-        _ = drag.finish()
+        _ = drag.finish(.dropOutsideRemoval)
         visibility.update(visible: true, autoHide: true, hovering: false,
                           interacting: drag.isDragging, now: start.addingTimeInterval(1.5))
         XCTAssertFalse(visibility.isCollapsed)
@@ -123,5 +124,15 @@ final class DockDragOutRemovalTests: XCTestCase {
         XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: -1), bounds: bounds, margin: 5))
         XCTAssertFalse(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 84), bounds: bounds, margin: 5))
         XCTAssertTrue(DockDragOutRemoval.isOutside(location: CGPoint(x: 200, y: 85), bounds: bounds, margin: 5))
+    }
+
+    private func assertDragEnds(for reason: DockDragOutStateMachine.EndReason,
+                                file: StaticString = #filePath, line: UInt = #line) {
+        var state = DockDragOutStateMachine()
+        state.begin()
+
+        XCTAssertFalse(state.finish(reason), file: file, line: line)
+        XCTAssertFalse(state.isDragging, file: file, line: line)
+        XCTAssertFalse(state.isCancelled, file: file, line: line)
     }
 }

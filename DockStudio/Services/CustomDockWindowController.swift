@@ -228,6 +228,7 @@ final class CustomDockWindowController {
                 guard let self else { return }
                 if event.type == .flagsChanged { self.updateTemporaryMagnification(event.modifierFlags) }
                 else {
+                    self.finishDragOnMouseUp(event)
                     self.updateDragReveal(for: event)
                     self.updateAutoHide()
                     self.updatePointerPassThrough()
@@ -250,6 +251,7 @@ final class CustomDockWindowController {
                         if event.keyCode == 53 { self.leaveKeyboard(); return true }
                     }
                 } else {
+                    self?.finishDragOnMouseUp(event)
                     self?.updateDragReveal(for: event)
                     self?.updateAutoHide()
                     self?.updatePointerPassThrough()
@@ -448,6 +450,11 @@ final class CustomDockWindowController {
                   revealFrame.contains(NSEvent.mouseLocation) {
             dragRevealActive = true
         }
+    }
+
+    private func finishDragOnMouseUp(_ event: NSEvent) {
+        guard event.type == .leftMouseUp, DockDragOutCancellation.shared.isDragging else { return }
+        _ = DockDragOutCancellation.shared.finish(.externalDrop)
     }
 
     private func refreshRunningApps() {
