@@ -13,6 +13,59 @@ private final class FakeApplicationExposer: ApplicationExposing {
 }
 
 final class ApplicationExposeTests: XCTestCase {
+    func testMatchesCryptexDockURLByBundleIdentifier() {
+        let targetURL = URL(fileURLWithPath: "/Applications/Safari.app")
+        let cryptexURL = URL(fileURLWithPath: "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app")
+
+        XCTAssertTrue(ApplicationExposeMatcher.matches(
+            targetURL: targetURL,
+            targetBundleIdentifier: "com.apple.Safari",
+            targetTitle: "Safari",
+            dockURL: cryptexURL,
+            dockBundleIdentifier: "com.apple.Safari",
+            dockTitle: "Safari"
+        ))
+        XCTAssertEqual(
+            ApplicationExposeMatcher.normalizedPath(cryptexURL.path),
+            "/System/Applications/Safari.app"
+        )
+    }
+
+    func testMatchesStandardApplicationsDockURLByNormalizedPath() {
+        let applicationURL = URL(fileURLWithPath: "/Applications/Example.app")
+
+        XCTAssertTrue(ApplicationExposeMatcher.matches(
+            targetURL: applicationURL,
+            targetBundleIdentifier: nil,
+            targetTitle: "Example",
+            dockURL: applicationURL,
+            dockBundleIdentifier: nil,
+            dockTitle: "Example"
+        ))
+    }
+
+    func testFallsBackToDockTitleWhenDockURLIsMissing() {
+        XCTAssertTrue(ApplicationExposeMatcher.matches(
+            targetURL: URL(fileURLWithPath: "/Applications/System Settings.app"),
+            targetBundleIdentifier: "com.apple.systempreferences",
+            targetTitle: "System Settings",
+            dockURL: nil,
+            dockBundleIdentifier: nil,
+            dockTitle: "System Settings"
+        ))
+    }
+
+    func testDoesNotMatchApplicationsWithSimilarTitles() {
+        XCTAssertFalse(ApplicationExposeMatcher.matches(
+            targetURL: URL(fileURLWithPath: "/Applications/Safari.app"),
+            targetBundleIdentifier: "com.apple.Safari",
+            targetTitle: "Safari",
+            dockURL: nil,
+            dockBundleIdentifier: nil,
+            dockTitle: "Safari Technology Preview"
+        ))
+    }
+
     func testRecognizesEnglishAndJapaneseDockMenuTitles() {
         XCTAssertTrue(StandardDockExposeMenu.matches(title: "Show All Windows", languageCode: "en"))
         XCTAssertTrue(StandardDockExposeMenu.matches(title: "すべてのウインドウを表示", languageCode: "ja"))
