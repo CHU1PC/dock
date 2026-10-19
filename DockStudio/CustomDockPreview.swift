@@ -118,56 +118,56 @@ struct DockBar: View {
         let items = displayedLayout.items
         let hoverIndex = DockStore.hoverableItems(items).firstIndex { $0.id == hovered }
         let running = Set(store.runningItems.compactMap(\.applicationIdentity))
-        ZStack(alignment: vertical ? .center : .bottom) {
-            DockBackdrop(appearance: store.appearance)
-                .frame(width: vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil,
-                       height: vertical ? nil : DockMetrics.barThickness(for: store))
-                .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
-            ScrollView(vertical ? .vertical : .horizontal) {
-                let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
-                DockGlassContainer(enabled: store.appearance.iconStyle == .glass) {
-                    layout {
-                        if items.isEmpty {
-                            Label("プロファイルに項目を追加", systemImage: "plus.circle")
-                                .font(.callout).foregroundStyle(.secondary).padding(10)
-                        }
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            if displayedLayout.dividerBefore.contains(index) {
-                                Rectangle().fill(.primary.opacity(0.45))
-                                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
-                                    .accessibilityHidden(true)
-                            }
-                            barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
-                        }
-                        if !store.notificationBadgeAccessibilityGranted,
-                           items.contains(where: { $0.kind == .application }) {
-                            Button {
-                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            } label: {
-                                Label("通知バッジにはアクセシビリティの許可が必要です", systemImage: "lock.fill")
-                                    .font(.caption).padding(8)
-                                    .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-                            }
-                            .buttonStyle(.plain)
-                            .help("システム設定の「プライバシーとセキュリティ」で Dock Studio を許可してください")
-                        }
-                        MinimizedWindowsDockSection(vertical: vertical, iconSize: displayIconSize,
-                                                    iconStyle: store.appearance.iconStyle,
-                                                    controller: store.minimizedWindowController,
-                                                    groupedByApplication: store.document.settings.minimizeWindowsIntoAppIcon,
-                                                    enabled: isPanel && store.isDockVisible)
-                        trashSection(index: items.count, hoveredIndex: hoverIndex)
-                    }
-                }
-                .padding(.horizontal, 12).padding(.vertical, 10)
-                .frame(minWidth: vertical ? nil : DockMetrics.length(for: store),
-                       minHeight: vertical ? DockMetrics.length(for: store) : DockMetrics.thickness(for: store),
-                       alignment: vertical ? .center : .bottom)
+        let showAccessibilityNotice = DockPanelSizing.hasAccessibilityNotice(
+            permissionGranted: store.notificationBadgeAccessibilityGranted,
+            items: items
+        )
+        VStack(spacing: showAccessibilityNotice && isPanel ? DockPanelSizing.accessibilityNoticeSpacing : 0) {
+            if showAccessibilityNotice && isPanel {
+                accessibilityPermissionNotice
+                    .frame(maxWidth: .infinity)
+                    .frame(height: DockPanelSizing.accessibilityNoticeHeight)
             }
-            .scrollIndicators(.hidden)
-            .scrollClipDisabled()
+            ZStack(alignment: vertical ? .center : .bottom) {
+                DockBackdrop(appearance: store.appearance)
+                    .frame(width: vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil,
+                           height: vertical ? nil : DockMetrics.barThickness(for: store))
+                    .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
+                ScrollView(vertical ? .vertical : .horizontal) {
+                    let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
+                    DockGlassContainer(enabled: store.appearance.iconStyle == .glass) {
+                        layout {
+                            if items.isEmpty {
+                                Label("プロファイルに項目を追加", systemImage: "plus.circle")
+                                    .font(.callout).foregroundStyle(.secondary).padding(10)
+                            }
+                            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                                if displayedLayout.dividerBefore.contains(index) {
+                                    Rectangle().fill(.primary.opacity(0.45))
+                                        .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                                        .accessibilityHidden(true)
+                                }
+                                barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
+                            }
+                            if showAccessibilityNotice && !isPanel {
+                                accessibilityPermissionNotice
+                            }
+                            MinimizedWindowsDockSection(vertical: vertical, iconSize: displayIconSize,
+                                                        iconStyle: store.appearance.iconStyle,
+                                                        controller: store.minimizedWindowController,
+                                                        groupedByApplication: store.document.settings.minimizeWindowsIntoAppIcon,
+                                                        enabled: isPanel && store.isDockVisible)
+                            trashSection(index: items.count, hoveredIndex: hoverIndex)
+                        }
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .frame(minWidth: vertical ? nil : DockMetrics.length(for: store),
+                           minHeight: vertical ? DockMetrics.length(for: store) : DockMetrics.thickness(for: store),
+                           alignment: vertical ? .center : .bottom)
+                }
+                .scrollIndicators(.hidden)
+                .scrollClipDisabled()
+            }
         }
         .coordinateSpace(name: DockDragOutRemoval.space)
         .onGeometryChange(for: CGSize.self, of: \.size) { barSize = $0 }
@@ -234,6 +234,20 @@ struct DockBar: View {
             }.allowsHitTesting(false)
         }
         .modifier(DockColorSchemeOverride(mode: store.appearance.colorMode, isPanel: isPanel))
+    }
+
+    private var accessibilityPermissionNotice: some View {
+        Button {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                NSWorkspace.shared.open(url)
+            }
+        } label: {
+            Label("通知バッジにはアクセシビリティの許可が必要です", systemImage: "lock.fill")
+                .font(.caption).padding(8)
+                .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .help("システム設定の「プライバシーとセキュリティ」で Dock Studio を許可してください")
     }
 
     @ViewBuilder

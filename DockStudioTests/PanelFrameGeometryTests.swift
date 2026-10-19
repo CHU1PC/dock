@@ -47,4 +47,38 @@ final class PanelFrameGeometryTests: XCTestCase {
         XCTAssertEqual(origin.y, screen.minY + DockInteractionGeometry.bottomGap
                        - DockInteractionGeometry.panelPadding)
     }
+
+    func testAccessibilityNoticeAddsPanelHeightWithoutReducingDockRowLength() {
+        let withNotice = DockPanelSizing.size(
+            position: .bottom,
+            dockLength: 420,
+            dockThickness: 117,
+            panelPadding: 16,
+            sideLabelGutter: 0,
+            maximumLength: 1400,
+            accessibilityNoticeHeight: DockPanelSizing.accessibilityNoticeHeight,
+            accessibilityNoticeSpacing: DockPanelSizing.accessibilityNoticeSpacing
+        )
+        let withoutNotice = DockPanelSizing.size(
+            position: .bottom,
+            dockLength: 420,
+            dockThickness: 117,
+            panelPadding: 16,
+            sideLabelGutter: 0,
+            maximumLength: 1400
+        )
+
+        XCTAssertEqual(withNotice.width, withoutNotice.width)
+        XCTAssertEqual(withNotice.height - withoutNotice.height,
+                       DockPanelSizing.accessibilityNoticeHeight + DockPanelSizing.accessibilityNoticeSpacing)
+    }
+
+    func testAccessibilityNoticeAppearsOnlyWithoutPermissionAndWithAnApplication() {
+        let app = DockItem(name: "Safari", kind: .application, target: nil)
+        let folder = DockItem(name: "Downloads", kind: .folder, target: nil)
+
+        XCTAssertTrue(DockPanelSizing.hasAccessibilityNotice(permissionGranted: false, items: [app, folder]))
+        XCTAssertFalse(DockPanelSizing.hasAccessibilityNotice(permissionGranted: true, items: [app]))
+        XCTAssertFalse(DockPanelSizing.hasAccessibilityNotice(permissionGranted: false, items: [folder]))
+    }
 }
