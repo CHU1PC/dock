@@ -125,6 +125,7 @@ struct DockBar: View {
         VStack(spacing: showAccessibilityNotice && isPanel ? DockPanelSizing.accessibilityNoticeSpacing : 0) {
             if showAccessibilityNotice && isPanel {
                 accessibilityPermissionNotice
+                    .frame(width: DockPanelSizing.accessibilityNoticeWidth)
                     .frame(maxWidth: .infinity)
                     .frame(height: DockPanelSizing.accessibilityNoticeHeight)
             }

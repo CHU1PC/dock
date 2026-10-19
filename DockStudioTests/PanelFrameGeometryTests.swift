@@ -48,29 +48,51 @@ final class PanelFrameGeometryTests: XCTestCase {
                        - DockInteractionGeometry.panelPadding)
     }
 
-    func testAccessibilityNoticeAddsPanelHeightWithoutReducingDockRowLength() {
-        let withNotice = DockPanelSizing.size(
+    func testTrashFitsPanelWithAndWithoutAccessibilityNoticeAcrossDockSizes() {
+        let panelPadding: CGFloat = 16
+        let cases: [(iconSize: CGFloat, itemCount: Int)] = [
+            (32, 1), (32, 8), (52, 2), (52, 12), (64, 2), (64, 10), (96, 1), (96, 6)
+        ]
+
+        for item in cases {
+            let dockLength = max(220, 24 + CGFloat(item.itemCount) * (10 + item.iconSize)
+                + 21 + 10 + item.iconSize)
+            for hasNotice in [false, true] {
+                let size = DockPanelSizing.size(
+                    position: .bottom,
+                    dockLength: dockLength,
+                    dockThickness: item.iconSize + 65,
+                    panelPadding: panelPadding,
+                    sideLabelGutter: 0,
+                    maximumLength: 1400,
+                    accessibilityNoticeHeight: hasNotice ? DockPanelSizing.accessibilityNoticeHeight : 0,
+                    accessibilityNoticeSpacing: hasNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0,
+                    accessibilityNoticeWidth: hasNotice ? DockPanelSizing.accessibilityNoticeWidth : 0
+                )
+                let trashMaxX = panelPadding + dockLength
+
+                XCTAssertLessThanOrEqual(trashMaxX, size.width,
+                                         "icon size \(item.iconSize), items \(item.itemCount), notice \(hasNotice)")
+            }
+        }
+    }
+
+    func testAccessibilityNoticeWidthExpandsPanelWhenDockRowIsShorter() {
+        let size = DockPanelSizing.size(
             position: .bottom,
-            dockLength: 420,
+            dockLength: 240,
             dockThickness: 117,
             panelPadding: 16,
             sideLabelGutter: 0,
             maximumLength: 1400,
             accessibilityNoticeHeight: DockPanelSizing.accessibilityNoticeHeight,
-            accessibilityNoticeSpacing: DockPanelSizing.accessibilityNoticeSpacing
-        )
-        let withoutNotice = DockPanelSizing.size(
-            position: .bottom,
-            dockLength: 420,
-            dockThickness: 117,
-            panelPadding: 16,
-            sideLabelGutter: 0,
-            maximumLength: 1400
+            accessibilityNoticeSpacing: DockPanelSizing.accessibilityNoticeSpacing,
+            accessibilityNoticeWidth: DockPanelSizing.accessibilityNoticeWidth
         )
 
-        XCTAssertEqual(withNotice.width, withoutNotice.width)
-        XCTAssertEqual(withNotice.height - withoutNotice.height,
-                       DockPanelSizing.accessibilityNoticeHeight + DockPanelSizing.accessibilityNoticeSpacing)
+        XCTAssertEqual(size.width, DockPanelSizing.accessibilityNoticeWidth + 16)
+        XCTAssertEqual(size.height, 117 + 16 + DockPanelSizing.accessibilityNoticeHeight
+                       + DockPanelSizing.accessibilityNoticeSpacing)
     }
 
     func testAccessibilityNoticeAppearsOnlyWithoutPermissionAndWithAnApplication() {
