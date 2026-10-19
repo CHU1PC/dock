@@ -179,6 +179,24 @@ final class FolderContentsTests: XCTestCase {
         XCTAssertEqual(linkedFolder?.targetURL?.lastPathComponent, link.lastPathComponent)
     }
 
+    func testReaderSortsFilesByModificationDate() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let beta = root.appendingPathComponent("Beta.txt")
+        let alpha = root.appendingPathComponent("Alpha.txt")
+        for file in [beta, alpha] {
+            XCTAssertTrue(FileManager.default.createFile(atPath: file.path, contents: Data()))
+        }
+        try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: beta.path)
+        try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_100)], ofItemAtPath: alpha.path)
+
+        let items = try FolderContentsReader.read(at: root, sortOrder: .dateModified)
+
+        XCTAssertEqual(items.map(\.name), ["Beta.txt", "Alpha.txt"])
+    }
+
     private func candidate(_ name: String, path: String? = nil, directory: Bool = false, application: Bool = false,
                            bundleIdentifier: String? = nil, added: Date? = nil, modified: Date? = nil,
                            created: Date? = nil) -> FolderContentsCandidate {
