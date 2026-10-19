@@ -458,6 +458,9 @@ final class CustomDockWindowController {
     private func finishDragOnMouseUp(_ event: NSEvent) {
         guard event.type == .leftMouseUp, DockDragOutCancellation.shared.isDragging else { return }
         _ = DockDragOutCancellation.shared.finish(.externalDrop)
+        if DockDragOutRemoval.shouldRelinquishKeyboardFocusAfterDrag(panelIsKey: panel.isKeyWindow) {
+            leaveKeyboard()
+        }
     }
 
     private func refreshRunningApps() {
