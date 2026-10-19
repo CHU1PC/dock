@@ -17,7 +17,7 @@
 
 | 項目 | 結果 |
 | --- | --- |
-| `/private/tmp/cw/run-check.sh 1811 test` | 419件、失敗0件 |
+| `/private/tmp/cw/run-check.sh 1811 test` | 420件、失敗0件 |
 | `/private/tmp/cw/run-check.sh 1811 release` | `BUILD SUCCEEDED` |
 | `/private/tmp/cw/run-check.sh 1811 testbuild` | `TEST BUILD SUCCEEDED` |
 
