@@ -150,6 +150,7 @@ final class CustomDockWindowController {
     private var previousApp: NSRunningApplication?
     private var temporaryMagnificationSuppressed = false
     private var dragRevealActive = false
+    private var keyboardFocusActive = false
 
     init(store: DockStore) {
         self.store = store
@@ -219,7 +220,7 @@ final class CustomDockWindowController {
                             if actionNeeded { self.panel.selectNextKeyView(nil) }
                         }
                     }
-                    if !isKey { self?.previousApp = nil }
+                    if !isKey { self?.previousApp = nil; self?.keyboardFocusActive = false }
                     self?.updateAutoHide()
                 }
             })
@@ -346,9 +347,10 @@ final class CustomDockWindowController {
         let point = NSEvent.mouseLocation
         visibility.update(visible: store.isDockEffectivelyVisible, autoHide: autoHideEnabled,
                           hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && interactionFrame.contains(point))),
-                          interacting: trackingMenus > 0 || !store.activePopoverTokens.isEmpty
-                            || panel.isKeyWindow || store.dockKeyboardFocusRequested
-                            || DockDragOutCancellation.shared.isDragging,
+                          interacting: DockVisibilityState.isInteracting(
+                            trackingMenus: trackingMenus > 0, hasActivePopover: !store.activePopoverTokens.isEmpty,
+                            keyboardFocusActive: keyboardFocusActive, keyboardFocusRequested: store.dockKeyboardFocusRequested,
+                            isDragging: DockDragOutCancellation.shared.isDragging),
                           draggingOverRevealArea: dragRevealActive, now: .now)
     }
 
@@ -406,6 +408,7 @@ final class CustomDockWindowController {
         if !panel.isVisible { panel.orderFrontRegardless() }
         if store.dockKeyboardFocusRequested {
             store.dockKeyboardFocusRequested = false
+            keyboardFocusActive = true
             if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != ProcessInfo.processInfo.processIdentifier {
                 previousApp = front
             }
@@ -422,6 +425,7 @@ final class CustomDockWindowController {
     }
 
     private func leaveKeyboard() {
+        keyboardFocusActive = false
         let app = previousApp
         panel.resignKey()
         if let app, !app.isTerminated { app.activate(from: NSRunningApplication.current) }
