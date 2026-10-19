@@ -1,30 +1,55 @@
 import SwiftUI
 import Observation
 
-@MainActor
-@Observable
-final class DockDragOutCancellation {
-    static let shared = DockDragOutCancellation()
+struct DockDragOutStateMachine {
+    enum EndReason: Equatable {
+        case dropInside
+        case dropOutsideRemoval
+        case cancelled
+        case externalDrop
+    }
 
     private(set) var isDragging = false
     private(set) var isCancelled = false
 
-    func begin() {
+    mutating func begin() {
         isDragging = true
         isCancelled = false
     }
 
-    func cancelIfDragging() -> Bool {
+    mutating func cancelIfDragging() -> Bool {
         guard isDragging else { return false }
         isCancelled = true
         return true
     }
 
-    func finish() -> Bool {
-        let wasCancelled = isCancelled
+    mutating func finish(_ reason: EndReason = .dropInside) -> Bool {
+        let wasCancelled = isCancelled || reason == .cancelled
         isDragging = false
         isCancelled = false
         return wasCancelled
+    }
+}
+
+@MainActor
+@Observable
+final class DockDragOutCancellation {
+    static let shared = DockDragOutCancellation()
+
+    private var state = DockDragOutStateMachine()
+    var isDragging: Bool { state.isDragging }
+    var isCancelled: Bool { state.isCancelled }
+
+    func begin() {
+        state.begin()
+    }
+
+    func cancelIfDragging() -> Bool {
+        state.cancelIfDragging()
+    }
+
+    func finish(_ reason: DockDragOutStateMachine.EndReason = .dropInside) -> Bool {
+        state.finish(reason)
     }
 }
 
@@ -120,7 +145,10 @@ struct DragOutToRemove: ViewModifier {
                 onDragMove(outside ? nil : value.location)
             }
             .onEnded { value in
-                let cancelled = DockDragOutCancellation.shared.finish()
+                let cancelled = DockDragOutCancellation.shared.finish(
+                    DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
+                        ? .dropOutsideRemoval : .dropInside
+                )
                 let remove = !cancelled && DockDragOutRemoval.isOutside(location: value.location, bounds: bounds)
                 let eject = remove && draggingEjectableVolume
                 onDragFinish(remove || cancelled ? nil : value.location, cancelled)
