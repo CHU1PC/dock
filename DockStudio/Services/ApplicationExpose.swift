@@ -38,6 +38,19 @@ enum StandardDockExposeMenu {
     }
 }
 
+enum StandardDockExposePlan: Equatable {
+    case performAction(String)
+    case chooseMenuItem
+
+    static let exposeAction = "AXShowExpose"
+    static let menuPollInterval: TimeInterval = 0.05
+    static let menuPollTimeout: TimeInterval = 1.5
+
+    static func plan(actionNames: [String]) -> StandardDockExposePlan {
+        actionNames.contains(exposeAction) ? .performAction(exposeAction) : .chooseMenuItem
+    }
+}
+
 enum ApplicationExposeMatcher {
     static func matches(
         targetURL: URL,
@@ -102,14 +115,24 @@ private final class AccessibilityApplicationExposer: ApplicationExposing {
         ) else {
             return .failed
         }
+        var actionNames: CFArray?
+        AXUIElementCopyActionNames(item, &actionNames)
+        if case .performAction(let action) = StandardDockExposePlan.plan(actionNames: (actionNames as? [String]) ?? []) {
+            return AXUIElementPerformAction(item, action as CFString) == .success ? .opened : .failed
+        }
+
         _ = AXUIElementPerformAction(item, kAXShowMenuAction as CFString)
 
-        guard let menuValue = attribute(kAXShownMenuUIElementAttribute as CFString, of: item) else {
-            cancelMenu(on: item)
-            return .failed
-        }
-        let menu = menuValue as! AXUIElement
-        guard let menuItem = findShowAllWindowsItem(in: menu, depth: 0) else {
+        var menuItem: AXUIElement?
+        let deadline = Date().addingTimeInterval(StandardDockExposePlan.menuPollTimeout)
+        repeat {
+            if let menuValue = attribute(kAXShownMenuUIElementAttribute as CFString, of: item) {
+                menuItem = findShowAllWindowsItem(in: menuValue as! AXUIElement, depth: 0)
+            }
+            if menuItem != nil { break }
+            Thread.sleep(forTimeInterval: StandardDockExposePlan.menuPollInterval)
+        } while Date() < deadline
+        guard let menuItem else {
             cancelMenu(on: item)
             return .failed
         }
