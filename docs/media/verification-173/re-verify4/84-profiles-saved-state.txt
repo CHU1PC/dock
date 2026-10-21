@@ -1,0 +1,16 @@
+          "name" : "TextEdit",
+          "target" : "file:\/\/\/System\/Applications\/TextEdit.app"
+          "name" : "TextEdit",
+          "target" : "file:\/\/\/System\/Applications\/TextEdit.app"
+          "name" : "Calculator",
+          "target" : "file:\/\/\/System\/Applications\/Calculator.app\/"
+          "name" : "folderX",
+          "target" : "file:\/\/\/Users\/admin\/vtest\/folderX\/"
+          "name" : "report.txt",
+          "target" : "file:\/\/\/Users\/admin\/vtest\/report.txt"
+          "name" : "report.txt",
+          "target" : "file:\/\/\/Users\/admin\/vtest\/sub\/report.txt"
+      "name" : "dup84"
+1
+0
+done

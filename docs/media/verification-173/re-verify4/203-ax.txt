@@ -1,0 +1,40 @@
+## 2-32 bottom 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 545,632 | size: 510x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScr
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 641,712 | size: 255x29 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 926,700 | size: 42x41 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 521,639 | size: 558x140 | acts: 
+## 2-96 bottom 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 474,590 | size: 653x161 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScr
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 698,712 | size: 255x29 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 983,636 | size: 106x105 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 450,600 | size: 701x176 | acts: 
+## 6-32 bottom 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 486,632 | size: 629x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScr
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 750,712 | size: 255x29 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 1035,700 | size: 42x41 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 462,624 | size: 677x170 | acts: 
+## 6-96 bottom 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 285,590 | size: 1030x161 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXSc
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 933,712 | size: 255x29 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 1218,636 | size: 106x105 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 261,553 | size: 1078x270 | acts: 
+## 2-64 left 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 288,425 | size: 182x267 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScr
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 300,601 | size: 158x42 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 347,673 | size: 64x83 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: -251,401 | size: 1260x315 | acts: 
+## 6-64 left 
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: -569,321 | size: 1896x474 | acts: 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 288,345 | size: 182x426 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScr
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 300,853 | size: 158x42 | acts: A
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 347,925 | size: 64x83 | acts: AXShowMenu,AXPress
+## 2-64 right 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 1130,425 | size: 182x267 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXSc
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 1142,601 | size: 158x42 | acts: 
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 1189,673 | size: 64x83 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 591,401 | size: 1260x315 | acts: 
+## 6-64 right 
+      AXImage | title: - | desc: - | rdesc: image | foc: - | pos: 273,321 | size: 1896x474 | acts: 
+      AXScrollArea | title: - | desc: - | rdesc: scroll area | foc: 0 | pos: 1130,345 | size: 182x426 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXSc
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | rdesc: button | foc: 0 | pos: 1142,853 | size: 158x42 | acts: 
+        AXButton | title: - | desc: ゴミ箱 | rdesc: button | foc: 0 | pos: 1189,925 | size: 64x83 | acts: AXShowMenu,AXPress
