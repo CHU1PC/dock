@@ -59,15 +59,18 @@ struct CustomDockPreview: View {
                 items: store.displayedItems
             )
         )
+        let fittedIconSize = DockMetrics.effectiveIconSize(
+            for: store, availableLength: max(0, size.height - 188 - noticeExtent), forceFit: true)
         let previewSize = DockPreviewLayout.frameSize(
             containerSize: size,
             position: position,
-            length: DockMetrics.length(for: store),
+            length: DockMetrics.length(for: store, iconSize: vertical ? fittedIconSize : nil),
             thickness: DockMetrics.thickness(for: store),
             noticeExtent: noticeExtent
         )
         return DockBar(vertical: vertical,
-                       availableLength: position == .bottom ? max(0, size.width - 50) : max(0, size.height - 188 - noticeExtent))
+                       availableLength: position == .bottom ? max(0, size.width - 50) : max(0, size.height - 188 - noticeExtent),
+                       fitsAnyBackground: vertical)
             .environment(store)
             .frame(width: previewSize.width, height: previewSize.height)
             .clipShape(Rectangle())
@@ -104,12 +107,14 @@ struct DockBar: View {
     var isPanel = false
     var temporaryMagnificationEnabled: Bool?
     var availableLength: CGFloat?
+    var fitsAnyBackground = false
     private var displayIconSize: Double {
         DockMetrics.effectiveIconSize(for: store, availableLength: availableLength,
-                                      magnificationEnabled: temporaryMagnificationEnabled)
+                                      magnificationEnabled: temporaryMagnificationEnabled,
+                                      forceFit: fitsAnyBackground)
     }
     private var itemAxisPadding: CGFloat {
-        guard store.appearance.background == .appleDock, store.effectiveIconSize > 0 else { return 5 }
+        guard store.appearance.background == .appleDock || fitsAnyBackground, store.effectiveIconSize > 0 else { return 5 }
         return CGFloat(5 * min(1, displayIconSize / store.effectiveIconSize))
     }
     private func refreshAvailability() {
@@ -167,7 +172,7 @@ struct DockBar: View {
                     }
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .frame(minWidth: vertical ? nil : DockMetrics.length(for: store),
-                           minHeight: vertical ? DockMetrics.length(for: store) : DockMetrics.thickness(for: store),
+                           minHeight: vertical ? DockMetrics.length(for: store, iconSize: displayIconSize) : DockMetrics.thickness(for: store),
                            alignment: vertical ? .center : .bottom)
                 }
                 .scrollIndicators(.hidden)
@@ -1165,11 +1170,17 @@ private struct FocusTimerTile: View {
 @MainActor
 enum DockMetrics {
     static func effectiveIconSize(for store: DockStore, availableLength: CGFloat?,
-                                  magnificationEnabled: Bool? = nil) -> Double {
+                                  magnificationEnabled: Bool? = nil, forceFit: Bool = false) -> Double {
         let maximumSize = store.effectiveIconSize
-        guard store.appearance.background == .appleDock, let availableLength else { return maximumSize }
+        guard forceFit || store.appearance.background == .appleDock, let availableLength else { return maximumSize }
 
         let vertical = store.document.settings.position != .bottom
+        if vertical {
+            return DockVerticalFit.iconSize(verticalFitContent(for: store, magnificationEnabled: magnificationEnabled),
+                                            maximumSize: maximumSize,
+                                            minimumSize: DockSettings.iconSizeRange.lowerBound,
+                                            availableLength: Double(availableLength))
+        }
         let fixedItemsLength = store.displayedItems.reduce(24.0) { sum, item in
             sum + ([.spacer, .clock, .focusTimer].contains(item.kind) ? 10 : 0)
                 + (item.kind == .spacer ? 11 :
@@ -1199,22 +1210,37 @@ enum DockMetrics {
         Double(slots) * (10 + iconSize)
     }
 
-    static let verticalItemPadding = 19.0
-    static let verticalSeparatorLength = 30.0
+    static let verticalItemPadding = DockVerticalFit.itemExtraPadding + 10
+    static let verticalSeparatorLength = DockVerticalFit.separatorLength
 
-    static func length(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
+    static func verticalFitContent(for store: DockStore, magnificationEnabled: Bool? = nil) -> DockVerticalFit.Content {
+        let enabled = magnificationEnabled ?? store.appearance.magnification
+        let isIcon = { (item: DockItem) in ![.spacer, .clock, .focusTimer].contains(item.kind) }
+        let fixed = store.displayedItems.filter { !isIcon($0) }.reduce(24.0) { sum, item in
+            sum + 10 + (item.kind == .spacer ? 11 : 54)
+        }
+        return DockVerticalFit.Content(
+            fixedLength: fixed,
+            iconItemCount: store.displayedItems.filter(isIcon).count,
+            minimizedSlots: store.minimizedWindowController.state.reservedSlots,
+            magnificationReserve: enabled ? max(0, store.appearance.magnificationScale - 1) * 3 : 0)
+    }
+
+    static func length(for store: DockStore, magnificationEnabled: Bool? = nil, iconSize: Double? = nil) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
-        let itemPadding = vertical ? verticalItemPadding : 10.0
+        let iconSize = iconSize ?? store.effectiveIconSize
+        let itemPadding = vertical
+            ? DockVerticalFit.itemExtraPadding + 10 * iconSize / max(1, store.effectiveIconSize) : 10.0
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + ([.spacer, .clock, .focusTimer].contains(item.kind) ? 10 : itemPadding) + (item.kind == .spacer ? 11 :
-                [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
+                [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : iconSize)
         }
         let minimizedWindows = minimizedSectionLength(slots: store.minimizedWindowController.state.reservedSlots,
-                                                      iconSize: store.effectiveIconSize)
+                                                      iconSize: iconSize)
         let total = itemsTotal + minimizedWindows + (vertical ? verticalSeparatorLength : 10 + 11)
-            + (itemPadding + store.effectiveIconSize)
+            + (itemPadding + iconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
-        let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
+        let reserve = enabled ? iconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
     }
     static func barThickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
