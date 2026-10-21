@@ -109,6 +109,7 @@
 		D30B61B9C4A122B21D5C9729 /* DockItemReordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC77AB9887FB9CBEB9A57C9C /* DockItemReordering.swift */; };
 		D33990B881D87B8F5B47EC87 /* DockSpringLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065E5D8EFD8E5C716256F8D1 /* DockSpringLoadingTests.swift */; };
 		D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */; };
+		DBF2A2F571E68A7CBEF6B089 /* AutoHideKeyWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E016B3FE7D082FAF99627E2 /* AutoHideKeyWindowTests.swift */; };
 		DBF3AB780216394D0AB83ED0 /* FinderSelectionAddition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FDDE7661192797B043A0F62 /* FinderSelectionAddition.swift */; };
 		DE4A59591AEEAA2411D90B51 /* DockFocusShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */; };
 		DE5E87CCFFB77301114D1ABA /* FinderSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49BA43E2DEC3ABDB951353E /* FinderSelectionTests.swift */; };
@@ -180,6 +181,7 @@
 		43E1EA9E5776D11CA2B86AED /* NativeDockTileController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileController.swift; sourceTree = "<group>"; };
 		446BE9EC97BDC15CFC617184 /* OptionClickHide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionClickHide.swift; sourceTree = "<group>"; };
 		48EFDF4E4AD52C01AA400288 /* LaunchBounceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchBounceTests.swift; sourceTree = "<group>"; };
+		4E016B3FE7D082FAF99627E2 /* AutoHideKeyWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoHideKeyWindowTests.swift; sourceTree = "<group>"; };
 		4FDDE7661192797B043A0F62 /* FinderSelectionAddition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionAddition.swift; sourceTree = "<group>"; };
 		519B2668A658C0A3DA31A684 /* ImportReviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportReviewSheet.swift; sourceTree = "<group>"; };
 		5B318E3C7F956C10D873F691 /* ApplicationListEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationListEntryTests.swift; sourceTree = "<group>"; };
@@ -348,6 +350,7 @@
 				DD9A3B6CA4C82A4E2582185B /* ApplicationQuitTests.swift */,
 				873F2DB6F8BB95032D1A31C8 /* ApplicationWindowAccessTests.swift */,
 				DA9F6701FE1D0CF7500BBE55 /* AttentionBounceTests.swift */,
+				4E016B3FE7D082FAF99627E2 /* AutoHideKeyWindowTests.swift */,
 				763E17AA4549AE9EB39824B6 /* DockAppearanceTests.swift */,
 				900EEEC2A6259B224B83CD3F /* DockDragOutRemovalTests.swift */,
 				2DF4903912D84B632CE43EB4 /* DockDropRoutingTests.swift */,
@@ -524,6 +527,7 @@
 				EE2156FBCBA4A552256196BF /* ApplicationQuitTests.swift in Sources */,
 				525AE692044328AB3A651BD5 /* ApplicationWindowAccessTests.swift in Sources */,
 				07E8780C2F3169583C8CB543 /* AttentionBounceTests.swift in Sources */,
+				DBF2A2F571E68A7CBEF6B089 /* AutoHideKeyWindowTests.swift in Sources */,
 				D56B2DDDA97901A3CF50E53F /* DockAppearanceTests.swift in Sources */,
 				328F70DE6DE2EBD83B54BCC8 /* DockDragOutRemovalTests.swift in Sources */,
 				CBBC2474C2CE5C9A0079E32E /* DockDropRoutingTests.swift in Sources */,
