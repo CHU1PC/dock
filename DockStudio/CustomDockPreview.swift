@@ -56,7 +56,14 @@ struct CustomDockPreview: View {
         let previewSize = DockPreviewLayout.frameSize(
             containerSize: size,
             position: position,
-            length: DockMetrics.length(for: store),
+            length: DockPreviewLayout.length(
+                dockLength: DockMetrics.length(for: store),
+                hasInlineNotice: DockPanelSizing.hasAccessibilityNotice(
+                    permissionGranted: store.notificationBadgeAccessibilityGranted,
+                    items: store.displayedItems
+                ),
+                vertical: vertical
+            ),
             thickness: DockMetrics.thickness(for: store)
         )
         return DockBar(vertical: vertical,
@@ -1223,6 +1230,12 @@ enum DockMetrics {
 }
 
 enum DockPreviewLayout {
+    static let inlineNoticeLength: CGFloat = 290
+
+    static func length(dockLength: CGFloat, hasInlineNotice: Bool, vertical: Bool) -> CGFloat {
+        hasInlineNotice && !vertical ? dockLength + inlineNoticeLength : dockLength
+    }
+
     static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat) -> CGSize {
         let availableWidth = max(0, containerSize.width - 50)
         let availableHeight = max(0, containerSize.height - 188)
