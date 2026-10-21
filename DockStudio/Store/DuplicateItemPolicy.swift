@@ -2,13 +2,13 @@ import Foundation
 
 /// 同じ項目の重複追加を避ける規則。標準 Dock の挙動は未確認で、対象の種類はここだけで変える。
 enum DuplicateItemPolicy {
-    static let deduplicatedKinds: Set<DockItemKind> = [.application]
+    static let deduplicatedKinds: Set<DockItemKind> = [.application, .folder, .file]
 
     static func key(for item: DockItem) -> String? {
         guard deduplicatedKinds.contains(item.kind) else { return nil }
         if item.kind == .application { return item.applicationIdentity }
         guard let url = item.targetURL, url.isFileURL else { return nil }
-        return "path:\(url.standardizedFileURL.resolvingSymlinksInPath().path)"
+        return "item:\(url.standardizedFileURL.resolvingSymlinksInPath().path)"
     }
 
     /// 既存の項目と、同じ呼び出しの中で先に現れた項目と重なるものを、追加する側と避ける側に分ける。

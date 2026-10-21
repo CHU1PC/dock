@@ -82,16 +82,48 @@ final class DuplicateItemTests: XCTestCase {
         XCTAssertTrue(store.status.contains("既に Dock にある"))
     }
 
-    func testFilesAndFoldersAreNotDeduplicated() throws {
+    func testDroppingSameFileAndFolderTwiceAddsOnce() throws {
         let store = DockStore(persistence: persistence)
         let file = directory.appendingPathComponent("a.txt")
         try "x".write(to: file, atomically: true, encoding: .utf8)
+        let folder = directory.appendingPathComponent("Folder", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let count = store.activeProfile.items.count
 
-        store.addDroppedItems([file], at: 0)
-        store.addDroppedItems([file], at: 0)
+        XCTAssertEqual(store.addDroppedItems([file, folder], at: 0).added, 2)
+        XCTAssertEqual(store.addDroppedItems([file, folder], at: 0).added, 0)
 
         XCTAssertEqual(store.activeProfile.items.count, count + 2)
+        XCTAssertTrue(store.status.contains("既に Dock にある"))
+    }
+
+    func testMixedDropAddsNewItemAndReportsDuplicate() throws {
+        let store = DockStore(persistence: persistence)
+        let old = directory.appendingPathComponent("old.txt")
+        let new = directory.appendingPathComponent("new.txt")
+        try "x".write(to: old, atomically: true, encoding: .utf8)
+        try "x".write(to: new, atomically: true, encoding: .utf8)
+        store.addDroppedItems([old], at: 0)
+        let count = store.activeProfile.items.count
+
+        XCTAssertEqual(store.addDroppedItems([old, new], at: 0).added, 1)
+
+        XCTAssertEqual(store.activeProfile.items.count, count + 1)
+        XCTAssertTrue(store.status.contains("old.txt"))
+        XCTAssertFalse(store.status.contains("new.txt は既に"))
+    }
+
+    func testChoosingExistingFileIsSkipped() throws {
+        let store = DockStore(persistence: persistence)
+        let file = directory.appendingPathComponent("a.txt")
+        try "x".write(to: file, atomically: true, encoding: .utf8)
+        let count = store.editorProfile.items.count
+
+        store.addChosenItems([file], kind: .file)
+        store.addChosenItems([file], kind: .file)
+
+        XCTAssertEqual(store.editorProfile.items.count, count + 1)
+        XCTAssertTrue(store.status.contains("既に Dock にある"))
     }
 
     func testExistingDuplicatesInProfileAreKept() throws {
