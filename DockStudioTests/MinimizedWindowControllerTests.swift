@@ -25,6 +25,21 @@ final class MinimizedWindowControllerTests: XCTestCase {
         XCTAssertTrue(controller.windows.isEmpty)
     }
 
+    func testPermissionDeniedReservesOneIconSlotInDockLength() {
+        let window = MinimizedWindow(id: "1", applicationIdentifier: "a", title: "t",
+                                     applicationName: "n", applicationIcon: nil)
+        XCTAssertEqual(MinimizedWindowState.permissionDenied.reservedSlots, 1)
+        XCTAssertEqual(MinimizedWindowState.notChecked.reservedSlots, 0)
+        XCTAssertEqual(MinimizedWindowState.available([window, window]).reservedSlots, 2)
+
+        for iconSize in [32.0, 52.0, 64.0, 96.0] {
+            XCTAssertEqual(
+                DockMetrics.minimizedSectionLength(slots: MinimizedWindowState.permissionDenied.reservedSlots,
+                                                   iconSize: iconSize),
+                10 + iconSize)
+        }
+    }
+
     func testRestoreTargetsWindowAndRefreshRemovesClosedWindow() {
         let window = MinimizedWindow(id: "42:0:Budget", applicationIdentifier: "com.apple.Numbers",
                                      title: "Budget", applicationName: "Numbers", applicationIcon: nil)
