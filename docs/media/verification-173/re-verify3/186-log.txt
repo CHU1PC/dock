@@ -1,0 +1,101 @@
+## before
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x621 y858 w357 h142
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=7 layer=-2147483624 alpha=1 onscreen=1 name=Wallpaper- bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+AXShowMenu on Safari、起動中 result -25204
+AXButton "Safari、起動中" actions=["AXIncrement", "AXDecrement", "AXDelete", "AXShowMenu", "AXCancel", "AXPress", "Name:ウィンドウを前面に表示: Start Page (3)\nTarget:0x0\nSelector:(null)", "Name:ウィンドウを前面に表示: Start Page (2)\nTarget:0x0\nSelector:(null)", "Name:ウィンドウを前面に表示: Start Page (1)\nTarget:0x0\nSelector:(null)", "Name:全ウィンドウを表示\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:強制終了…\nTarget:0x0\nSelector:(null)", "Name:終了\nTarget:0x0\nSelector:(null)", "Name:ほかを隠す\nTarget:0x0\nSelector:(null)", "Name:隠す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)"]
+AXButton "TextEdit" actions=["AXIncrement", "AXDecrement", "AXDelete", "AXShowMenu", "AXCancel", "AXPress", "Name:アプリは起動していません\nTarget:0x0\nSelector:(null)", "Name:全ウィンドウを表示\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)"]
+AXButton "Safari、起動中" actions=["AXIncrement", "AXDecrement", "AXDelete", "AXShowMenu", "AXCancel", "AXPress", "Name:ウィンドウを前面に表示: Start Page (3)\nTarget:0x0\nSelector:(null)", "Name:ウィンドウを前面に表示: Start Page (2)\nTarget:0x0\nSelector:(null)", "Name:ウィンドウを前面に表示: Start Page (1)\nTarget:0x0\nSelector:(null)", "Name:全ウィンドウを表示\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:強制終了…\nTarget:0x0\nSelector:(null)", "Name:終了\nTarget:0x0\nSelector:(null)", "Name:ほかを隠す\nTarget:0x0\nSelector:(null)", "Name:隠す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)"]
+AXButton "TextEdit" actions=["AXIncrement", "AXDecrement", "AXDelete", "AXShowMenu", "AXCancel", "AXPress", "Name:アプリは起動していません\nTarget:0x0\nSelector:(null)", "Name:全ウィンドウを表示\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)"]
+perform AXPress on 全ウィンドウを表示 result 0
+## +1 04:55:14.14
+owner=Dock Studio id=207 layer=101 alpha=1 onscreen=1 name= bounds=x679 y696 w264 h298
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x621 y858 w357 h142
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## +2 04:55:15.15
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x746 y565 w119 h134
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x560 y330 w481 h312
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x720 y637 w160 h65
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +3 04:55:15.15
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +4 04:55:16.16
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +5 04:55:16.16
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +6 04:55:16.16
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +7 04:55:17.17
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## +8 04:55:17.17
+owner=Dock id=208 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=207 layer=101 alpha=0 onscreen=false name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=203 layer=0 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock Studio id=202 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=199 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=180 layer=21 alpha=1 onscreen=1 name= bounds=x800 y462 w1 h1
+owner=Dock id=209 layer=18 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+owner=Dock Studio id=201 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock Studio id=200 layer=0 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h30
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000

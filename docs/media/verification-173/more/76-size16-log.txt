@@ -1,0 +1,22 @@
+"iconSize" : 16
+owner=Dock Studio id=40 layer=21 alpha=1 onscreen=1 name= bounds=x678 y868 w243 h135
+        AXButton | title: - | desc: Finder、起動中 | help: - | value: - | rdesc: button | foc: 0 | pos: 698,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari | help: - | value: - | rdesc: button | foc: 0 | pos: 724,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Downloads | help: - | value: - | rdesc: button | foc: 0 | pos: 828,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 884,960 | size: 26x25 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: Finder、起動中 | help: - | value: - | rdesc: button | foc: 0 | pos: 699,716 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari | help: - | value: - | rdesc: button | foc: 0 | pos: 725,716 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Downloads | help: - | value: - | rdesc: button | foc: 0 | pos: 829,716 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 885,716 | size: 26x25 | acts: AXShowMenu,AXPress
+calendar after edge click (x=804, icon spans 807-823):
+after click x=800 (outside 26pt box, left neighbor boundary):
+center click:
+804
+edge x=804:
+owner=Dock Studio id=40 layer=21 alpha=1 onscreen=1 name= bounds=x678 y868 w243 h135
+x=804 launched: 
+x=806 launched: 
+x=808 launched: 836
+x=812 launched: 842
+x=823 launched: 
+x=825 launched: 

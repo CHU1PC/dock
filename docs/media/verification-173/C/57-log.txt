@@ -1,0 +1,23 @@
+## order: 661:Finder、起動中 723:Mail 
+Finder windows before click: 17 front=DockStudio
+Finder button center=692 954
+Finder AX actions:
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:全ウィンドウを表示（アクセシビリティの許可が必要）\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)", "Name:Finder を表示\nTarget:0x0\nSelector:(null)", "Name:新規 Finder ウインドウ\nTarget:0x0\nSelector:(null)"]
+after click: Finder windows=17 front=DockStudio
+context menu items:
+AXMenuItem|開く|693 821 346 24|c=866 833|mark=|val=
+AXMenuItem|新規 Finder ウインドウ|693 845 346 24|c=866 857|mark=|val=
+AXMenuItem|Finder を表示|693 869 346 24|c=866 881|mark=|val=
+AXMenuItem|システム設定のログイン項目を開く|693 893 346 24|c=866 905|mark=|val=
+AXMenuItem|Spaces への割り当て方法|693 917 346 24|c=866 929|mark=|val=
+AXMenuItem|全ウィンドウを表示（アクセシビリティの許可が必要）|693 941 346 24|c=866 953|mark=|val=
+AXMenuItem|アプリ固有メニュー…|693 965 346 24|c=866 977|mark=|val=
+after 新規 Finder ウインドウ: Finder windows=17 front=Finder
+after Finder を表示 (Safari was front): front=Safari
+after pin off: order=661:Mail 747:Finder、起動中 
+AXButton "Mail" actions=["AXShowMenu", "AXPress", "Name:全ウィンドウを表示（アクセシビリティの許可が必要）\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)"]
+AXButton "Finder、起動中" actions=["AXShowMenu", "AXPress", "Name:全ウィンドウを表示（アクセシビリティの許可が必要）\nTarget:0x0\nSelector:(null)", "Name:Dock から取り外す\nTarget:0x0\nSelector:(null)", "Name:Spaces への割り当て方法\nTarget:0x0\nSelector:(null)", "Name:Finder を表示\nTarget:0x0\nSelector:(null)", "Name:新規 Finder ウインドウ\nTarget:0
+after remove Finder (pin off): items="name":"Mail",
+after pin on again: order=661:Finder、起動中 747:Mail 
+std Dock Finder actions:
+AXDockItem "Finder" actions=["AXPress", "AXShowMenu", "AXShowExpose"]

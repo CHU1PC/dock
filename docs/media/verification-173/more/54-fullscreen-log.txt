@@ -1,0 +1,8 @@
+31:48: execution error: Not authorized to send Apple events to TextEdit. (-1743)
+set fullscreen true result 0
+--- fullscreen
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=1 name= bounds=x517 y846 w566 h157
+--- MC open
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=1 name= bounds=x0 y0 w0 h0
+--- after esc
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=1 name= bounds=x517 y846 w566 h157

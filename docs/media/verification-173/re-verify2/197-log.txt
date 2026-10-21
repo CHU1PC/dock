@@ -1,0 +1,20 @@
+# #197 main 449a77e granted launch, iconSize 128, magnification off. TextEdit AX frame x582..720 y848..985
+click 584 916 -> TextEdit running:        1
+click 718 916 -> TextEdit running:        1
+click 651 851 -> TextEdit running:        1
+click 651 982 -> TextEdit running:        1
+click 650 916 -> TextEdit running:        1
+id=109 layer=21 onscreen=1 bounds=x424 y794 w751 h206
+Press デスクトップに Dock を表示 result 0
+id=171 layer=21 onscreen=1 bounds=x682 y868 w236 h132
+  AXWindow | title: Dock Studio — Custom Dock | desc: - |  value: - | rdesc: system dialog | foc: 0 | pos: 682,868 | size: 236x132 | acts: AXRaise
+        AXButton | title: - | desc: Finder、起動中 |  value: - | rdesc: button | foc: 1 | pos: 733,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: TextEdit |  value: - | rdesc: button | foc: 0 | pos: 759,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari |  value: - | rdesc: button | foc: 0 | pos: 785,960 | size: 26x25 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 |  value: 空 | rdesc: button | foc: 0 | pos: 841,960 | size: 26x25 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: Finder、起動中 |  value: - | rdesc: button | foc: 0 | pos: 733,716 | size: 26x25 | acts: AXShowMenu,AXPress,
+# size 16: TextEdit AX frame x759..785 y960..985
+click 761 972 -> TextEdit running:        1
+click 783 972 -> TextEdit running:        1
+click 772 962 -> TextEdit running:        1
+click 772 983 -> TextEdit running:        1

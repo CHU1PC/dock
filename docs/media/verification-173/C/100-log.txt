@@ -1,0 +1,14 @@
+screen probe: screen (0.0, 0.0, 1600.0, 1000.0) 1 
+## bottom custom=c100 stdDock=bottom autohide=true
+  screen: screen (0.0, 0.0, 1600.0, 1000.0) 1 
+  std Dock items: item|Finder|57 1000 63 79|c=89 1039
+  Dock windows: owner=Dock Studio id=9429 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174;owner=Dock id=9419 layer=-2147483622 onscreen=0 name= x=0 y=0 w=1600 h=1000;owner=Dock id=9416 layer=20 onscreen=0 name= x=0 y=0 w=1600 h=1000;
+## left custom=c100left stdDock=bottom autohide=true
+  screen: screen (0.0, 0.0, 1600.0, 1000.0) 1 
+  std Dock items: item|Finder|57 1000 63 79|c=89 1039
+  Dock windows: owner=Dock Studio id=9450 layer=21 onscreen=1 name= x=10 y=330 w=438 h=370;owner=Dock id=9436 layer=-2147483622 onscreen=0 name= x=0 y=0 w=1600 h=1000;owner=Dock id=9433 layer=20 onscreen=0 name= x=0 y=0 w=1600 h=1000;
+## right custom=c100right stdDock=bottom autohide=true
+  screen: screen (0.0, 0.0, 1600.0, 1000.0) 1 
+  std Dock items: item|Finder|57 1000 63 79|c=89 1039
+  Dock windows: owner=Dock Studio id=9471 layer=21 onscreen=1 name= x=1152 y=330 w=438 h=370;owner=Dock id=9457 layer=-2147483622 onscreen=0 name= x=0 y=0 w=1600 h=1000;owner=Dock id=9454 layer=20 onscreen=0 name= x=0 y=0 w=1600 h=1000;
+restored: orientation=bottom autohide=1

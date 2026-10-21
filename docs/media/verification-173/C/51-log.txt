@@ -1,0 +1,17 @@
+separator: AXUnknown|Dock のアイコンサイズ|1043 789 20 54|c=1053 816|mark=|val=
+AXShowMenu on Dock のアイコンサイズ result -25204
+menu items (visible):
+AXMenuItem|配置|673 811 231 24|c=788 823|mark=|val=
+AXMenuItem|拡大|673 835 231 24|c=788 847|mark=|val=
+AXMenuItem|使用していないときに隠す|673 859 231 24|c=788 871|mark=|val=
+AXMenuItem|Dock 設定を開く…|673 894 231 24|c=788 906|mark=|val=
+-- click 拡大
+autoHide/pos: "position":"bottom","autoHide":false, appearance: 
+-- reopen: 配置 mark=mark=;拡大 mark=mark=;使用していないときに隠す mark=mark=;Dock 設定を開く… mark=mark=;
+-- click 使用していないときに隠す
+autoHide/pos: "position":"bottom","autoHide":false, appearance: 
+-- reopen: 配置 mark=mark=;拡大 mark=mark=;使用していないときに隠す mark=mark=;Dock 設定を開く… mark=mark=;
+-- keyboard: open menu, Down x1, Return
+autoHide/pos: "position":"bottom","autoHide":false, appearance: 
+-- click Dock 設定を開く…
+tab:      AXRadioButton Custom Dock value Optional(1);     AXRadioButton 設定 value Optional(0);     AXRadioButton プロファイル value Optional(0);

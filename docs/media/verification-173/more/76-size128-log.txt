@@ -1,0 +1,15 @@
+"iconSize" : 128
+owner=Dock Studio id=66 layer=21 alpha=1 onscreen=1 name= bounds=x286 y794 w1027 h209
+        AXButton | title: - | desc: Finder、起動中 | help: - | value: - | rdesc: button | foc: 0 | pos: 306,848 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari | help: - | value: - | rdesc: button | foc: 0 | pos: 444,848 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Downloads | help: - | value: - | rdesc: button | foc: 0 | pos: 996,848 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 1164,848 | size: 138x137 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: Finder、起動中 | help: - | value: - | rdesc: button | foc: 0 | pos: 307,604 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari | help: - | value: - | rdesc: button | foc: 0 | pos: 445,604 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Downloads | help: - | value: - | rdesc: button | foc: 0 | pos: 997,604 | size: 138x137 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 1165,604 | size: 138x137 | acts: AXShowMenu,AXPress
+x=860 launched: 
+x=866 launched: 906
+x=925 launched: 912
+x=990 launched: 925
+x=994 launched: 

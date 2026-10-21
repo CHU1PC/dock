@@ -1,0 +1,26 @@
+## on autohide=1: panel=owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174
+Calculator center=672 948 items=2 file="name":"Calculator","name":"TextEdit",
+during drag (pointer far above): panel=owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174
+after drop: items=1 file="name":"TextEdit", panel=owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+1 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+2 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+3 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+4 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+5 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+6 s after drop: owner=Dock Studio id=8003 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+hover TextEdit: AXButton|TextEdit|672 883 103 102|c=724 934
+click TextEdit: front=TextEdit
+## off autohide=0: panel=owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174
+Calculator center=686 934 items=2 file="name":"Calculator","name":"TextEdit",
+during drag (pointer far above): panel=owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174
+after drop: items=1 file="name":"TextEdit", panel=owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+1 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+2 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+3 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+4 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+5 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+  t+6 s after drop: owner=Dock Studio id=8034 layer=21 onscreen=1 name= x=652 y=829 w=296 h=174
+hover TextEdit: AXButton|TextEdit|672 883 103 102|c=724 934
+click TextEdit: front=TextEdit
+autohide baseline pointer away: owner=Dock Studio id=8063 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174
+autohide baseline pointer at edge: owner=Dock Studio id=8063 layer=21 onscreen=1 name= x=615 y=829 w=370 h=174

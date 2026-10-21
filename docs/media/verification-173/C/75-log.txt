@@ -1,0 +1,24 @@
+## c75b window: 
+  button 'デスクトップに Dock を表示' center=388 926; toggle center=1296 181
+  after click 表示: panel=owner=Dock Studio id=9603 layer=21 onscreen=1 name= x=10 y=666 w=1580 h=337
+  after click toggle: panel=owner=Dock Studio id=9603 layer=21 onscreen=0 name= x=10 y=666 w=1580 h=337
+  after click toggle again: panel=owner=Dock Studio id=9603 layer=21 onscreen=1 name= x=10 y=666 w=1580 h=337
+## c75l window: 
+  button 'デスクトップに Dock を表示' center=388 926; toggle center=1296 181
+  after click 表示: panel=owner=Dock Studio id=9617 layer=21 onscreen=1 name= x=10 y=40 w=552 h=950
+  after click toggle: panel=owner=Dock Studio id=9617 layer=21 onscreen=0 name= x=10 y=40 w=552 h=950
+  after click toggle again: panel=owner=Dock Studio id=9617 layer=21 onscreen=1 name= x=10 y=40 w=552 h=950
+## c75r window: 
+  button 'デスクトップに Dock を表示' center=388 926; toggle center=1296 181
+  after click 表示: panel=owner=Dock Studio id=9636 layer=21 onscreen=1 name= x=1038 y=40 w=552 h=950
+  after click toggle: panel=owner=Dock Studio id=9636 layer=21 onscreen=1 name= x=1038 y=40 w=552 h=950
+  after click toggle again: panel=owner=Dock Studio id=9636 layer=21 onscreen=1 name= x=1038 y=40 w=552 h=950
+## small window: 
+  Custom Dock | 936 169 102 24
+  設定 | 1039 169 101 24
+  デスクトップの Dock を切り替え | 1275 170 43 22
+  Finder、起動中 | 357 711 138 137
+  Safari、起動中 | 495 711 138 137
+  Mail | 633 711 138 137
+  System Settings | 2013 711 138 137
+  デスクトップに Dock を表示 | 294 914 187 24

@@ -1,0 +1,17 @@
+## #86 login-style launch (dockVisible=true) at 10:44:45
+  t~4: 
+  t~10: 
+  t~18: id=10017 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10015 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~26: id=10017 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10015 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~34: id=10017 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10015 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  launch-state: {"dockVisible":true}
+## #86 login-style launch (dockVisible=false)
+  t~6: 
+  t~14: id=10027 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~22: id=10027 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~30: id=10027 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+## #86 normal launch (open -n)
+  t~6: 
+  t~14: id=10042 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10040 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~22: id=10042 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10040 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;
+  t~30: id=10042 layer=21 onscreen=1 x=578 y=829 w=444 h=174;id=10040 layer=0 onscreen=1 x=260 y=122 w=1080 h=850;

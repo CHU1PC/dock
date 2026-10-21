@@ -1,0 +1,30 @@
+## bottom: start order file="name":"Finder","name":"Calculator","name":"Safari",
+Option+back: file="name":"Finder","name":"Calculator","name":"Safari", ui=Finderã€è Calculator Finderã€è Safari Calculator Safari 
+Option+fwd (return): file="name":"Calculator","name":"Finder","name":"Safari", ui=Calculator Finderã€è Calculator Safari Finderã€è Safari 
+Option+back at first edge: file="name":"Finder","name":"Calculator","name":"Safari",
+Option+fwd at last edge: file="name":"Calculator","name":"Finder","name":"Safari",
+extra Option+Left (focus on last item Safari?): file="name":"Finder","name":"Calculator","name":"Safari",
+## left: start order file="name":"Finder","name":"Calculator","name":"Safari",
+Option+back: file="name":"Finder","name":"Calculator","name":"Safari", ui=Finderã€è Calculator Safari Finderã€è Calculator Safari 
+Option+fwd (return): file="name":"Calculator","name":"Finder","name":"Safari", ui=Calculator Finderã€è Safari Calculator Finderã€è Safari 
+Option+back at first edge: file="name":"Finder","name":"Calculator","name":"Safari",
+Option+fwd at last edge: file="name":"Calculator","name":"Finder","name":"Safari",
+## right: start order file="name":"Finder","name":"Calculator","name":"Safari",
+Option+back: file="name":"Finder","name":"Calculator","name":"Safari", ui=Finderã€è Calculator Safari Finderã€è Calculator Safari 
+Option+fwd (return): file="name":"Calculator","name":"Finder","name":"Safari", ui=Calculator Finderã€è Safari Calculator Finderã€è Safari 
+Option+back at first edge: file="name":"Finder","name":"Calculator","name":"Safari",
+Option+fwd at last edge: file="name":"Calculator","name":"Finder","name":"Safari",
+right: after extra Option+Up: file="name":"Calculator","name":"Finder","name":"Safari",
+after restart: file="name":"Calculator","name":"Finder","name":"Safari",
+after restart ui=Calculator Finderã€è Safari 
+## other app front=Finder order before="name":"Finder","name":"Calculator","name":"Safari",
+after Option+arrows with Finder front: order="name":"Finder","name":"Calculator","name":"Safari", front=Finder
+## edge test (plain Right x2 -> Safari focus): order=
+Option+Right at last item: order=
+Option+Left (Safari moves left): order=
+(edge test redo)
+state now: order="name":"Finder","name":"Safari","name":"Calculator",
+Option+Right at last item (Safari): order="name":"Finder","name":"Calculator","name":"Safari",
+Option+Left (Safari moves left): order="name":"Finder","name":"Safari","name":"Calculator",
+clean edge: Option+Right (Safari to last): order="name":"Finder","name":"Safari","name":"Calculator",
+clean edge: Option+Right again at last item: order="name":"Finder","name":"Safari","name":"Calculator",

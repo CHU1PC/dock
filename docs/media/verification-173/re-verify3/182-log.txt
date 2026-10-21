@@ -1,0 +1,51 @@
+## variant items-size=2-32 04:51:49
+owner=Dock Studio id=81 layer=21 alpha=1 onscreen=false name= bounds=x0 y920 w220 h80
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=2-52 04:51:59
+owner=Dock Studio id=90 layer=21 alpha=1 onscreen=1 name= bounds=x632 y798 w336 h202
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 781,933 | size: 52x52 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 868,924 | size: 62x61 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=2-64 04:52:09
+owner=Dock Studio id=100 layer=21 alpha=1 onscreen=1 name= bounds=x621 y788 w357 h212
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 794,921 | size: 64x64 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 893,912 | size: 74x73 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+could not create image from display
+## variant items-size=2-96 04:52:18
+owner=Dock Studio id=110 layer=21 alpha=1 onscreen=1 name= bounds=x557 y756 w485 h244
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 794,889 | size: 96x96 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 925,880 | size: 106x105 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=6-32 04:52:27
+owner=Dock Studio id=120 layer=21 alpha=1 onscreen=1 name= bounds=x601 y798 w397 h202
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 878,953 | size: 32x32 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 945,944 | size: 42x41 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=6-52 04:52:36
+owner=Dock Studio id=130 layer=21 alpha=1 onscreen=1 name= bounds=x521 y798 w557 h202
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 918,933 | size: 52x52 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 1005,924 | size: 62x61 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=6-64 04:52:46
+owner=Dock Studio id=140 layer=21 alpha=1 onscreen=1 name= bounds=x473 y788 w653 h212
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 942,921 | size: 64x64 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 1041,912 | size: 74x73 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=6-96 04:52:56
+owner=Dock Studio id=150 layer=21 alpha=1 onscreen=1 name= bounds=x345 y756 w909 h244
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 1006,889 | size: 96x96 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 1137,880 | size: 106x105 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+could not create image from display
+# rerun 2-32 and 2-64 with longer wait
+## variant items-size=2-32 04:53:15
+owner=Dock Studio id=160 layer=21 alpha=1 onscreen=1 name= bounds=x632 y798 w336 h202
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 741,953 | size: 32x32 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 808,944 | size: 42x41 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 
+## variant items-size=2-64 04:53:27
+owner=Dock Studio id=170 layer=21 alpha=1 onscreen=1 name= bounds=x621 y788 w357 h212
+        AXButton | title: - | desc: アクセシビリティの許可が必要 | help: システム設定のプライバシーとセキュリティを開きます | value: - | rdesc: button | foc: 0 | pos: 794,921 | size: 64x64 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help:  | value: 空 | rdesc: button | foc: 0 | pos: 893,912 | size: 74x73 | acts: AXShowMenu,AXPress
+AXApplication | title: DockStudio | desc: - | help: - | value: - | rdesc: application | foc: - | pos: - | size: - | acts: 

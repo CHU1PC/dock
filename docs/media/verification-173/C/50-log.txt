@@ -1,0 +1,19 @@
+## bottom separator: AXUnknown|Dock のアイコンサイズ|1154 789 20 54|c=1164 816|mark=|val=
+before: "iconSize":64 button=524 775 74 73
+after enlarge drag (0,-70): "iconSize":64 button=524 775 74 73
+after shrink drag x2: "iconSize":64 button=524 775 74 73
+after further shrink drag x4 (lower limit): "iconSize":64 button=524 775 74 73 panel=owner=Dock Studio id=9896 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+after huge enlarge drag x12 (upper limit): "iconSize":64 button=524 775 74 73 panel=owner=Dock Studio id=9896 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+## left separator: AXUnknown|Dock のアイコンサイズ|1139 789 20 54|c=1149 816|mark=|val=
+before:  button=558 787 62 61
+after enlarge drag (70,0):  button=558 787 62 61
+after shrink drag x2:  button=558 787 62 61
+after further shrink drag x4 (lower limit):  button=558 787 62 61 panel=owner=Dock Studio id=9916 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+after huge enlarge drag x12 (upper limit):  button=558 787 62 61 panel=owner=Dock Studio id=9916 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+## right separator: AXUnknown|Dock のアイコンサイズ|1139 789 20 54|c=1149 816|mark=|val=
+before:  button=558 787 62 61
+after enlarge drag (-70,0):  button=558 787 62 61
+after shrink drag x2:  button=558 787 62 61
+after further shrink drag x4 (lower limit):  button=558 787 62 61 panel=owner=Dock Studio id=9938 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+after huge enlarge drag x12 (upper limit):  button=558 787 62 61 panel=owner=Dock Studio id=9938 layer=21 onscreen=0 name= x=0 y=920 w=220 h=80
+restart(left? last fx=c50r): "iconSize":64 

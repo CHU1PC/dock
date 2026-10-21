@@ -1,0 +1,8 @@
+# #182 main 449a77e Release, no Accessibility (open -n), TextEdit+Folder icon 64 bottom, Mon Oct 19 21:38:40 JST 2026
+owner=Dock Studio id=44 layer=21 alpha=1 onscreen=1 name= bounds=x615 y759 w370 h241
+      AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |  value: - | rdesc: button | foc: 1 | pos: 673,785 | size: 255x29 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: TextEdit |  value: - | rdesc: button | foc: 0 | pos: 635,912 | size: 74x73 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Folder |  value: - | rdesc: button | foc: 0 | pos: 709,912 | size: 74x73 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: アクセシビリティの許可が必要 |  value: - | rdesc: button | foc: 0 | pos: 783,956 | size: 168x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |  value: 空 | rdesc: button | foc: 0 | pos: 981,912 | size: 74x73 | acts: AXShowMenu,AXPress
+      AXButton | title: - | desc: デスクトップの Dock を切り替え |  value: - | rdesc: button | foc: 1 | pos: 1275,213 | size: 43x22 | acts: AXPress

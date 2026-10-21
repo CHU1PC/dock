@@ -1,0 +1,24 @@
+[right]
+        AXButton | title: - | desc: Safari | help: - | value
+[right]
+        AXButton | title: - | desc: Mail | help: - | value: 
+[left]
+        AXButton | title: - | desc: Safari | help: - | value
+[end]
+        AXButton | title: - | desc: Downloads | help: - | va
+[home]
+        AXButton | title: - | desc: Finder、起動中 | hel
+[tab]
+        AXButton | title: - | desc: Safari | help: - | value
+[tab]
+        AXButton | title: - | desc: Mail | help: - | value: 
+[type-t]
+        AXButton | title: - | desc: Terminal | help: - | val
+[up]
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=false name= bounds=x0 y920 w220 h80
+0
+[esc]
+        AXButton | title: - | desc: Terminal | help: - | val
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=false name= bounds=x0 y920 w220 h80
+owner=Dock Studio id=92 layer=21 alpha=1 onscreen=false name= bounds=x0 y920 w220 h80
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000

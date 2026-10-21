@@ -1,0 +1,10 @@
+# #181 main 449a77e Release (no Accessibility, open -n), TextEdit + Folder(grid, 3 files), icon 64, bottom. Real CGEvent keys (gkey), clean trials.
+trial A: click folder, wait 1.5s, Right arrow, Esc
+  open: popover onscreen=1, AX focus file-a.txt:1 file-b.txt:0 file-c.txt:0
+  after Right: file-a.txt:0 file-b.txt:1 file-c.txt:0   (focus moved inside the popover grid)
+  after Esc (1.5s): popover onscreen=false
+trial B: click folder, wait 0.4s, Right arrow, Esc
+  after Right: file-a.txt:0 file-b.txt:1 (focus moved)
+  after Esc (1.5s): popover onscreen=false
+earlier trial: click, 1.5s, Esc only -> popover onscreen=false after 1.5s; Right/Down/Left also moved focus a->b->(b)->a
+note: VNC key injection (vnc.py key right / esc) reached neither the popover nor anything else (Right did not move focus either); VNC keys are not a valid probe in this VM.

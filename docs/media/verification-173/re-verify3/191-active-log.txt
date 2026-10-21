@@ -1,0 +1,24 @@
+# 191 state=active main c76d3ab Release, no Accessibility (open -n), autoHide, bottom, icon 64 14:02:54
+frontmost: ASN:0x0-0x7b07b: "LSDisplayName"="Dock Studio"
+## trial 1 control: revealed panel diffpix=69112
+## trial 1 items before: 5 [('Calculator', '530', '912'), ('Calculator', '604', '912'), ('Calculator', '678', '912'), ('Calculator', '752', '912'), ('TextEdit', '826', '912')]
+dropped Calculator from 567,948 to 800,300 at 14:03:30; frontmost after drop: ASN:0x0-0x7b07b:
+  t~7s 191-active-t1-6s.png diffpix(vs hidden baseline)=0
+  t~18s 191-active-t1-18s.png diffpix(vs hidden baseline)=0
+  t~35s 191-active-t1-34s.png diffpix(vs hidden baseline)=0
+  items after (AX count): 0 ; windows: owner=Dock Studio id=327 layer=21 alpha=1 onscreen=1 name= bounds=x547 y788 w505 h212
+## trial 2 control: revealed panel diffpix=68889
+## trial 2 items before: 4 [('Calculator', '567', '912'), ('Calculator', '641', '912'), ('Calculator', '715', '912'), ('TextEdit', '789', '912')]
+dropped Calculator from 604,948 to 800,300 at 14:04:28; frontmost after drop: ASN:0x0-0x7b07b:
+  t~7s 191-active-t2-6s.png diffpix(vs hidden baseline)=0
+  t~19s 191-active-t2-18s.png diffpix(vs hidden baseline)=0
+  t~35s 191-active-t2-34s.png diffpix(vs hidden baseline)=0
+  items after (AX count): 0 ; windows: owner=Dock Studio id=327 layer=21 alpha=1 onscreen=1 name= bounds=x584 y788 w431 h212
+## trial 3 control: revealed panel diffpix=67225
+## trial 3 items before: 3 [('Calculator', '604', '912'), ('Calculator', '678', '912'), ('TextEdit', '752', '912')]
+dropped Calculator from 641,948 to 800,300 at 14:05:26; frontmost after drop: ASN:0x0-0x7b07b:
+  t~6s 191-active-t3-6s.png diffpix(vs hidden baseline)=0
+  t~19s 191-active-t3-18s.png diffpix(vs hidden baseline)=0
+  t~35s 191-active-t3-34s.png diffpix(vs hidden baseline)=0
+  items after (AX count): 0 ; windows: owner=Dock Studio id=327 layer=21 alpha=1 onscreen=1 name= bounds=x621 y788 w357 h212
+end 14:06:02
