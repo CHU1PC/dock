@@ -1,0 +1,1 @@
+t=22s/45s after drop and control (edge reveal then pointer to y=300, 10s): panel still visible with TextEdit focus ring in all three captures

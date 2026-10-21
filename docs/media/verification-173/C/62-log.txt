@@ -1,0 +1,32 @@
+## bottom-false fx=c62 calc center=752 948
+  hover only Finder=74x73 Calculator=74x73 TextEdit=74x73
+  HOLD Finder=91x90 Calculator=113x111 TextEdit=91x90
+  after release Finder=74x73 Calculator=74x73 TextEdit=74x73
+appearance.json: {"magnification": false, "magnificationScale": 1.6, "reduceMotion": false}
+## bottom-true fx=c62b calc center=730 930
+  hover only Finder=91x90 Calculator=113x111 TextEdit=91x90
+  HOLD Finder=74x73 Calculator=74x73 TextEdit=74x73
+  after release Finder=91x90 Calculator=113x111 TextEdit=91x90
+appearance.json: {"magnification": true, "magnificationScale": 1.6, "reduceMotion": false}
+## left-reduce fx=c62left calc center=105 480
+  hover only Finder=64x83 Calculator=64x83 TextEdit=64x83
+  HOLD Finder=82x100 Calculator=102x122 TextEdit=82x100
+  after release Finder=64x83 Calculator=64x83 TextEdit=64x83
+appearance.json: { "magnification": false, "magnificationScale": 1.6, "reduceMotion": true }
+## right-reduce fx=c62right calc center=1495 480
+  hover only Finder=64x83 Calculator=64x83 TextEdit=64x83
+  HOLD Finder=82x100 Calculator=102x122 TextEdit=82x100
+  after release Finder=64x83 Calculator=64x83 TextEdit=64x83
+appearance.json: { "magnification": false, "magnificationScale": 1.6, "reduceMotion": true }
+## outside fx=c62 calc center=752 948
+  hover only Finder=74x73 Calculator=74x73 TextEdit=74x73
+  HOLD Finder=91x90 Calculator=113x111 TextEdit=91x90
+  after action [act_out] Finder=74x73 Calculator=74x73 TextEdit=74x73 front=DockStudio
+  after release Finder=74x73 Calculator=74x73 TextEdit=74x73
+appearance.json: {"magnification": false, "magnificationScale": 1.6, "reduceMotion": false}
+## switchapp fx=c62 calc center=752 948
+  hover only Finder=74x73 Calculator=74x73 TextEdit=74x73
+  HOLD Finder=91x90 Calculator=113x111 TextEdit=91x90
+  after action [act_switch] Finder=74x73 Calculator=74x73 TextEdit=74x73 front=Finder
+  after release Finder=74x73 Calculator=74x73 TextEdit=74x73
+appearance.json: {"magnification": false, "magnificationScale": 1.6, "reduceMotion": false}

@@ -1,0 +1,6 @@
+## custom esc esc=1 center=709 948 before: items=1 ui=3
+after: items=1 ui=3 file="name":"Calculator",
+## custom noesc esc=0 center=709 948 before: items=1 ui=3
+after: items=0 ui=2 file=
+## no-drag Esc: front before=Finder
+front after Esc=Finder items=1

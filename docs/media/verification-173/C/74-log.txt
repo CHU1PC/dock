@@ -1,0 +1,15 @@
+## c74a panel=owner=Dock Studio id=9546 layer=21 onscreen=1 name= x=10 y=666 w=1580 h=337
+  buttons:       36 first3: Finder、起 30 848 138 137; Safari、起 168 848 138 137; Calendar 306 833 153 152; 
+  panel rect 10 666 1580 337
+cpu-idle: 0.1
+cpu-after-sweep: 69.1
+## c74b panel=owner=Dock Studio id=9566 layer=21 onscreen=1 name= x=10 y=666 w=1580 h=337
+  buttons:       36 first3: Finder、起 30 848 138 137; Safari、起 168 848 138 137; Calendar 306 848 138 137; 
+  panel rect 10 666 1580 337
+cpu-idle: 0.4
+cpu-after-sweep: 2.5
+## c74c panel=owner=Dock Studio id=9586 layer=21 onscreen=1 name= x=10 y=666 w=1580 h=337
+  buttons:       36 first3: Finder、起 30 848 138 137; Safari、起 168 848 138 137; Calendar 306 848 138 137; 
+  panel rect 10 666 1580 337
+cpu-idle: 7.9
+cpu-after-sweep: 19.0

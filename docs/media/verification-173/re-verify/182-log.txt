@@ -1,0 +1,1 @@
+182: panel layer21 bounds x610 y776 w380 h227 (right edge 990); AX trash button at (1014,924 62x61) -> outside panel; note button present

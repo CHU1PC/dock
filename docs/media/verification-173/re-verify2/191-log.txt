@@ -1,0 +1,34 @@
+# #191 main 449a77e, no Accessibility (open -n), autoHide, bottom, icon 64; drag first item to y=300
+## fresh-app control (no drag): panel hidden within 20s (frame fc191b-20, see 191-control-hidden.png)
+## drag-out trial 1 (frame diff vs hidden baseline, >0 = panel drawn)
+dropped at 12:46:53 items=3 windows:
+id=223 layer=21 alpha=1 onscreen=1 name= bounds=x541 y759 w518 h241
+t~8s: d191-t1-3.png diffpix>=30: 0
+t~14s: d191-t1-10.png diffpix>=30: 605
+t~22s: d191-t1-18.png diffpix>=30: 29651
+t~30s: d191-t1-26.png diffpix>=30: 29650
+t~38s: d191-t1-34.png diffpix>=30: 29650
+## drag-out trial 2 (frame diff vs hidden baseline, >0 = panel drawn)
+dropped at 12:47:47 items=3 windows:
+id=223 layer=21 alpha=1 onscreen=1 name= bounds=x578 y759 w444 h241
+t~8s: d191-t2-3.png diffpix>=30: 0
+t~14s: d191-t2-10.png diffpix>=30: 0
+t~22s: d191-t2-18.png diffpix>=30: 23861
+t~30s: d191-t2-26.png diffpix>=30: 23861
+t~38s: d191-t2-34.png diffpix>=30: 23861
+## drag-out trial 3 (frame diff vs hidden baseline, >0 = panel drawn)
+dropped at 12:48:31 items=1 windows:
+id=223 layer=21 alpha=1 onscreen=1 name= bounds=x615 y759 w370 h241
+t~7s: d191-t3-3.png diffpix>=30: 19303
+t~15s: d191-t3-10.png diffpix>=30: 19303
+t~22s: d191-t3-18.png diffpix>=30: 19303
+t~30s: d191-t3-26.png diffpix>=30: 19303
+t~39s: d191-t3-34.png diffpix>=30: 19303
+## drag-out trial 4 (frame diff vs hidden baseline, >0 = panel drawn)
+dropped at 12:51:51 items=5 windows:
+id=296 layer=21 alpha=1 onscreen=1 name= bounds=x504 y759 w592 h241
+t~8s: d191-t4-3.png diffpix>=30: 855
+t~14s: d191-t4-10.png diffpix>=30: 38313
+t~23s: d191-t4-18.png diffpix>=30: 38315
+t~30s: d191-t4-26.png diffpix>=30: 38315
+t~38s: d191-t4-34.png diffpix>=30: 38315

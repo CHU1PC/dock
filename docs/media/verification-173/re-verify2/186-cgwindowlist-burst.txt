@@ -1,0 +1,180 @@
+## 12:53:40.40
+owner=Dock Studio id=357 layer=101 alpha=1 onscreen=1 name= bounds=x716 y696 w264 h298
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:41.41
+owner=Dock Studio id=357 layer=101 alpha=1 onscreen=1 name= bounds=x716 y696 w264 h298
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:41.41
+owner=Dock Studio id=357 layer=101 alpha=1 onscreen=1 name= bounds=x716 y696 w264 h298
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:41.41
+owner=Dock Studio id=357 layer=101 alpha=0.8603591918945312 onscreen=1 name= bounds=x716 y696 w264 h298
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:41.41
+owner=Dock Studio id=357 layer=101 alpha=0 onscreen=1 name= bounds=x716 y696 w264 h298
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:42.42
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x668 y437 w264 h156
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:42.42
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:42.42
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:42.42
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:43.43
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:43.43
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:43.43
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:43.43
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:44.44
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:44.44
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:44.44
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:44.44
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:45.45
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:45.45
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:45.45
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:45.45
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:45.45
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:46.46
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:46.46
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:46.46
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:46.46
+owner=DockHelper id=360 layer=101 alpha=1 onscreen=1 name= bounds=x175 y708 w241 h285
+owner=DockHelper id=359 layer=3 alpha=1 onscreen=1 name= bounds=x184 y993 w63 h86
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=1 name= bounds=x0 y0 w1600 h1000
+## 12:53:47.47
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000
+## 12:53:47.47
+owner=Dock Studio id=358 layer=0 alpha=1 onscreen=1 name= bounds=x670 y438 w260 h154
+owner=Dock Studio id=341 layer=0 alpha=1 onscreen=1 name= bounds=x260 y165 w1080 h700
+owner=Dock Studio id=336 layer=21 alpha=1 onscreen=1 name= bounds=x658 y858 w283 h142
+owner=Dock id=6 layer=20 alpha=1 onscreen=false name= bounds=x0 y0 w1600 h1000

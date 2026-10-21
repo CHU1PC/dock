@@ -1,0 +1,31 @@
+2
+2
+  AXList | title: - | desc: - | help:  | value: - | rdesc: list | foc: 0 | pos: 0,0 | size: 0x0 | acts: 
+    AXDockItem | title: Finder | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Apps | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu
+    AXDockItem | title: Safari | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Messages | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Mail | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Maps | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Photos | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: FaceTime | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Phone | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Calendar | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Contacts | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Reminders | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Notes | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: TV | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Music | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Games | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: App Store | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: iPhone Mirroring | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: System Settings | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Calculator | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Calculator | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: Terminal | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title: DockStudio | desc: - | help:  | value: - | rdesc: application dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu,AXShowExpose
+    AXDockItem | title:  | desc: - | help:  | value: 0.4285714 | rdesc: separator dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu
+    AXDockItem | title: Downloads | desc: - | help:  | value: - | rdesc: folder dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu
+    AXDockItem | title: Documents | desc: - | help:  | value: - | rdesc: folder dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu
+    AXDockItem | title: Documents | desc: - | help:  | value: - | rdesc: folder dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu
+    AXDockItem | title: Trash | desc: - | help:  | value: - | rdesc: trash dock item | foc: - | pos: 0,-6 | size: 0x16 | acts: AXPress,AXShowMenu

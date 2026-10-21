@@ -1,0 +1,17 @@
+    AXGroup | title: - | desc: - | help: - | value: - | rdesc: group | foc: 0 | pos: 260,165 | size: 1080x700 | acts: 
+      AXButton | title: - | desc: デスクトップの Dock を切り替え | help: デスクトップに Dock を表示 | value: - | rdesc: button | foc: 1 | pos: 1275,213 | size: 43x22 | acts: AXPress
+      AXScrollArea | title: - | desc: - | help: - | value: - | rdesc: scroll area | foc: 0 | pos: 525,611 | size: 550x140 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: Finder、起動中 | help: - | value: - | rdesc: button | foc: 0 | pos: 568,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Safari | help: - | value: - | rdesc: button | foc: 0 | pos: 630,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Mail | help: - | value: - | rdesc: button | foc: 0 | pos: 692,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Terminal | help: - | value: - | rdesc: button | foc: 0 | pos: 754,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Calendar | help: - | value: - | rdesc: button | foc: 0 | pos: 816,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: Downloads | help: - | value: - | rdesc: button | foc: 0 | pos: 878,680 | size: 62x61 | acts: AXShowMenu,AXPress,
+        AXButton | title: - | desc: ゴミ箱 | help: Finder の項目数を読み取れないため、ゴミ箱の状態を確認できません。システム設定の「プライバシーとセキュリティ」＞「オートメーション」で、Dock Studio から Finder への操作を許可
+      AXButton | title: - | desc: デスクトップに Dock を表示 | help: - | value: - | rdesc: button | foc: 0 | pos: 294,807 | size: 187x24 | acts: AXPress
+    AXButton | title: - | desc: - | help: - | value: - | rdesc: close button | foc: 0 | pos: 268,173 | size: 16x16 | acts: AXPress
+    AXButton | title: - | desc: - | help: this button also has an action to zoom the window | value: - | rdesc: full screen button | foc: 0 | pos: 314,173 | size: 16x16 | acts: AXPress,AXZoomWindow,AXShowMenu
+      AXGroup | title: - | desc: - | help: - | value: - | rdesc: group | foc: 0 | pos: 315,174 | size: 14x14 | acts: 
+        AXGroup | title: - | desc: - | help: - | value: - | rdesc: group | foc: 0 | pos: 315,174 | size: 14x14 | acts: 
+    AXButton | title: - | desc: - | help: - | value: - | rdesc: minimize button | foc: 0 | pos: 291,173 | size: 16x16 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | help: Finder の項目数を読み取れないため、ゴミ箱の状態を確認できません。システム設定の「プライバシーとセキュリティ」＞「オートメーション」で、Dock Studio から Finder への操作を許可してください。 | value: Finder の項目数を読み取れないため、ゴミ箱の状態を確認できません。システム設定の「プライバシーとセキュリティ」＞「オートメーション」で、Dock Studio から Finder への操作を許可してください。 | rdesc: button | foc: 0 | pos: 970,680 | size: 62x61 | acts: AXShowMenu,AXPress
