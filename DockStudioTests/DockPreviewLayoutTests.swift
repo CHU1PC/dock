@@ -26,19 +26,53 @@ final class DockPreviewLayoutTests: XCTestCase {
         }
     }
 
-    func testBottomPreviewReservesInlineNoticeSoTrashStaysInsideFrame() {
-        XCTAssertEqual(DockPreviewLayout.length(dockLength: 500, hasInlineNotice: true, vertical: false),
-                       500 + DockPreviewLayout.inlineNoticeLength)
-        XCTAssertEqual(DockPreviewLayout.length(dockLength: 500, hasInlineNotice: false, vertical: false), 500)
-        XCTAssertEqual(DockPreviewLayout.length(dockLength: 500, hasInlineNotice: true, vertical: true), 500)
+    func testNoticeExtentIsZeroWithoutNoticeAndPanelRowHeightWithNotice() {
+        XCTAssertEqual(DockPreviewLayout.noticeExtent(hasNotice: false), 0)
+        XCTAssertEqual(DockPreviewLayout.noticeExtent(hasNotice: true),
+                       DockPanelSizing.accessibilityNoticeHeight + DockPanelSizing.accessibilityNoticeSpacing)
+    }
 
+    func testNoticeRowKeepsItemRowSizeInEveryPosition() {
+        let extent = DockPreviewLayout.noticeExtent(hasNotice: true)
+        let container = CGSize(width: 2000, height: 2000)
+        for position in [DockPosition.bottom, .left, .right] {
+            let plain = DockPreviewLayout.frameSize(containerSize: container, position: position,
+                                                    length: 500, thickness: 120)
+            let noticed = DockPreviewLayout.frameSize(containerSize: container, position: position,
+                                                      length: 500, thickness: 120, noticeExtent: extent)
+            XCTAssertEqual(noticed.width, plain.width, "\(position)")
+            XCTAssertEqual(noticed.height, plain.height + extent, "\(position)")
+        }
+    }
+
+    func testNoticeExtentIsClampedToAvailableHeight() {
         let size = DockPreviewLayout.frameSize(
-            containerSize: CGSize(width: 1400, height: 650),
-            position: .bottom,
-            length: DockPreviewLayout.length(dockLength: 500, hasInlineNotice: true, vertical: false),
-            thickness: 120
+            containerSize: CGSize(width: 940, height: 650),
+            position: .left,
+            length: 1800,
+            thickness: 321,
+            noticeExtent: DockPreviewLayout.noticeExtent(hasNotice: true)
         )
-        XCTAssertEqual(size.width, 500 + DockPreviewLayout.inlineNoticeLength)
+        XCTAssertEqual(size.height, 462)
+    }
+
+    @MainActor
+    func testVerticalLengthCoversIconItemsAndTrashAtMeasuredPitch() {
+        let store = DockStore.preview()
+        var settings = store.document.settings
+        settings.iconSize = 76
+        settings.position = .bottom
+        XCTAssertTrue(store.updateSettings(settings))
+        let horizontal = DockMetrics.length(for: store)
+        settings.position = .left
+        XCTAssertTrue(store.updateSettings(settings))
+        let iconItems = store.displayedItems.filter { ![.spacer, .clock, .focusTimer].contains($0.kind) }.count
+        let expectedExtra = DockMetrics.verticalItemPadding - 10
+        XCTAssertGreaterThan(horizontal, 220)
+        XCTAssertEqual(DockMetrics.length(for: store),
+                       horizontal + CGFloat(Double(iconItems + 1) * expectedExtra
+                                            + DockMetrics.verticalSeparatorLength - 21),
+                       accuracy: 0.5)
     }
 
     func testSmallContainerClampsPreviewToAvailableSpace() {
