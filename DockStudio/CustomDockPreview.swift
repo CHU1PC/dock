@@ -53,21 +53,21 @@ struct CustomDockPreview: View {
         case .bottom: .bottom
         case .right: .trailing
         }
+        let noticeExtent = DockPreviewLayout.noticeExtent(
+            hasNotice: DockPanelSizing.hasAccessibilityNotice(
+                permissionGranted: store.notificationBadgeAccessibilityGranted,
+                items: store.displayedItems
+            )
+        )
         let previewSize = DockPreviewLayout.frameSize(
             containerSize: size,
             position: position,
-            length: DockPreviewLayout.length(
-                dockLength: DockMetrics.length(for: store),
-                hasInlineNotice: DockPanelSizing.hasAccessibilityNotice(
-                    permissionGranted: store.notificationBadgeAccessibilityGranted,
-                    items: store.displayedItems
-                ),
-                vertical: vertical
-            ),
-            thickness: DockMetrics.thickness(for: store)
+            length: DockMetrics.length(for: store),
+            thickness: DockMetrics.thickness(for: store),
+            noticeExtent: noticeExtent
         )
         return DockBar(vertical: vertical,
-                       availableLength: position == .bottom ? max(0, size.width - 50) : max(0, size.height - 188))
+                       availableLength: position == .bottom ? max(0, size.width - 50) : max(0, size.height - 188 - noticeExtent))
             .environment(store)
             .frame(width: previewSize.width, height: previewSize.height)
             .clipShape(Rectangle())
@@ -129,10 +129,10 @@ struct DockBar: View {
             permissionGranted: store.notificationBadgeAccessibilityGranted,
             items: items
         )
-        VStack(spacing: showAccessibilityNotice && isPanel ? DockPanelSizing.accessibilityNoticeSpacing : 0) {
-            if showAccessibilityNotice && isPanel {
+        VStack(spacing: showAccessibilityNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0) {
+            if showAccessibilityNotice {
                 accessibilityPermissionNotice
-                    .frame(width: DockPanelSizing.accessibilityNoticeWidth)
+                    .frame(width: isPanel ? DockPanelSizing.accessibilityNoticeWidth : nil)
                     .frame(maxWidth: .infinity)
                     .frame(height: DockPanelSizing.accessibilityNoticeHeight)
             }
@@ -156,9 +156,6 @@ struct DockBar: View {
                                         .accessibilityHidden(true)
                                 }
                                 barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
-                            }
-                            if showAccessibilityNotice && !isPanel {
-                                accessibilityPermissionNotice
                             }
                             MinimizedWindowsDockSection(vertical: vertical, iconSize: displayIconSize,
                                                         iconStyle: store.appearance.iconStyle,
@@ -1202,15 +1199,20 @@ enum DockMetrics {
         Double(slots) * (10 + iconSize)
     }
 
+    static let verticalItemPadding = 19.0
+    static let verticalSeparatorLength = 30.0
+
     static func length(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
+        let itemPadding = vertical ? verticalItemPadding : 10.0
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
-            sum + 10 + (item.kind == .spacer ? 11 :
+            sum + ([.spacer, .clock, .focusTimer].contains(item.kind) ? 10 : itemPadding) + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : store.effectiveIconSize)
         }
         let minimizedWindows = minimizedSectionLength(slots: store.minimizedWindowController.state.reservedSlots,
                                                       iconSize: store.effectiveIconSize)
-        let total = itemsTotal + minimizedWindows + (10 + 11) + (10 + store.effectiveIconSize)
+        let total = itemsTotal + minimizedWindows + (vertical ? verticalSeparatorLength : 10 + 11)
+            + (itemPadding + store.effectiveIconSize)
         let enabled = magnificationEnabled ?? store.appearance.magnification
         let reserve = enabled ? store.effectiveIconSize * (store.appearance.magnificationScale - 1) * 3 : 0
         return CGFloat(max(220, total + reserve))
@@ -1230,21 +1232,20 @@ enum DockMetrics {
 }
 
 enum DockPreviewLayout {
-    static let inlineNoticeLength: CGFloat = 290
-
-    static func length(dockLength: CGFloat, hasInlineNotice: Bool, vertical: Bool) -> CGFloat {
-        hasInlineNotice && !vertical ? dockLength + inlineNoticeLength : dockLength
+    static func noticeExtent(hasNotice: Bool) -> CGFloat {
+        hasNotice ? DockPanelSizing.accessibilityNoticeHeight + DockPanelSizing.accessibilityNoticeSpacing : 0
     }
 
-    static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat) -> CGSize {
+    static func frameSize(containerSize: CGSize, position: DockPosition, length: CGFloat, thickness: CGFloat,
+                          noticeExtent: CGFloat = 0) -> CGSize {
         let availableWidth = max(0, containerSize.width - 50)
         let availableHeight = max(0, containerSize.height - 188)
         if position == .bottom {
             return CGSize(width: min(availableWidth, max(0, length)),
-                          height: min(availableHeight, max(0, thickness)))
+                          height: min(availableHeight, max(0, thickness) + max(0, noticeExtent)))
         }
         return CGSize(width: min(190, availableWidth),
-                      height: min(availableHeight, max(0, length)))
+                      height: min(availableHeight, max(0, length) + max(0, noticeExtent)))
     }
 }
 
