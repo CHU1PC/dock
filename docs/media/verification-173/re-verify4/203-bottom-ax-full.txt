@@ -1,0 +1,101 @@
+## variant items-size=2-32 06:53:50
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 545,632 | size: 510x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 641,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 926,700 | size: 42x41 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - |   rdesc: image | foc: - | pos: 521,639 | size: 558x140 | acts: 
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 557,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 599,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 641,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 926,700 | size: 42x41 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=2-52 06:53:59
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 540,632 | size: 521x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 676,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 961,680 | size: 62x61 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - |   rdesc: image | foc: - | pos: 516,638 | size: 569x142 | acts: 
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 552,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 614,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 676,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 961,680 | size: 62x61 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=2-64 06:54:08
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 522,622 | size: 557x129 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 682,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 967,668 | size: 74x73 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - |   rdesc: image | foc: - | pos: 498,628 | size: 605x152 | acts: 
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 534,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 608,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 682,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 967,668 | size: 74x73 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=2-96 06:54:17
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 474,590 | size: 653x161 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 698,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 983,636 | size: 106x105 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - |   rdesc: image | foc: - | pos: 450,600 | size: 701x176 | acts: 
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 486,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 592,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 698,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 983,636 | size: 106x105 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=6-32 06:54:26
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 486,632 | size: 629x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 750,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 1035,700 | size: 42x41 | acts: AXShowMenu,AXPress
+      AXImage | title: - | desc: - |   rdesc: image | foc: - | pos: 462,624 | size: 677x170 | acts: 
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 498,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 540,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: Calculator、起動中 | foc: 0 | pos: 582,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で D
+        AXButton | title: - | desc: Safari、起動中 | foc: 0 | pos: 624,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で Dock 
+        AXButton | title: - | desc: Mail | foc: 0 | pos: 666,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Calendar | foc: 0 | pos: 708,700 | size: 42x41 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 750,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 1035,700 | size: 42x41 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=6-52 06:54:35
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 416,632 | size: 769x119 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 800,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 1085,680 | size: 62x61 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 428,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 490,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: Calculator、起動中 | foc: 0 | pos: 552,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で D
+        AXButton | title: - | desc: Safari、起動中 | foc: 0 | pos: 614,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で Dock 
+        AXButton | title: - | desc: Mail | foc: 0 | pos: 676,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Calendar | foc: 0 | pos: 738,680 | size: 62x61 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 800,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 1085,680 | size: 62x61 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=6-64 06:54:44
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 374,622 | size: 853x129 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 830,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 1115,668 | size: 74x73 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 386,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 460,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: Calculator、起動中 | foc: 0 | pos: 534,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で D
+        AXButton | title: - | desc: Safari、起動中 | foc: 0 | pos: 608,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で Dock 
+        AXButton | title: - | desc: Mail | foc: 0 | pos: 682,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Calendar | foc: 0 | pos: 756,668 | size: 74x73 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 830,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 1115,668 | size: 74x73 | acts: AXShowMenu,AXPress
+could not create image from display
+## variant items-size=6-96 06:54:53
+  AXWindow | title: Dock Studio | desc: - |   rdesc: standard window | foc: 0 | pos: 260,165 | size: 1080x700 | acts: AXRaise
+      AXScrollArea | title: - | desc: - |   rdesc: scroll area | foc: 0 | pos: 285,590 | size: 1030x161 | acts: AXScrollLeftByPage,AXScrollRightByPage,AXScrollUpByPage,AXScrollDownByPage
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です |   rdesc: button | foc: 0 | pos: 933,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 |   rdesc: button | foc: 0 | pos: 1218,636 | size: 106x105 | acts: AXShowMenu,AXPress
+        AXButton | title: - | desc: TextEdit | foc: 0 | pos: 297,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Downloads | foc: 0 | pos: 403,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:Dock から取り外す
+        AXButton | title: - | desc: Calculator、起動中 | foc: 0 | pos: 509,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で
+        AXButton | title: - | desc: Safari、起動中 | foc: 0 | pos: 615,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アクセシビリティ権限が必要です（システム設定で Doc
+        AXButton | title: - | desc: Mail | foc: 0 | pos: 721,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: Calendar | foc: 0 | pos: 827,636 | size: 106x105 | acts: AXShowMenu,AXPress,Name:アプリは起動していません
+        AXButton | title: - | desc: 通知バッジにはアクセシビリティの許可が必要です | foc: 0 | pos: 933,712 | size: 255x29 | acts: AXPress
+        AXButton | title: - | desc: ゴミ箱 | foc: 0 | pos: 1218,636 | size: 106x105 | acts: AXShowMenu,AXPress
+could not create image from display

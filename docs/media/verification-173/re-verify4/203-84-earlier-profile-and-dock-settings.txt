@@ -1,0 +1,50 @@
+{
+  "activeProfileID" : "B2D977B7-F810-4F56-82AE-B50E7D57EE0B",
+  "profiles" : [
+    {
+      "id" : "B2D977B7-F810-4F56-82AE-B50E7D57EE0B",
+      "items" : [
+        {
+          "bundleIdentifier" : "com.apple.TextEdit",
+          "id" : "23C8E352-0B8A-4BB6-AFB6-FC3A6DCEF9D7",
+          "kind" : "application",
+          "name" : "TextEdit",
+          "target" : "file:\/\/\/System\/Applications\/TextEdit.app"
+        },
+        {
+          "bundleIdentifier" : "com.apple.TextEdit",
+          "id" : "23C8E352-0B8A-4BB6-AFB6-FC3A6DCEF9D8",
+          "kind" : "application",
+          "name" : "TextEdit",
+          "target" : "file:\/\/\/System\/Applications\/TextEdit.app"
+        },
+        {
+          "id" : "6F0870BC-D562-4D26-98BB-56DEC6E89D9E",
+          "kind" : "application",
+          "name" : "Calculator",
+          "target" : "file:\/\/\/System\/Applications\/Calculator.app\/"
+        }
+      ],
+      "name" : "dup84"
+    }
+  ],
+  "schemaVersion" : 1,
+  "settings" : {
+    "arrangement" : "free",
+    "attentionBounce" : true,
+    "autoHide" : false,
+    "displayMode" : "selectedDisplay",
+    "dockFocusShortcut" : "controlOptionCommandD",
+    "finderEntryEnabled" : false,
+    "iconSize" : 64,
+    "launchBounce" : true,
+    "minimizeWindowsIntoAppIcon" : false,
+    "mode" : "both",
+    "position" : "bottom",
+    "revealAnimationDuration" : 0.22,
+    "showRecentApps" : false,
+    "showRunningApps" : false
+  }
+}1
+0
+killed
