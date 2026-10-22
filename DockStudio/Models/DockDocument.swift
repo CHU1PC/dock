@@ -95,6 +95,12 @@ struct DockItem: Codable, Equatable, Identifiable {
 
     var applicationIdentity: String? {
         guard kind == .application else { return nil }
+        return ApplicationIdentityCache.shared.identity(target: target, bundleIdentifier: bundleIdentifier) {
+            resolveApplicationIdentity()
+        }
+    }
+
+    private func resolveApplicationIdentity() -> String? {
         if let url = targetURL {
             let canonical = url.standardizedFileURL.resolvingSymlinksInPath()
             if let identifier = Bundle(url: canonical)?.bundleIdentifier { return "bundle:\(identifier)" }
