@@ -56,12 +56,54 @@ swift test --filter testReportHoverRecomputeCost
 
 修正前の別の1回では、ホバー1回の再計算が10.1 ms だった。これは60fps の1フレーム（16.7 ms）の半分以上にあたる。修正後は約0.3 ms になった（約25〜30倍）。
 
-## 実機で未検証の項目
+## VM でのプロファイル（修正前）
 
-- **これが約1秒の遅れの全体を説明するかは未検証。** 計測できたのは、純粋な計算の部分だけになる。SwiftUI の差分計算、スプリングアニメーション中の全アイコンのリサイズ、グラスやシャドウの描画のコストは、ホストの単体テストでは測れていない。
-- 実機でのフレーム時間と CPU 使用率は未計測。受け入れ条件の「修正前後の CPU 使用率やフレーム時間」は、実機または VM の画面収録で、別途確認が要る。
-- キャッシュの寿命は1秒にしてある。アプリのバンドル識別子がディスク上で変わった場合、最大1秒遅れて反映される。
-- 未対応の候補: `DockStore.refreshNotificationBadges()`（`DockStore.swift:122`）は、結果が同じでも2秒ごとに `notificationBadges` へ代入する。Observation が通知すると Dock 全体が再評価されるため、2秒ごとの引っかかりになりうる。範囲外のため触っていない。
+VM で、60 Hz のポインタ往復中に Dock Studio のメインスレッドを計測した（生データは `/private/tmp/cw/m226/profile/` の `an-mag-on.txt`、`an-mag-off.txt`、`an-idle-mag-on.txt`、`mag-on-app.txt`）。
+
+| 項目 | 結果 |
+| --- | --- |
+| Dock Studio のメインスレッド | 約99% 稼働 |
+| 標準 Dock の CPU | 約3〜5% |
+| 拡大をオフにした場合 | 同じく約80% CPU。拡大そのものは原因ではない |
+| 支配的な処理 | ホバー変更のたびに `DockBar.body` が約23項目すべてで再評価される（`NSHostingView.layout`、`ViewGraphRootValueUpdater.render`、`GraphHost.flushTransactions` 73%、`ViewGraph.updateOutputs` 21%） |
+
+ホットスポットは次の3つ。
+
+| 場所 | 内容 |
+| --- | --- |
+| `.accessibilityActions`（`CustomDockPreview.swift`） | 項目ごとの body で `store.applicationWindowListing(for:)` を実行。`NSRunningApplication.runningApplications(withBundleIdentifier:)`、`isTerminated`（LaunchServices への同期 XPC）、`AXIsProcessTrustedWithOptions`（プロンプト付き）が毎回走る。566 サンプル（メインの17%）。`actions(for:)` も 157 サンプル |
+| `DockItem.targetURL` | 既定引数 `Self.downloadsDirectoryURL()` が毎回評価される。89 サンプル |
+| `DockBar` 全体 | ホバー位置が変わるたび、全項目の内容が再構築される |
+
+## 第2段の修正
+
+| 項目 | 内容 |
+| --- | --- |
+| アクセシビリティアクションとコンテキストメニュー | 内容を `DockItemAccessibilityActionsContent`、`DockItemContextMenuContent`（`DockStudio/DockItemMenuViews.swift`、新規）に移した。`actions(for:)` とウィンドウ一覧の取得は、これらの body の中でだけ実行される。`DockBar.body` は構造体を作るだけになる |
+| ウィンドウ一覧のプロンプト | `ApplicationWindowProviding.windows(for:promptForAccess:)` を追加。アクセシビリティアクション側は `promptForAccess: false`（描画経路でプロンプトを出さない）。コンテキストメニューと NSMenu は従来どおり `true` |
+| `DockItem.resolvedTargetURL` | `downloadsDirectory` を `@autoclosure` にし、Downloads の項目のときだけ `FileManager` を呼ぶ。引数に値を渡す既存の呼び出しは変更なし |
+| 2秒ごとの更新 | `refreshNotificationBadges()` は値が等しければ代入しない。`MinimizedWindowController.refresh()` は `MinimizedWindowState.isEquivalent(to:)` で同じなら代入しない（比較は id、アプリ識別子、タイトル、アプリ名。アイコンは比較しない）。ゴミ箱は `refreshTrash()` が既に `!=` で守っていたので変更なし |
+
+項目 (c)（ホバーが小さなラッパーだけを動かし、重い内容は項目データだけに依存するサブビューにする）は、アクセシビリティとコンテキストメニューの分離までにとどめた。アイコン、バッジ、ドラッグ修飾子は `dockItem` の中に残している。`fix/remove-running-dot`（#227）が同じ `dockItem` の VStack を編集するため、衝突を避けた。
+
+## 自動テスト
+
+```
+swift test --scratch-path /tmp/dockstudio-226-scratch   # 489 tests, 0 failures
+xcodebuild ... -configuration Release build              # BUILD SUCCEEDED
+xcodebuild ... build-for-testing                         # TEST BUILD SUCCEEDED
+```
+
+追加したテスト: `testDownloadsDirectoryIsEvaluatedOnlyForTheDownloadsLocation`（Downloads 以外では評価されない）、`testAccessibilityListingNeverPromptsForPermission`（`promptForAccess` の伝達）、`MinimizedWindowStateTests`（同値判定）。
+
+## 未検証の項目
+
+- **第2段の修正で CPU 使用率とフレーム時間が下がったかは未検証。** VM で再プロファイルするまで分からない。
+- **SwiftUI が `.accessibilityActions` の内容（サブビュー）を、VoiceOver が無効のときに評価しないかは未検証。** 評価する場合は、効果が小さい（ただしプロンプトは出なくなった）。
+- VoiceOver が有効なときに、アクションの一覧とウィンドウの切り替えが従来どおり出るかは未検証。サブビューを `.accessibilityActions` に入れた場合に SwiftUI が展開するかの確認が要る。
+- コンテキストメニューが従来どおり出るか、ウィンドウ一覧が出るかは未検証（GUI を使っていない）。
+- 項目 (c) の本体（ホバーで動く部分の局所化）は未着手。再プロファイルで `DockBar.body` の再評価が残っていれば、次に行う。
+- 第1段のキャッシュの寿命は1秒。アプリのバンドル識別子がディスク上で変わると、最大1秒遅れて反映される。
 - グローバルのマウス監視（`CustomDockWindowController.swift:254`）は、マウスイベントごとに `selectedScreen` を数回評価する。実測していない。
 
 ## 撮影の手順
