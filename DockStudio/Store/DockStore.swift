@@ -122,8 +122,10 @@ final class DockStore {
 
     func refreshNotificationBadges() async {
         let snapshot = await Task.detached(priority: .utility) { NotificationBadgeReader().read() }.value
-        notificationBadges = snapshot.badgesByPath
-        notificationBadgeAccessibilityGranted = snapshot.hasAccessibilityPermission
+        if notificationBadges != snapshot.badgesByPath { notificationBadges = snapshot.badgesByPath }
+        if notificationBadgeAccessibilityGranted != snapshot.hasAccessibilityPermission {
+            notificationBadgeAccessibilityGranted = snapshot.hasAccessibilityPermission
+        }
     }
 
     private var appearanceURL: URL? {

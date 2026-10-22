@@ -47,6 +47,16 @@ enum MinimizedWindowState {
         return windows
     }
 
+    func isEquivalent(to other: MinimizedWindowState) -> Bool {
+        switch (self, other) {
+        case (.notChecked, .notChecked), (.permissionDenied, .permissionDenied): true
+        case (.available(let lhs), .available(let rhs)):
+            lhs.map { [$0.id, $0.applicationIdentifier, $0.title, $0.applicationName] }
+                == rhs.map { [$0.id, $0.applicationIdentifier, $0.title, $0.applicationName] }
+        default: false
+        }
+    }
+
     var reservedSlots: Int {
         if case .permissionDenied = self { return 1 }
         return windows.count
@@ -73,7 +83,8 @@ final class MinimizedWindowController {
     var applicationGroups: [MinimizedWindowGroup] { MinimizedWindowGrouping.groups(windows) }
 
     func refresh() {
-        state = provider.snapshot()
+        let snapshot = provider.snapshot()
+        if !state.isEquivalent(to: snapshot) { state = snapshot }
     }
 
     @discardableResult
