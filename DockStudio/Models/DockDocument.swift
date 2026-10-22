@@ -82,9 +82,9 @@ struct DockItem: Codable, Equatable, Identifiable {
 
     var targetURL: URL? { resolvedTargetURL() }
 
-    func resolvedTargetURL(downloadsDirectory: URL? = Self.downloadsDirectoryURL()) -> URL? {
+    func resolvedTargetURL(downloadsDirectory: @autoclosure () -> URL? = Self.downloadsDirectoryURL()) -> URL? {
         guard let target else { return nil }
-        if target == Self.downloadsLocationTarget { return downloadsDirectory }
+        if target == Self.downloadsLocationTarget { return downloadsDirectory() }
         return URL(string: target)
     }
 
