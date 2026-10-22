@@ -20,11 +20,10 @@ enum DockDividerLine {
     }
 
     static let axisPadding: CGFloat = 5
-    static let indicatorRowHeight: CGFloat = 4 + 5
 
     static func insets(vertical: Bool) -> Insets {
         vertical
             ? Insets(top: axisPadding, leading: 0, bottom: axisPadding, trailing: 0)
-            : Insets(top: 0, leading: axisPadding, bottom: indicatorRowHeight, trailing: axisPadding)
+            : Insets(top: 0, leading: axisPadding, bottom: 0, trailing: axisPadding)
     }
 }

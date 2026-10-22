@@ -3,14 +3,14 @@ import XCTest
 
 final class DockBackdropFitTests: XCTestCase {
     func testBottomBackdropHugsIcon() {
-        for (size, expected) in [(16.0, 45.0), (52.0, 81.0), (128.0, 157.0)] {
+        for (size, expected) in [(16.0, 36.0), (52.0, 72.0), (128.0, 148.0)] {
             XCTAssertEqual(DockBackdropFit.bottomThickness(iconSize: size, hasTile: false), CGFloat(expected))
         }
     }
 
     func testBottomBackdropKeepsRoomForTiles() {
         XCTAssertEqual(DockBackdropFit.bottomThickness(iconSize: 16, hasTile: true), 74)
-        XCTAssertEqual(DockBackdropFit.bottomThickness(iconSize: 128, hasTile: true), 157)
+        XCTAssertEqual(DockBackdropFit.bottomThickness(iconSize: 128, hasTile: true), 148)
     }
 
     func testSideBackdropHugsIcon() {
@@ -52,9 +52,9 @@ final class DockBackdropFitTests: XCTestCase {
         }
     }
 
-    func testSideLengthCountsItemExtraAndFixedItems() {
+    func testSideLengthCountsIconSlotsAndFixedItems() {
         let content = DockBackdropFit.LengthContent(iconItems: 2, fixedExtent: 22 + 64, minimizedSlots: 1)
-        let expected: CGFloat = 86 + 105 + 26 + 30 + 14
+        let expected: CGFloat = 86 + 78 + 26 + 30 + 14
         XCTAssertEqual(DockBackdropFit.length(content, iconSize: 16, axisPadding: 5, vertical: true), expected)
     }
 
