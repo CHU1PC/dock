@@ -167,7 +167,9 @@ struct DockBar: View {
                             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                                 if displayedLayout.dividerBefore.contains(index) {
                                     Rectangle().fill(.primary.opacity(0.45))
-                                        .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                                        .frame(width: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).width,
+                                               height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height)
+                                        .dockDividerInsets(vertical: vertical)
                                         .accessibilityHidden(true)
                                 }
                                 barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running,
@@ -277,7 +279,9 @@ struct DockBar: View {
         Group {
             if item.kind == .spacer {
                 Rectangle().fill(.primary.opacity(spacerDrawsLine ? 0.45 : 0))
-                    .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
+                    .frame(width: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).width,
+                           height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height)
+                    .dockDividerInsets(vertical: vertical)
             } else if item.kind == .clock {
                 ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
                     .onHover { if $0 { hovered = nil } }
@@ -549,8 +553,8 @@ extension DockBar {
         case .hasItems: "trash.fill"
         case .unknown: "trash.slash"
         }
-        DockIconSizeResizeHandle(vertical: vertical)
-            .padding(5)
+        DockIconSizeResizeHandle(vertical: vertical, iconSize: displayIconSize)
+            .dockDividerInsets(vertical: vertical)
             .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {

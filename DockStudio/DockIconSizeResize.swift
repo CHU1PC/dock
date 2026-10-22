@@ -17,21 +17,30 @@ enum DockIconSizeResize {
     }
 }
 
+extension View {
+    func dockDividerInsets(vertical: Bool) -> some View {
+        let insets = DockDividerLine.insets(vertical: vertical)
+        return padding(EdgeInsets(top: insets.top, leading: insets.leading, bottom: insets.bottom, trailing: insets.trailing))
+    }
+}
+
 struct DockIconSizeResizeHandle: View {
     @Environment(DockStore.self) private var store
     @State private var initialSize: Double?
     let vertical: Bool
+    let iconSize: Double
 
+    private var lineSize: CGSize { DockDividerLine.size(iconSize: iconSize, vertical: vertical) }
     private var resizeCursor: NSCursor { vertical ? .resizeLeftRight : .resizeUpDown }
 
     var body: some View {
         Rectangle()
             .fill(.clear)
-            .frame(width: vertical ? 54 : 20, height: vertical ? 20 : 54)
+            .frame(width: vertical ? lineSize.width : 20, height: vertical ? 20 : lineSize.height)
             .overlay {
                 Rectangle()
                     .fill(.primary.opacity(0.55))
-                    .frame(width: vertical ? 40 : 1, height: vertical ? 1 : 40)
+                    .frame(width: lineSize.width, height: lineSize.height)
             }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 3)
