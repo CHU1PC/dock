@@ -429,42 +429,12 @@ struct DockBar: View {
             .onKeyPress(.return) { activateDockItem(item); return .handled }
             .onKeyPress(.space) { activateDockItem(item); return .handled }
             .accessibilityActions {
-                ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
-                    Button(action.title, action: action.perform)
-                        .disabled(!action.isEnabled)
-                }
-                if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
-                    ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
-                        switch entry {
-                        case .window(let id, let title):
-                            Button("ウィンドウを前面に表示: \(title)") { store.activateApplicationWindow(id, for: item) }
-                        case .unavailable(let title):
-                            Button(title) {}.disabled(true)
-                        }
-                    }
-                }
+                DockItemAccessibilityActionsContent(store: store, item: item, actions: { actions(for: item) })
             }
             .contextMenu {
-                ForEach(actions(for: item)) { action in
-                    if action.kind == .windowList {
-                        Menu(action.title) {
-                            ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
-                                switch entry {
-                                case .window(let id, let title):
-                                    Button(title) { store.activateApplicationWindow(id, for: item) }
-                                case .unavailable(let title):
-                                    Button(title) {}.disabled(true)
-                                }
-                            }
-                        }
-                    } else {
-                        Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
-                            .disabled(!action.isEnabled)
-                    }
-                }
-                if supportsApplicationDockMenu(item) {
-                    Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
-                }
+                DockItemContextMenuContent(store: store, item: item, actions: { actions(for: item) },
+                                           supportsApplicationDockMenu: { supportsApplicationDockMenu(item) },
+                                           showApplicationDockMenu: { showApplicationDockMenu(for: item) })
             }
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly &&
                                   !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)), vertical: vertical,
@@ -612,7 +582,7 @@ extension DockBar {
     }
 }
 
-private struct DockItemAction: Identifiable {
+struct DockItemAction: Identifiable {
     let kind: DockItemMenu.Kind
     let perform: () -> Void
     var isEnabled = true

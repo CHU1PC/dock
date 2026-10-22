@@ -15,7 +15,7 @@ enum ApplicationWindowListing: Equatable {
 }
 
 protocol ApplicationWindowProviding {
-    func windows(for bundleIdentifier: String) -> ApplicationWindowListing
+    func windows(for bundleIdentifier: String, promptForAccess: Bool) -> ApplicationWindowListing
     func activateWindow(id: String, for bundleIdentifier: String) -> Bool
 }
 
@@ -24,8 +24,8 @@ struct ApplicationWindowAccess {
 
     static let live = ApplicationWindowAccess(provider: AccessibilityApplicationWindowProvider())
 
-    func windows(for bundleIdentifier: String) -> ApplicationWindowListing {
-        provider.windows(for: bundleIdentifier)
+    func windows(for bundleIdentifier: String, promptForAccess: Bool = true) -> ApplicationWindowListing {
+        provider.windows(for: bundleIdentifier, promptForAccess: promptForAccess)
     }
 
     func activate(windowID: String, for bundleIdentifier: String) -> Bool {
@@ -36,12 +36,12 @@ struct ApplicationWindowAccess {
 private final class AccessibilityApplicationWindowProvider: ApplicationWindowProviding {
     private var windowElements: [String: (bundleIdentifier: String, element: AXUIElement)] = [:]
 
-    func windows(for bundleIdentifier: String) -> ApplicationWindowListing {
+    func windows(for bundleIdentifier: String, promptForAccess: Bool) -> ApplicationWindowListing {
         let applications = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
             .filter { !$0.isTerminated }
         guard let application = applications.first else { return .applicationNotRunning }
 
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: promptForAccess] as CFDictionary
         guard AXIsProcessTrustedWithOptions(options) else { return .accessibilityPermissionDenied }
 
         let appElement = AXUIElementCreateApplication(application.processIdentifier)
@@ -83,10 +83,11 @@ private final class AccessibilityApplicationWindowProvider: ApplicationWindowPro
 }
 
 extension DockStore {
-    func applicationWindowListing(for item: DockItem) -> ApplicationWindowListing {
+    func applicationWindowListing(for item: DockItem, promptForAccess: Bool = true) -> ApplicationWindowListing {
         guard item.kind == .application, let identifier = item.applicationIdentity,
               identifier.hasPrefix("bundle:") else { return .applicationNotRunning }
-        return applicationWindowAccess.windows(for: String(identifier.dropFirst("bundle:".count)))
+        return applicationWindowAccess.windows(for: String(identifier.dropFirst("bundle:".count)),
+                                               promptForAccess: promptForAccess)
     }
 
     func activateApplicationWindow(_ windowID: String, for item: DockItem) {
