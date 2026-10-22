@@ -143,8 +143,8 @@ struct DockBar: View {
             }
             ZStack(alignment: vertical ? .center : .bottom) {
                 DockBackdrop(appearance: store.appearance)
-                    .frame(width: vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil,
-                           height: vertical ? nil : DockMetrics.barThickness(for: store))
+                    .frame(width: vertical ? DockMetrics.backdropThickness(for: store) : nil,
+                           height: vertical ? nil : DockMetrics.backdropThickness(for: store))
                     .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
                 ScrollView(vertical ? .vertical : .horizontal) {
                     let layout = vertical ? AnyLayout(VStackLayout(spacing: 0)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 0))
@@ -1247,6 +1247,12 @@ enum DockMetrics {
         let enabled = magnificationEnabled ?? store.appearance.magnification
         return CGFloat(store.document.settings.position == .bottom ? max(store.effectiveIconSize, 54) + 30 :
                     max(174, store.effectiveIconSize * (enabled ? store.appearance.magnificationScale : 1) + 32))
+    }
+    static func backdropThickness(for store: DockStore) -> CGFloat {
+        let hasTile = store.displayedItems.contains { [.clock, .focusTimer].contains($0.kind) }
+        return store.document.settings.position == .bottom
+            ? DockBackdropFit.bottomThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
+            : DockBackdropFit.sideThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
     }
     static let sideLabelGutter = DockLabelPlacement.maxWidth + DockLabelPlacement.gap
     static func thickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
