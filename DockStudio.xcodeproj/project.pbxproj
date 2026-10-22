@@ -49,6 +49,7 @@
 		5065ACDCCE694B2E3F4A90B3 /* KeepRunningAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB86C3AB95EF20C137DE78A /* KeepRunningAppTests.swift */; };
 		525AE692044328AB3A651BD5 /* ApplicationWindowAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873F2DB6F8BB95032D1A31C8 /* ApplicationWindowAccessTests.swift */; };
 		5380B4DF84B217A02BDB857D /* LaunchRestorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B87AE63A0B17235E5C3CC5 /* LaunchRestorePersistence.swift */; };
+		53C5B4A7FE7C4F9F1B2CF796 /* DockTrashDividerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226ECDB6FB351FA0A0EF87B0 /* DockTrashDividerTests.swift */; };
 		5440E4841B93F588D7FA4128 /* TrashDropTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60BD64A51F2320C85780284 /* TrashDropTests.swift */; };
 		549D9BAD44EADF220B15CCFE /* RecentDocumentAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907CA81DE5A793991439D84 /* RecentDocumentAccessTests.swift */; };
 		579F41205D11B1539443CD93 /* ProfileArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B211DA46BDD04002228CB0E2 /* ProfileArchive.swift */; };
@@ -88,6 +89,7 @@
 		9842CF11BF9460B3AAD9A557 /* HideOthersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4103144EE0168C0C2F74DD68 /* HideOthersTests.swift */; };
 		989EDF5C442B44BBF1AA5D0A /* DockStore+Trash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40169D01B3CF3CCCB6602AEF /* DockStore+Trash.swift */; };
 		9F723C65019C03E97FD52919 /* SettingsPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60EB0DB463C5447E89F603D /* SettingsPreview.swift */; };
+		9FA17262D6B3EA82E82017F8 /* DockTrashDivider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB158F49C668F393419FF61 /* DockTrashDivider.swift */; };
 		9FAB0492CF4B4CD9A8144FA8 /* AsyncProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19583868084C8E939D0485F0 /* AsyncProcessRunner.swift */; };
 		A2BACEE6CFA5F77522BEB3A1 /* VolumeEjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BDA4CFBD657BDA46CA3687 /* VolumeEjectorTests.swift */; };
 		A72E585B7A9AF1351C676295 /* ApplicationHideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4149201BC1D94F046036DD /* ApplicationHideTests.swift */; };
@@ -161,6 +163,7 @@
 		1EE155D28F10F8343EA2D95E /* RecentAppHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAppHistory.swift; sourceTree = "<group>"; };
 		21B1CE92853E8EDB2592E58A /* ItemClickActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemClickActionTests.swift; sourceTree = "<group>"; };
 		2255DDF17826ECD819C17196 /* CustomDockPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDockPreview.swift; sourceTree = "<group>"; };
+		226ECDB6FB351FA0A0EF87B0 /* DockTrashDividerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTrashDividerTests.swift; sourceTree = "<group>"; };
 		238F2677EF05670EF289F988 /* NativeDockTileRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeDockTileRegressionTests.swift; sourceTree = "<group>"; };
 		25256E920110D2D7B0CF0BA5 /* ProfilePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePersistence.swift; sourceTree = "<group>"; };
 		25D41944407E5526E32F96ED /* DockStore+FinderSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DockStore+FinderSelection.swift"; sourceTree = "<group>"; };
@@ -236,6 +239,7 @@
 		B60BF615CF975A8342E5731D /* ItemAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAvailability.swift; sourceTree = "<group>"; };
 		B6D844984605A23796EB4CB5 /* DockFocusShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockFocusShortcut.swift; sourceTree = "<group>"; };
 		B74891EA53710F2CFD7EA82C /* TrashItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashItemTests.swift; sourceTree = "<group>"; };
+		BDB158F49C668F393419FF61 /* DockTrashDivider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockTrashDivider.swift; sourceTree = "<group>"; };
 		BDC0268F20C63643FC2DEF88 /* ProfileEditorPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorPreview.swift; sourceTree = "<group>"; };
 		BDF08A2FAB56E7BFFE8EE703 /* DockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockStore.swift; sourceTree = "<group>"; };
 		BFCE3E3BCD959B5A20835D95 /* DockAppearancePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockAppearancePersistence.swift; sourceTree = "<group>"; };
@@ -322,6 +326,7 @@
 				261911ED51635A9DAC7FE61E /* DockIconAutoShrink.swift */,
 				CC77AB9887FB9CBEB9A57C9C /* DockItemReordering.swift */,
 				E8B4DF981D4D56D467629B9D /* DockSectionLayout.swift */,
+				BDB158F49C668F393419FF61 /* DockTrashDivider.swift */,
 				4A0B6393917A6F475E82E31D /* DockVerticalFit.swift */,
 				B07A1DBE70C6D91F689305D1 /* FinderDockEntry.swift */,
 				4FDDE7661192797B043A0F62 /* FinderSelectionAddition.swift */,
@@ -381,6 +386,7 @@
 				6D027CD6B1C14D3973B5F22C /* DockSeparatorSettingsTests.swift */,
 				065E5D8EFD8E5C716256F8D1 /* DockSpringLoadingTests.swift */,
 				EF63433C32EE891D1543248B /* DockStoreTests.swift */,
+				226ECDB6FB351FA0A0EF87B0 /* DockTrashDividerTests.swift */,
 				6E227721CCB58573747F67F8 /* DockVerticalFitTests.swift */,
 				E9A6CE32685B1DADCD23BE73 /* DropDockItemsTests.swift */,
 				154F98E982664B3202072C9C /* DuplicateItemPolicyTests.swift */,
@@ -561,6 +567,7 @@
 				BF06CCAD556189A694A4F299 /* DockSeparatorSettingsTests.swift in Sources */,
 				D33990B881D87B8F5B47EC87 /* DockSpringLoadingTests.swift in Sources */,
 				71ED8F980F4A0EC45C8F3F6B /* DockStoreTests.swift in Sources */,
+				53C5B4A7FE7C4F9F1B2CF796 /* DockTrashDividerTests.swift in Sources */,
 				0B0048A63BF557AB1908453F /* DockVerticalFitTests.swift in Sources */,
 				C9773900276137B7F6D1773E /* DropDockItemsTests.swift in Sources */,
 				92BC1656EF6B1AE4BA8D63AA /* DuplicateItemPolicyTests.swift in Sources */,
@@ -633,6 +640,7 @@
 				B72FA7DF2DD2955D1A30A443 /* DockStore.swift in Sources */,
 				F45A353F73F29ABB3A148CFB /* DockStudioApp.swift in Sources */,
 				0E7E417876D39D31A369A3CD /* DockTemporaryMagnification.swift in Sources */,
+				9FA17262D6B3EA82E82017F8 /* DockTrashDivider.swift in Sources */,
 				AB76268BF0281108A777CD40 /* DockVerticalFit.swift in Sources */,
 				2A6BD4BCBC208A75043539B8 /* DockVisibilityState.swift in Sources */,
 				3D1340B383846A2F3362B867 /* DuplicateItemPolicy.swift in Sources */,

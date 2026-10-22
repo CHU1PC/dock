@@ -160,7 +160,8 @@ struct DockBar: View {
                                         .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
                                         .accessibilityHidden(true)
                                 }
-                                barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running)
+                                barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running,
+                                           spacerDrawsLine: DockTrashDivider.spacerDrawsLine(index: index, itemCount: items.count))
                             }
                             MinimizedWindowsDockSection(vertical: vertical, iconSize: displayIconSize,
                                                         iconStyle: store.appearance.iconStyle,
@@ -261,10 +262,11 @@ struct DockBar: View {
     }
 
     @ViewBuilder
-    private func barElement(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>) -> some View {
+    private func barElement(_ item: DockItem, index: Int, hoveredIndex: Int?, runningIdentities: Set<String>,
+                            spacerDrawsLine: Bool) -> some View {
         Group {
             if item.kind == .spacer {
-                Rectangle().fill(.primary.opacity(0.45))
+                Rectangle().fill(.primary.opacity(spacerDrawsLine ? 0.45 : 0))
                     .frame(width: vertical ? 50 : 1, height: vertical ? 1 : 40).padding(5)
             } else if item.kind == .clock {
                 ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
