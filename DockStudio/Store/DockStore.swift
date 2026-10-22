@@ -63,6 +63,7 @@ final class DockStore {
     private(set) var draftRecoveryFailed = false
     private(set) var transientIconSize: Double?
     private(set) var transientRevealAnimationDuration: Double?
+    private(set) var transientHideDelay: Double?
     private var savedAppearance = DockAppearance()
     private var transientAppearance: DockAppearance?
     private var appearanceSavedData: Data?
@@ -79,6 +80,7 @@ final class DockStore {
     var appearanceLoadError: String?
     @ObservationIgnored private var iconSizeSaveTask: Task<Void, Never>?
     @ObservationIgnored private var revealDurationSaveTask: Task<Void, Never>?
+    @ObservationIgnored private var hideDelaySaveTask: Task<Void, Never>?
     private var hasPersistedDocument = false
     let isPreview: Bool
     @ObservationIgnored private(set) lazy var itemAvailability = ItemAvailabilityMonitor { [weak self] in
@@ -420,6 +422,7 @@ final class DockStore {
 
     var effectiveIconSize: Double { transientIconSize ?? document.settings.iconSize }
     var effectiveRevealAnimationDuration: Double { transientRevealAnimationDuration ?? document.settings.revealAnimationDuration }
+    var effectiveHideDelay: Double { transientHideDelay ?? document.settings.hideDelay }
     var isDockEffectivelyVisible: Bool { isDockVisible && document.settings.mode != .native }
     var hasPendingDrafts: Bool {
         drafts.values.contains { draft in document.profiles.first(where: { $0.id == draft.id }) != draft }
@@ -477,6 +480,28 @@ final class DockStore {
         transientRevealAnimationDuration = nil
         var settings = document.settings
         settings.revealAnimationDuration = duration
+        return updateSettings(settings)
+    }
+
+    func stageHideDelay(_ delay: Double) {
+        guard !storageIsReadOnly, delay.isFinite else { return }
+        transientHideDelay = min(5, max(0, (delay * 10).rounded() / 10))
+        hideDelaySaveTask?.cancel()
+        hideDelaySaveTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(300)) }
+            catch { return }
+            self?.finishHideDelayEditing()
+        }
+    }
+
+    @discardableResult
+    func finishHideDelayEditing() -> Bool {
+        hideDelaySaveTask?.cancel()
+        hideDelaySaveTask = nil
+        guard let delay = transientHideDelay else { return true }
+        transientHideDelay = nil
+        var settings = document.settings
+        settings.hideDelay = delay
         return updateSettings(settings)
     }
 
