@@ -17,4 +17,23 @@ enum DockBackdropFit {
         let content = max(CGFloat(iconSize), hasTile ? sideTileWidth : 0)
         return content + sideContentInset * 2
     }
+
+    static let resizeHandleLength: CGFloat = 30
+    static let verticalItemExtra: CGFloat = 9
+
+    struct LengthContent: Equatable {
+        var iconItems: Int
+        var fixedExtent: CGFloat
+        var minimizedSlots: Int
+    }
+
+    /// 並びの方向の背景の長さを、拡大前の項目の並びに合わせて求める。項目と背景の端の間隔は厚み側の余白と同じにする。
+    static func length(_ content: LengthContent, iconSize: Double, axisPadding: CGFloat, vertical: Bool) -> CGFloat {
+        let icon = CGFloat(iconSize)
+        let slots = CGFloat(content.iconItems + 1)
+        let iconExtent = icon + 2 * axisPadding + (vertical ? verticalItemExtra : 0)
+        let inset = vertical ? sideContentInset : bottomContentInset
+        return content.fixedExtent + slots * iconExtent + CGFloat(content.minimizedSlots) * (icon + 10)
+            + resizeHandleLength + 2 * max(0, inset - axisPadding)
+    }
 }

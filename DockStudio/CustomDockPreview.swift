@@ -113,6 +113,9 @@ struct DockBar: View {
                                       magnificationEnabled: temporaryMagnificationEnabled,
                                       forceFit: fitsAnyBackground)
     }
+    private var backdropLength: CGFloat {
+        DockMetrics.backdropLength(for: store, iconSize: displayIconSize, axisPadding: itemAxisPadding)
+    }
     private var itemAxisPadding: CGFloat {
         guard store.appearance.background == .appleDock || fitsAnyBackground, store.effectiveIconSize > 0 else { return 5 }
         return CGFloat(5 * min(1, displayIconSize / store.effectiveIconSize))
@@ -143,6 +146,7 @@ struct DockBar: View {
             }
             ZStack(alignment: vertical ? .center : .bottom) {
                 DockBackdrop(appearance: store.appearance)
+                    .frame(maxWidth: vertical ? nil : backdropLength, maxHeight: vertical ? backdropLength : nil)
                     .frame(width: vertical ? DockMetrics.backdropThickness(for: store) : nil,
                            height: vertical ? nil : DockMetrics.backdropThickness(for: store))
                     .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
@@ -1253,6 +1257,24 @@ enum DockMetrics {
         return store.document.settings.position == .bottom
             ? DockBackdropFit.bottomThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
             : DockBackdropFit.sideThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
+    }
+    static func backdropLength(for store: DockStore, iconSize: Double, axisPadding: CGFloat) -> CGFloat {
+        let vertical = store.document.settings.position != .bottom
+        let layout = store.displayedLayout
+        var fixed = CGFloat(layout.dividerBefore.count) * 11
+        var iconItems = 0
+        for item in layout.items {
+            switch item.kind {
+            case .spacer: fixed += 11
+            case .clock: fixed += vertical ? 64 : 135
+            case .focusTimer: fixed += vertical ? 64 : 120
+            default: iconItems += 1
+            }
+        }
+        return DockBackdropFit.length(
+            .init(iconItems: iconItems, fixedExtent: fixed,
+                  minimizedSlots: store.minimizedWindowController.state.reservedSlots),
+            iconSize: iconSize, axisPadding: axisPadding, vertical: vertical)
     }
     static let sideLabelGutter = DockLabelPlacement.maxWidth + DockLabelPlacement.gap
     static func thickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {
