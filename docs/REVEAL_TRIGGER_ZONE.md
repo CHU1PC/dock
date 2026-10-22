@@ -6,7 +6,7 @@
 
 | 配置 | 変更前 | 変更後 |
 | --- | --- | --- |
-| 下 | 画面の下端から16pt（`DockStudio/Services/CustomDockWindowController.swift:40`、`panel.minY - screen.minY + 16`、下端に接するパネルでは16pt） | 画面の下端から2pt |
+| 下 | 画面の下端から16pt（`DockStudio/Services/CustomDockWindowController.swift:41`（origin/main の行）、`panel.minY - screen.minY + 16`、下端に接するパネルでは16pt） | 画面の下端から2pt |
 | 左 | 画面の左端からパネルの内側16ptまで | 画面の左端から2pt |
 | 右 | パネルの内側16ptから画面の右端まで | 画面の右端から2pt |
 
