@@ -113,8 +113,13 @@ struct DockBar: View {
                                       magnificationEnabled: temporaryMagnificationEnabled,
                                       forceFit: fitsAnyBackground)
     }
-    private var backdropLength: CGFloat {
-        DockMetrics.backdropLength(for: store, iconSize: displayIconSize, axisPadding: itemAxisPadding)
+    private func backdropLength(hoveredIndex: Int?) -> CGFloat {
+        let enabled = temporaryMagnificationEnabled ?? store.appearance.magnification
+        return DockMetrics.backdropLength(for: store, iconSize: displayIconSize, axisPadding: itemAxisPadding,
+                                          hoveredIndex: hoveredIndex,
+                                          magnificationScale: enabled ? store.appearance.magnificationScale : 1,
+                                          windowLength: DockMetrics.length(for: store, magnificationEnabled: enabled,
+                                                                           iconSize: displayIconSize))
     }
     private var itemAxisPadding: CGFloat {
         guard store.appearance.background == .appleDock || fitsAnyBackground, store.effectiveIconSize > 0 else { return 5 }
@@ -146,7 +151,8 @@ struct DockBar: View {
             }
             ZStack(alignment: vertical ? .center : .bottom) {
                 DockBackdrop(appearance: store.appearance)
-                    .frame(maxWidth: vertical ? nil : backdropLength, maxHeight: vertical ? backdropLength : nil)
+                    .frame(maxWidth: vertical ? nil : backdropLength(hoveredIndex: hoverIndex),
+                           maxHeight: vertical ? backdropLength(hoveredIndex: hoverIndex) : nil)
                     .frame(width: vertical ? DockMetrics.backdropThickness(for: store) : nil,
                            height: vertical ? nil : DockMetrics.backdropThickness(for: store))
                     .shadow(color: .black.opacity(store.appearance.background == .transparent || store.appearance.background == .appleDock ? 0 : 0.18), radius: 4, y: -2)
@@ -1258,23 +1264,30 @@ enum DockMetrics {
             ? DockBackdropFit.bottomThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
             : DockBackdropFit.sideThickness(iconSize: store.effectiveIconSize, hasTile: hasTile)
     }
-    static func backdropLength(for store: DockStore, iconSize: Double, axisPadding: CGFloat) -> CGFloat {
+    static func backdropLength(for store: DockStore, iconSize: Double, axisPadding: CGFloat,
+                               hoveredIndex: Int? = nil, magnificationScale: Double = 1,
+                               windowLength: CGFloat = .infinity) -> CGFloat {
         let vertical = store.document.settings.position != .bottom
         let layout = store.displayedLayout
         var fixed = CGFloat(layout.dividerBefore.count) * 11
         var iconItems = 0
-        for item in layout.items {
+        var scales: [Double] = []
+        for (index, item) in layout.items.enumerated() {
             switch item.kind {
             case .spacer: fixed += 11
             case .clock: fixed += vertical ? 64 : 135
             case .focusTimer: fixed += vertical ? 64 : 120
-            default: iconItems += 1
+            default:
+                iconItems += 1
+                scales.append(DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: magnificationScale))
             }
         }
-        return DockBackdropFit.length(
+        scales.append(DockAppearance.scale(index: layout.items.count, hovered: hoveredIndex, maximum: magnificationScale))
+        let base = DockBackdropFit.length(
             .init(iconItems: iconItems, fixedExtent: fixed,
                   minimizedSlots: store.minimizedWindowController.state.reservedSlots),
             iconSize: iconSize, axisPadding: axisPadding, vertical: vertical)
+        return DockBackdropFit.magnifiedLength(base: base, iconSize: iconSize, scales: scales, windowLength: windowLength)
     }
     static let sideLabelGutter = DockLabelPlacement.maxWidth + DockLabelPlacement.gap
     static func thickness(for store: DockStore, magnificationEnabled: Bool? = nil) -> CGFloat {

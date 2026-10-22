@@ -36,4 +36,11 @@ enum DockBackdropFit {
         return content.fixedExtent + slots * iconExtent + CGFloat(content.minimizedSlots) * (icon + 10)
             + resizeHandleLength + 2 * max(0, inset - axisPadding)
     }
+
+    /// ホバー拡大で並びが伸びた分だけ背景を長くする。拡大していないときは `base` のままで、伸びた分はウィンドウの長さを超えない。
+    static func magnifiedLength(base: CGFloat, iconSize: Double, scales: [Double], windowLength: CGFloat) -> CGFloat {
+        let extra = scales.reduce(0) { $0 + max(0, CGFloat(iconSize * ($1 - 1))) }
+        guard extra > 0 else { return base }
+        return min(base + extra, max(base, windowLength))
+    }
 }
