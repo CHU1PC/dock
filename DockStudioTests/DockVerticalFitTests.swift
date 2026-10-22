@@ -85,4 +85,45 @@ final class DockVerticalFitTests: XCTestCase {
         XCTAssertEqual(DockMetrics.effectiveIconSize(for: store, availableLength: available), 96)
         XCTAssertLessThan(DockMetrics.effectiveIconSize(for: store, availableLength: available, forceFit: true), 96)
     }
+
+    private func panelIconSize(items: Int, icon: Double, visibleHeight: CGFloat, notice: Bool = false) -> (size: Double, available: Double) {
+        let maximum = DockPanelSizing.verticalMaximumLength(
+            visibleFrame: CGRect(x: 0, y: 0, width: 1440, height: visibleHeight))
+        let available = DockPanelSizing.verticalDockAvailableLength(
+            maximumLength: maximum, panelPadding: DockInteractionGeometry.panelPadding * 2,
+            noticeHeight: notice ? DockPanelSizing.accessibilityNoticeHeight : 0,
+            noticeSpacing: notice ? DockPanelSizing.accessibilityNoticeSpacing : 0)
+        let size = DockVerticalFit.iconSize(content(items: items), maximumSize: icon, minimumSize: 16,
+                                            availableLength: Double(available))
+        return (size, Double(available))
+    }
+
+    func testPanelAvailableLengthSubtractsScreenInsetPaddingAndNotice() {
+        let visible = CGRect(x: 0, y: 25, width: 1440, height: 875)
+        XCTAssertEqual(DockPanelSizing.verticalMaximumLength(visibleFrame: visible), 855)
+        XCTAssertEqual(DockPanelSizing.verticalDockAvailableLength(
+            maximumLength: 855, panelPadding: 16, noticeHeight: 0, noticeSpacing: 0), 839)
+        XCTAssertEqual(DockPanelSizing.verticalDockAvailableLength(
+            maximumLength: 855, panelPadding: 16, noticeHeight: 64, noticeSpacing: 6), 769)
+        XCTAssertEqual(DockPanelSizing.verticalDockAvailableLength(
+            maximumLength: 10, panelPadding: 16, noticeHeight: 0, noticeSpacing: 0), 0)
+    }
+
+    func testPanelKeepsIconSizeWhenContentFits() {
+        let result = panelIconSize(items: 2, icon: 64, visibleHeight: 900)
+        XCTAssertEqual(result.size, 64)
+    }
+
+    func testPanelShrinksLargestIconWithFiveItemsAndTrashToFit() {
+        let result = panelIconSize(items: 6, icon: 128, visibleHeight: 900)
+        XCTAssertLessThan(result.size, 128)
+        XCTAssertGreaterThan(result.size, 16)
+        let length = DockVerticalFit.contentLength(content(items: 6), iconSize: result.size, maximumSize: 128)
+        XCTAssertLessThanOrEqual(length, result.available + 0.001)
+    }
+
+    func testPanelUsesMinimumIconSizeWhenNothingFits() {
+        let result = panelIconSize(items: 40, icon: 128, visibleHeight: 600)
+        XCTAssertEqual(result.size, 16)
+    }
 }
