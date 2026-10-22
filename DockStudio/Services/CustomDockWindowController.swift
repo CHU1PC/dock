@@ -62,6 +62,16 @@ enum DockPanelSizing {
         min(max(dockLength, noticeLength) + panelPadding, maximumLength)
     }
 
+    static func verticalMaximumLength(visibleFrame: CGRect) -> CGFloat {
+        visibleFrame.insetBy(dx: 10, dy: 10).height
+    }
+
+    static func verticalDockAvailableLength(maximumLength: CGFloat, panelPadding: CGFloat,
+                                            noticeHeight: CGFloat, noticeSpacing: CGFloat) -> CGFloat {
+        let noticeExtent = max(0, noticeHeight) + (noticeHeight > 0 ? max(0, noticeSpacing) : 0)
+        return max(0, maximumLength - panelPadding - noticeExtent)
+    }
+
     static func bottomPanelHeight(dockThickness: CGFloat, panelPadding: CGFloat,
                                   bottomInset: CGFloat) -> CGFloat {
         dockThickness + panelPadding / 2 + max(0, bottomInset)
@@ -378,15 +388,23 @@ final class CustomDockWindowController {
         let visible = screen.visibleFrame.insetBy(dx: 10, dy: 10)
         let vertical = store.document.settings.position != .bottom
         let padding = DockInteractionGeometry.panelPadding * 2
-        let maximumLength = vertical ? visible.height : screen.frame.insetBy(dx: 10, dy: 10).width
+        let maximumLength = vertical ? DockPanelSizing.verticalMaximumLength(visibleFrame: screen.visibleFrame)
+            : screen.frame.insetBy(dx: 10, dy: 10).width
         let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
         let hasAccessibilityNotice = DockPanelSizing.hasAccessibilityNotice(
             permissionGranted: store.notificationBadgeAccessibilityGranted,
             items: store.displayedLayout.items
         )
+        let fittedIconSize: Double? = vertical ? DockMetrics.effectiveIconSize(
+            for: store,
+            availableLength: DockPanelSizing.verticalDockAvailableLength(
+                maximumLength: maximumLength, panelPadding: padding,
+                noticeHeight: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeHeight : 0,
+                noticeSpacing: hasAccessibilityNotice ? DockPanelSizing.accessibilityNoticeSpacing : 0),
+            magnificationEnabled: magnificationEnabled, forceFit: true) : nil
         let frameSize = DockPanelSizing.size(
             position: store.document.settings.position,
-            dockLength: DockMetrics.length(for: store, magnificationEnabled: magnificationEnabled),
+            dockLength: DockMetrics.length(for: store, magnificationEnabled: magnificationEnabled, iconSize: fittedIconSize),
             dockThickness: DockMetrics.thickness(for: store, magnificationEnabled: magnificationEnabled),
             panelPadding: padding,
             sideLabelGutter: vertical ? DockMetrics.sideLabelGutter : 0,
@@ -524,7 +542,8 @@ private struct PanelDockContent: View {
         ZStack {
             DockBar(vertical: layout.vertical, isPanel: true,
                     temporaryMagnificationEnabled: temporaryMagnificationEnabled,
-                    availableLength: dockAvailableLength)
+                    availableLength: dockAvailableLength,
+                    fitsAnyBackground: layout.vertical)
                 .frame(width: layout.vertical ? DockMetrics.barThickness(for: store, magnificationEnabled: temporaryMagnificationEnabled) : nil)
                 .padding(.horizontal, DockInteractionGeometry.panelPadding)
                 .padding(.top, DockInteractionGeometry.panelPadding)
