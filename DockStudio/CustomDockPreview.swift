@@ -158,7 +158,8 @@ struct DockBar: View {
                                 if displayedLayout.dividerBefore.contains(index) {
                                     Rectangle().fill(.primary.opacity(0.45))
                                         .frame(width: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).width,
-                                               height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height).padding(5)
+                                               height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height)
+                                        .dockDividerInsets(vertical: vertical)
                                         .accessibilityHidden(true)
                                 }
                                 barElement(item, index: index, hoveredIndex: hoverIndex, runningIdentities: running,
@@ -269,7 +270,8 @@ struct DockBar: View {
             if item.kind == .spacer {
                 Rectangle().fill(.primary.opacity(spacerDrawsLine ? 0.45 : 0))
                     .frame(width: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).width,
-                           height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height).padding(5)
+                           height: DockDividerLine.size(iconSize: displayIconSize, vertical: vertical).height)
+                    .dockDividerInsets(vertical: vertical)
             } else if item.kind == .clock {
                 ClockTile(vertical: vertical).padding(vertical ? .vertical : .horizontal, 5)
                     .onHover { if $0 { hovered = nil } }
@@ -542,7 +544,7 @@ extension DockBar {
         case .unknown: "trash.slash"
         }
         DockIconSizeResizeHandle(vertical: vertical, iconSize: displayIconSize)
-            .padding(5)
+            .dockDividerInsets(vertical: vertical)
             .modifier(DockSeparatorContextMenu(store: store))
         VStack(spacing: 5) {
             Button { store.openTrash() } label: {

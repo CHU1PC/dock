@@ -11,4 +11,20 @@ enum DockDividerLine {
         let length = length(iconSize: iconSize)
         return vertical ? CGSize(width: length, height: thickness) : CGSize(width: thickness, height: length)
     }
+
+    struct Insets: Equatable {
+        var top: CGFloat
+        var leading: CGFloat
+        var bottom: CGFloat
+        var trailing: CGFloat
+    }
+
+    static let axisPadding: CGFloat = 5
+    static let indicatorRowHeight: CGFloat = 4 + 5
+
+    static func insets(vertical: Bool) -> Insets {
+        vertical
+            ? Insets(top: axisPadding, leading: 0, bottom: axisPadding, trailing: 0)
+            : Insets(top: 0, leading: axisPadding, bottom: indicatorRowHeight, trailing: axisPadding)
+    }
 }

@@ -17,6 +17,13 @@ enum DockIconSizeResize {
     }
 }
 
+extension View {
+    func dockDividerInsets(vertical: Bool) -> some View {
+        let insets = DockDividerLine.insets(vertical: vertical)
+        return padding(EdgeInsets(top: insets.top, leading: insets.leading, bottom: insets.bottom, trailing: insets.trailing))
+    }
+}
+
 struct DockIconSizeResizeHandle: View {
     @Environment(DockStore.self) private var store
     @State private var initialSize: Double?
@@ -29,7 +36,7 @@ struct DockIconSizeResizeHandle: View {
     var body: some View {
         Rectangle()
             .fill(.clear)
-            .frame(width: vertical ? max(54, lineSize.width) : 20, height: vertical ? 20 : max(54, lineSize.height))
+            .frame(width: vertical ? lineSize.width : 20, height: vertical ? 20 : lineSize.height)
             .overlay {
                 Rectangle()
                     .fill(.primary.opacity(0.55))

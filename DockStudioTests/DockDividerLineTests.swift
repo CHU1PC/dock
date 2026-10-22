@@ -23,4 +23,30 @@ final class DockDividerLineTests: XCTestCase {
         XCTAssertEqual(DockDividerLine.length(iconSize: .nan), 1)
         XCTAssertEqual(DockDividerLine.length(iconSize: 0), 1)
     }
+
+    func testBottomLineSpansSameRangeAsIconAboveIndicatorRow() {
+        for size in [16.0, 52.0, 128.0] {
+            let line = DockDividerLine.size(iconSize: size, vertical: false)
+            let insets = DockDividerLine.insets(vertical: false)
+            let cellHeight = CGFloat(size) + DockDividerLine.indicatorRowHeight
+            XCTAssertEqual(insets.top + line.height + insets.bottom, cellHeight)
+            XCTAssertEqual(insets.bottom, DockDividerLine.indicatorRowHeight)
+            XCTAssertEqual(insets.top, 0)
+        }
+    }
+
+    func testSideLineIsCenteredOnIconColumnWithoutCrossAxisInsets() {
+        for size in [16.0, 52.0, 128.0] {
+            let line = DockDividerLine.size(iconSize: size, vertical: true)
+            let insets = DockDividerLine.insets(vertical: true)
+            XCTAssertEqual(insets.leading + line.width + insets.trailing, CGFloat(size))
+            XCTAssertEqual(insets.top, DockDividerLine.axisPadding)
+            XCTAssertEqual(insets.bottom, DockDividerLine.axisPadding)
+        }
+    }
+
+    func testAxisPaddingMatchesPreviousSpacing() {
+        let bottom = DockDividerLine.insets(vertical: false)
+        XCTAssertEqual(bottom.leading + bottom.trailing, 10)
+    }
 }
