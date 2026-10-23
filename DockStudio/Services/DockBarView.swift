@@ -98,6 +98,9 @@ final class DockBarView: NSView {
         trackingArea = area
     }
 
+    /// ignoresMouseEvents の切り替え後に、追跡領域を登録し直す。
+    func refreshTrackingArea() { updateTrackingAreas() }
+
     override func viewDidChangeBackingProperties() {
         super.viewDidChangeBackingProperties()
         iconCache.removeAll()
@@ -128,6 +131,17 @@ final class DockBarView: NSView {
         setHovered(nil, animated: true)
     }
 
+    /// 追跡領域のイベントに頼らず、スクリーン座標のポインタからホバーを決める。nil はバーの外。
+    func setHoveredFromScreenPoint(_ screenPoint: NSPoint?) {
+        guard let frames else { return }
+        var x: CGFloat?
+        if let screenPoint, let window {
+            let inWindow = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
+            x = convert(inWindow, from: nil).x
+        }
+        setHovered(DockBarLayout.resolvedHover(x: x, slots: frames.slots, current: hoveredIndex), animated: true)
+    }
+
     override func mouseDown(with event: NSEvent) {
         pressedID = tile(at: convert(event.locationInWindow, from: nil))?.id
     }
@@ -144,7 +158,7 @@ final class DockBarView: NSView {
     }
 
     private func setHovered(_ index: Int?, animated: Bool) {
-        guard index != hoveredIndex else { return }
+        guard index != hoveredIndex || DockBarLayout.isLayoutStale(frames, hoveredIndex: index) else { return }
         hoveredIndex = index
         applyLayout(animated: animated && snapshot?.reduceMotion == false)
     }

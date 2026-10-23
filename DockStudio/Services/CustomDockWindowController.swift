@@ -492,10 +492,15 @@ final class CustomDockWindowController {
         updateTemporaryMagnification(NSEvent.modifierFlags)
         let pointerIsInteractive = visibility.isCollapsed
             ? revealFrame.contains(NSEvent.mouseLocation) : inside
-        panel.ignoresMouseEvents = DockDragOutRemoval.shouldIgnoreMouseEvents(
+        let ignores = DockDragOutRemoval.shouldIgnoreMouseEvents(
             pointerIsInteractive: pointerIsInteractive, trackingMenus: trackingMenus > 0,
             hasActivePopover: !store.activePopoverTokens.isEmpty,
             isDragging: DockDragOutCancellation.shared.isDragging)
+        if panel.ignoresMouseEvents != ignores {
+            panel.ignoresMouseEvents = ignores
+            layerBar?.refreshTrackingArea()
+        }
+        layerBar?.setHoveredFromScreenPoint(inside ? NSEvent.mouseLocation : nil)
     }
 
     private func updateTemporaryMagnification(_ flags: NSEvent.ModifierFlags) {
