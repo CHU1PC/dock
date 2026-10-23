@@ -21,6 +21,8 @@ enum DockBarLayout {
         var tiles: [CGRect?]
         /// ホバー判定に使う、アイコンの左右の余白を含む矩形。
         var slots: [CGRect?]
+        /// このレイアウトを計算したときのホバー。
+        var hoveredIndex: Int?
     }
 
     static func isIconKind(_ kind: DockItemKind) -> Bool {
@@ -89,7 +91,7 @@ enum DockBarLayout {
                          max(0, panelSize.width - panelPadding * 2))
         let thickness = DockMetrics.backdropThickness(for: input)
         let backdrop = CGRect(x: (panelSize.width - length) / 2, y: bottomGap, width: length, height: thickness)
-        return Frames(backdrop: backdrop, tiles: tiles, slots: slots)
+        return Frames(backdrop: backdrop, tiles: tiles, slots: slots, hoveredIndex: hoveredIndex)
     }
 
     /// カーソル下のアイコンの位置を返す。どのアイコンの上でもなければ、いまのホバーを保つ。
@@ -98,6 +100,18 @@ enum DockBarLayout {
             if let slot, x >= slot.minX, x < slot.maxX { return index }
         }
         return current
+    }
+
+    /// ポインタの x（バー内の座標）からホバーを決める。x が nil（バーの外）ならホバーを外す。
+    static func resolvedHover(x: CGFloat?, slots: [CGRect?], current: Int?) -> Int? {
+        guard let x else { return nil }
+        return hoveredIndex(atX: x, slots: slots, current: current)
+    }
+
+    /// 適用済みのレイアウトが、いまのホバーと食い違っているか。
+    static func isLayoutStale(_ frames: Frames?, hoveredIndex: Int?) -> Bool {
+        guard let frames else { return false }
+        return frames.hoveredIndex != hoveredIndex
     }
 
     /// SwiftUI の `.spring(response:dampingFraction:)` と同じ動きになる質量 1 のバネの係数。

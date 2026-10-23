@@ -113,6 +113,28 @@ final class DockBarLayoutTests: XCTestCase {
         XCTAssertEqual(DockBarLayout.hoveredIndex(atX: (frames.slots[0]!.maxX + frames.slots[2]!.minX) / 2, slots: frames.slots, current: 0), 0)
     }
 
+    func testResolvedHoverFollowsPointerAndResetsOutsideBar() {
+        let frames = DockBarLayout.frames(snapshot: DockBarSnapshotBuilder.make(store: makeStore(kinds: iconKinds)),
+                                          minimizedSlots: 0, panelSize: CGSize(width: 800, height: 120), hoveredIndex: nil)
+        let slot = frames.slots.compactMap { $0 }[1]
+        let index = frames.slots.firstIndex { $0 == slot }!
+        XCTAssertEqual(DockBarLayout.resolvedHover(x: slot.midX, slots: frames.slots, current: nil), index)
+        XCTAssertEqual(DockBarLayout.resolvedHover(x: slot.midX, slots: frames.slots, current: index), index)
+        XCTAssertNil(DockBarLayout.resolvedHover(x: nil, slots: frames.slots, current: index))
+        XCTAssertNil(DockBarLayout.resolvedHover(x: nil, slots: frames.slots, current: nil))
+    }
+
+    func testLayoutIsStaleOnlyWhenHoverDiffersFromAppliedFrames() {
+        let snapshot = DockBarSnapshotBuilder.make(store: makeStore(kinds: iconKinds))
+        let size = CGSize(width: 800, height: 120)
+        let hovered = DockBarLayout.frames(snapshot: snapshot, minimizedSlots: 0, panelSize: size, hoveredIndex: 2)
+        XCTAssertEqual(hovered.hoveredIndex, 2)
+        XCTAssertFalse(DockBarLayout.isLayoutStale(hovered, hoveredIndex: 2))
+        XCTAssertTrue(DockBarLayout.isLayoutStale(hovered, hoveredIndex: nil))
+        XCTAssertTrue(DockBarLayout.isLayoutStale(hovered, hoveredIndex: 0))
+        XCTAssertFalse(DockBarLayout.isLayoutStale(nil, hoveredIndex: 1))
+    }
+
     func testStructureChangesOnlyWithIdentityOrIconKeys() {
         let store = makeStore(kinds: iconKinds)
         let base = DockBarSnapshotBuilder.make(store: store)
