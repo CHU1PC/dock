@@ -124,3 +124,53 @@ spike（`spikes/002-core-animation-dock`）と同じ条件にそろえる。spik
 6. 同じ条件で `sample` の上位スタックも残す。レイヤー版で `applicationIdentity` や SwiftUI のグラフ更新が見えるなら、ホバーの経路に store が残っている。
 
 結果の目標は、レイヤー版のスイープ CPU が 5% 台であること（spike と同程度）。これはまだ測っておらず、未検証である。
+
+
+## ホバーが止まる不具合（VM 測定で発見）
+
+### 症状
+
+レイヤー版の Dock バーで、ホバーによる拡大が一定の区間だけ反応しなくなった。VM の測定では、r2 の 45 回のジャンプのうち 20〜45 回目の 26 回が INVALID（ポインタを載せても、対象タイルの AX 幅が変わらない）だった。試行では 46 回中の最後の 16 回が INVALID、r1 は 0 回だった。直後の測定は 80 回で 0 回に戻った。旧 SwiftUI のバーでは起きていない。
+
+### 原因（証明できたことと推測）
+
+証明できたこと。
+
+- 一度ポインタを載せたあと、すべての INVALID で、対象タイルの幅が休止時のままだった。これは「ホバーが変わらなかった」と「ホバーは変わったがレイヤーが動かなかった」のどちらでも起こる。
+- 旧実装では、ホバーの入口がビュー自身の NSTrackingArea（mouseMoved と mouseExited）だけだった（`DockBarView.mouseMoved`、`mouseExited`）。
+
+推測（コードを読んだだけで、GUI では確かめていない）。
+
+- 本命は、パネルの `ignoresMouseEvents` の切り替えである。ポインタがバーの外にあるとパネルは `ignoresMouseEvents = true` になり（`updatePointerPassThrough`）、ウィンドウサーバは追跡領域のイベントを送らない。ポインタが入ってから false に戻るまでの間に mouseEntered が届かず、AppKit の追跡の状態（ポインタが領域の内か外か）が実際とずれると、そのあいだ mouseMoved と mouseExited も届かない。届かなければホバーは古い値のまま動かず、測定の症状と一致する。ずれは次の mouseEntered か mouseExited で戻るので、途中から回復する挙動とも整合する。
+- 対抗の仮説は、presentation レイヤーが更新されない場合である（AX のフレームは `presentation()` を読む）。`place` の最終的なモデル値は同期的に更新されるため、可能性は低いが、除外はできていない。
+- `setHovered` が同じ index で早期に戻る点は、ホバーが届かない原因ではないが、レイアウトが食い違っても直せなかった。
+
+### 修正
+
+追跡領域だけに頼らず、コントローラがすでに受け取っているグローバルとローカルの mouseMoved、およびタイマーから呼ぶ `updatePointerPassThrough` で、`NSEvent.mouseLocation` からホバーを毎回求め直す。
+
+- `DockBarView.setHoveredFromScreenPoint(_:)` を追加した。nil（バーの外）はホバーを外し、点が入ればその x から index を決める（純粋な部分は `DockBarLayout.resolvedHover`）。
+- `setHovered` は、index が同じでも、適用済みの `Frames.hoveredIndex` と食い違っていれば再適用する（`DockBarLayout.isLayoutStale`）。
+- `ignoresMouseEvents` が変わったときに、`DockBarView.refreshTrackingArea()` で追跡領域を登録し直す。
+- SwiftUI 版の経路は変えていない。
+
+### 自動テスト
+
+`DockBarLayoutTests` に、`testResolvedHoverFollowsPointerAndResetsOutsideBar`（点からの index、同じ index での冪等、外に出たときのリセット）と `testLayoutIsStaleOnlyWhenHoverDiffersFromAppliedFrames` を追加した。
+
+### 未検証
+
+修正後の VM での再測定は、まだ行っていない。原因も、上の推測の段階にある。
+
+### VM での再測定の手順
+
+1. ゲストで、レイヤー版（`DOCKSTUDIO_LAYER_DOCK_BAR=1`）を起動し、プロセスの pid を取る。
+2. 長い測定を 1 回で流す（150 回以上、同じプロセスのまま）。
+
+```
+bench latency <pid> dock 200 3 | tee lat-long.log
+```
+
+3. 末尾の `SUMMARY LATENCY valid=… invalid=…` と、`grep -c INVALID lat-long.log` を取る。
+4. 合格の目安は invalid が 0 であること。1 回でも出たら、INVALID の sample 番号が連続しているか（停止区間）、散発かを見る。続いて同じプロセスで `bench latency` をもう 1 回流し、回復するかを確かめる。
+5. 修正前のビルドでも同じ手順で 200 回流し、INVALID が再現することを先に確かめておく（再現しなければ、修正前後の比較にならない）。
