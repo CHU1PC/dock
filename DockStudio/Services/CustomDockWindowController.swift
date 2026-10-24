@@ -177,6 +177,10 @@ final class CustomDockWindowController {
     private var temporaryMagnificationSuppressed = false
     private var dragRevealActive = false
     private var keyboardFocusActive = false
+    private let hostingContent: NSView
+    private let layerBarEnabled = DockBarRenderer.isLayerEnabled()
+    private var layerBar: DockBarView?
+    private var layerBarItems: [UUID: DockItem] = [:]
 
     init(store: DockStore) {
         self.store = store
@@ -196,7 +200,8 @@ final class CustomDockWindowController {
         panel.hidesOnDeactivate = false
         panel.acceptsMouseMovedEvents = true
         panel.isReleasedWhenClosed = false
-        panel.contentView = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
+        hostingContent = NSHostingView(rootView: PanelDockContent(layout: layout).environment(store))
+        panel.contentView = hostingContent
         refreshRunningApps()
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didActivateApplicationNotification,
                      NSWorkspace.didTerminateApplicationNotification,
@@ -206,6 +211,7 @@ final class CustomDockWindowController {
                     if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                        let url = app.bundleURL {
                         DockIconRenderer.invalidate(url: url)
+                        self?.layerBar?.invalidateIcons()
                         if name == NSWorkspace.didLaunchApplicationNotification || name == NSWorkspace.didActivateApplicationNotification,
                            app.activationPolicy == .regular, app.bundleIdentifier != Bundle.main.bundleIdentifier {
                             self?.store.recordRecentApp(DockItem(name: app.localizedName ?? url.deletingPathExtension().lastPathComponent,
@@ -445,6 +451,7 @@ final class CustomDockWindowController {
         layout.collapsed = visibility.isCollapsed
         layout.size = frame.size
         if panel.frame != frame { panel.setFrame(frame, display: true) }
+        updateLayerBar(availableLength: max(0, frame.size.width - padding), magnificationEnabled: temporaryMagnificationEnabled)
         if !panel.isVisible { panel.orderFrontRegardless() }
         if store.dockKeyboardFocusRequested {
             store.dockKeyboardFocusRequested = false
@@ -464,6 +471,35 @@ final class CustomDockWindowController {
         } else if !autoHideEnabled { timer?.invalidate(); timer = nil }
     }
 
+    private func updateLayerBar(availableLength: CGFloat, magnificationEnabled: Bool?) {
+        guard DockBarRenderer.usesLayerBar(enabled: layerBarEnabled, position: store.document.settings.position) else {
+            if panel.contentView !== hostingContent { panel.contentView = hostingContent }
+            return
+        }
+        let bar = layerBar ?? makeLayerBar()
+        if panel.contentView !== bar { panel.contentView = bar }
+        let snapshot = DockBarSnapshotBuilder.make(
+            store: store, availableLength: availableLength, magnificationEnabled: magnificationEnabled,
+            systemReduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+        layerBarItems = Dictionary(store.displayedLayout.items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        bar.isCollapsed = layout.collapsed
+        bar.apply(snapshot: snapshot, minimizedSlots: store.minimizedWindowController.state.reservedSlots)
+    }
+
+    private func makeLayerBar() -> DockBarView {
+        let bar = DockBarView(frame: panel.contentLayoutRect)
+        bar.onClick = { [weak self] id, modifiers in
+            guard let self, let item = self.layerBarItems[id] else { return }
+            self.store.clickItem(item, modifiers: modifiers)
+        }
+        bar.iconImage = { [weak self] id, pointSize, scheme in
+            guard let url = self?.layerBarItems[id]?.targetURL, url.isFileURL, let style = self?.store.appearance.iconStyle else { return nil }
+            return DockIconRenderer.image(url: url, style: style, pointSize: pointSize, scheme: scheme)
+        }
+        layerBar = bar
+        return bar
+    }
+
     private func leaveKeyboard() {
         keyboardFocusActive = false
         let app = previousApp
@@ -478,10 +514,15 @@ final class CustomDockWindowController {
         updateTemporaryMagnification(NSEvent.modifierFlags)
         let pointerIsInteractive = visibility.isCollapsed
             ? revealFrame.contains(NSEvent.mouseLocation) : inside
-        panel.ignoresMouseEvents = DockDragOutRemoval.shouldIgnoreMouseEvents(
+        let ignores = DockDragOutRemoval.shouldIgnoreMouseEvents(
             pointerIsInteractive: pointerIsInteractive, trackingMenus: trackingMenus > 0,
             hasActivePopover: !store.activePopoverTokens.isEmpty,
             isDragging: DockDragOutCancellation.shared.isDragging)
+        if panel.ignoresMouseEvents != ignores {
+            panel.ignoresMouseEvents = ignores
+            layerBar?.refreshTrackingArea()
+        }
+        layerBar?.setHoveredFromScreenPoint(inside ? NSEvent.mouseLocation : nil)
     }
 
     private func updateTemporaryMagnification(_ flags: NSEvent.ModifierFlags) {
