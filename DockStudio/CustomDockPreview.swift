@@ -342,7 +342,7 @@ struct DockBar: View {
         let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
         let maximum = magnificationEnabled ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
-        let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
+        let running = item.applicationIdentity.map(runningIdentities.contains) == true
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
             && !store.appearance.reduceMotion && !systemReduceMotion
         let attentionRequested = store.document.settings.attentionBounce
@@ -352,7 +352,7 @@ struct DockBar: View {
                 clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
                                                                                 current: NSEvent.modifierFlags))
             } label: {
-                VStack(spacing: 5) {
+                VStack(spacing: 0) {
                     let icon = ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                                         availability: store.itemAvailability.status(of: item),
                                         glassNeedsContrast: store.appearance.background == .transparent,
@@ -382,9 +382,6 @@ struct DockBar: View {
                     } else {
                         icon
                     }
-                    Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
-                        .frame(width: 4, height: 4).opacity(running ? 1 : 0)
-                        .accessibilityHidden(true)
                 }
                 .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
                 .contentShape(DockItemHitShape())
@@ -429,42 +426,12 @@ struct DockBar: View {
             .onKeyPress(.return) { activateDockItem(item); return .handled }
             .onKeyPress(.space) { activateDockItem(item); return .handled }
             .accessibilityActions {
-                ForEach(actions(for: item).filter(\.isAccessibilityAction)) { action in
-                    Button(action.title, action: action.perform)
-                        .disabled(!action.isEnabled)
-                }
-                if item.kind == .application, item.applicationIdentity?.hasPrefix("bundle:") == true {
-                    ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
-                        switch entry {
-                        case .window(let id, let title):
-                            Button("ウィンドウを前面に表示: \(title)") { store.activateApplicationWindow(id, for: item) }
-                        case .unavailable(let title):
-                            Button(title) {}.disabled(true)
-                        }
-                    }
-                }
+                DockItemAccessibilityActionsContent(store: store, item: item, actions: { actions(for: item) })
             }
             .contextMenu {
-                ForEach(actions(for: item)) { action in
-                    if action.kind == .windowList {
-                        Menu(action.title) {
-                            ForEach(DockApplicationWindowMenuModel.entries(from: store.applicationWindowListing(for: item)), id: \.self) { entry in
-                                switch entry {
-                                case .window(let id, let title):
-                                    Button(title) { store.activateApplicationWindow(id, for: item) }
-                                case .unavailable(let title):
-                                    Button(title) {}.disabled(true)
-                                }
-                            }
-                        }
-                    } else {
-                        Button(action.title, role: action.isDestructive ? .destructive : nil, action: action.perform)
-                            .disabled(!action.isEnabled)
-                    }
-                }
-                if supportsApplicationDockMenu(item) {
-                    Button("アプリ固有メニュー…") { showApplicationDockMenu(for: item) }
-                }
+                DockItemContextMenuContent(store: store, item: item, actions: { actions(for: item) },
+                                           supportsApplicationDockMenu: { supportsApplicationDockMenu(item) },
+                                           showApplicationDockMenu: { showApplicationDockMenu(for: item) })
             }
         .modifier(DragOutToRemove(enabled: store.isPinned(item) && !store.storageIsReadOnly &&
                                   !(store.document.settings.finderEntryEnabled && FinderDockEntry.isFinder(item)), vertical: vertical,
@@ -556,7 +523,7 @@ extension DockBar {
         DockIconSizeResizeHandle(vertical: vertical, iconSize: displayIconSize)
             .dockDividerInsets(vertical: vertical)
             .modifier(DockSeparatorContextMenu(store: store))
-        VStack(spacing: 5) {
+        VStack(spacing: 0) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                          glassNeedsContrast: store.appearance.background == .transparent,
@@ -584,7 +551,6 @@ extension DockBar {
             } message: {
                 Text("ゴミ箱内のすべての項目を完全に削除します。この操作は取り消せません。Finder がロックされた項目を確認する場合があります。")
             }
-            Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
         .contentShape(Rectangle())
@@ -612,7 +578,7 @@ extension DockBar {
     }
 }
 
-private struct DockItemAction: Identifiable {
+struct DockItemAction: Identifiable {
     let kind: DockItemMenu.Kind
     let perform: () -> Void
     var isEnabled = true
@@ -1232,7 +1198,6 @@ enum DockMetrics {
         Double(slots) * (10 + iconSize)
     }
 
-    static let verticalItemPadding = DockVerticalFit.itemExtraPadding + 10
     static let verticalSeparatorLength = DockVerticalFit.separatorLength
 
     static func verticalFitContent(for store: DockStore, magnificationEnabled: Bool? = nil) -> DockVerticalFit.Content {
@@ -1260,7 +1225,7 @@ enum DockMetrics {
         let vertical = input.position != .bottom
         let iconSize = iconSize ?? input.effectiveIconSize
         let itemPadding = vertical
-            ? DockVerticalFit.itemExtraPadding + 10 * iconSize / max(1, input.effectiveIconSize) : 10.0
+            ? 10 * iconSize / max(1, input.effectiveIconSize) : 10.0
         let itemsTotal = input.kinds.reduce(24.0) { sum, kind in
             sum + ([.spacer, .clock, .focusTimer].contains(kind) ? 10 : itemPadding) + (kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(kind) ? (vertical ? 54 : kind == .clock ? 125 : 110) : iconSize)

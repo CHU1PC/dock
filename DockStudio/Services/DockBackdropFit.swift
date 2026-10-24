@@ -4,12 +4,11 @@ import CoreGraphics
 enum DockBackdropFit {
     static let bottomContentInset: CGFloat = 10
     static let sideContentInset: CGFloat = 12
-    static let runningIndicatorRow: CGFloat = 9
     static let tileHeight: CGFloat = 54
     static let sideTileWidth: CGFloat = 140
 
     static func bottomThickness(iconSize: Double, hasTile: Bool) -> CGFloat {
-        let content = max(CGFloat(iconSize) + runningIndicatorRow, hasTile ? tileHeight : 0)
+        let content = max(CGFloat(iconSize), hasTile ? tileHeight : 0)
         return content + bottomContentInset * 2
     }
 
@@ -19,7 +18,6 @@ enum DockBackdropFit {
     }
 
     static let resizeHandleLength: CGFloat = 30
-    static let verticalItemExtra: CGFloat = 9
 
     struct LengthContent: Equatable {
         var iconItems: Int
@@ -31,7 +29,7 @@ enum DockBackdropFit {
     static func length(_ content: LengthContent, iconSize: Double, axisPadding: CGFloat, vertical: Bool) -> CGFloat {
         let icon = CGFloat(iconSize)
         let slots = CGFloat(content.iconItems + 1)
-        let iconExtent = icon + 2 * axisPadding + (vertical ? verticalItemExtra : 0)
+        let iconExtent = icon + 2 * axisPadding
         let inset = vertical ? sideContentInset : bottomContentInset
         return content.fixedExtent + slots * iconExtent + CGFloat(content.minimizedSlots) * (icon + 10)
             + resizeHandleLength + 2 * max(0, inset - axisPadding)
