@@ -66,12 +66,9 @@ final class DockPreviewLayoutTests: XCTestCase {
         let horizontal = DockMetrics.length(for: store)
         settings.position = .left
         XCTAssertTrue(store.updateSettings(settings))
-        let iconItems = store.displayedItems.filter { ![.spacer, .clock, .focusTimer].contains($0.kind) }.count
-        let expectedExtra = DockMetrics.verticalItemPadding - 10
         XCTAssertGreaterThan(horizontal, 220)
         XCTAssertEqual(DockMetrics.length(for: store),
-                       horizontal + CGFloat(Double(iconItems + 1) * expectedExtra
-                                            + DockMetrics.verticalSeparatorLength - 21),
+                       horizontal + CGFloat(DockMetrics.verticalSeparatorLength - 21),
                        accuracy: 0.5)
     }
 

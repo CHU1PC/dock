@@ -27,7 +27,7 @@ final class DockBarSnapshotTests: XCTestCase {
         XCTAssertEqual(Set(snapshot.items.indices.filter { snapshot.items[$0].dividerBefore }),
                        layout.dividerBefore.filter { $0 < layout.items.count }, file: file, line: line)
         XCTAssertEqual(snapshot.items.map(\.isRunning),
-                       layout.items.map { store.appearance.runningIndicators && $0.applicationIdentity.map(running.contains) == true },
+                       layout.items.map { $0.applicationIdentity.map(running.contains) == true },
                        file: file, line: line)
         XCTAssertEqual(snapshot.items.map(\.badge),
                        layout.items.map { NotificationBadgeSnapshot.badge(for: $0, in: store.notificationBadges) },
@@ -53,20 +53,13 @@ final class DockBarSnapshotTests: XCTestCase {
         XCTAssertFalse(DockBarSnapshotBuilder.make(store: store).items.contains { $0.dividerBefore })
     }
 
-    func testRunningFlagFollowsRunningIndicatorsSetting() {
+    func testRunningFlagFollowsRunningApplications() {
         let a = app("A")
         let b = app("B")
         let store = store(pinned: [a, b], arrangement: .free)
         store.runningItems = [a]
-        var snapshot = DockBarSnapshotBuilder.make(store: store)
+        let snapshot = DockBarSnapshotBuilder.make(store: store)
         XCTAssertEqual(snapshot.items.map(\.isRunning), [true, false])
-        assertMatchesLayout(store)
-
-        var next = store.appearance
-        next.runningIndicators = false
-        XCTAssertTrue(store.updateAppearance(next))
-        snapshot = DockBarSnapshotBuilder.make(store: store)
-        XCTAssertEqual(snapshot.items.map(\.isRunning), [false, false])
         assertMatchesLayout(store)
     }
 

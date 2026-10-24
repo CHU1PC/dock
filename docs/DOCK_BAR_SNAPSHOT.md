@@ -17,7 +17,7 @@ Core Animation 移行（計画の PR C）の準備として、Dock バーの描�
 |---|---|
 | 項目の並びと種別 | `store.displayedLayout.items` |
 | `dividerBefore` | `displayedLayout.dividerBefore.contains(index)` |
-| `isRunning` | `appearance.runningIndicators` かつ `applicationIdentity` が `runningItems` の identity に含まれる |
+| `isRunning` | `applicationIdentity` が `runningItems` の identity に含まれる |
 | `badge` | `NotificationBadgeSnapshot.badge(for:in: store.notificationBadges)` |
 | `isBouncing` | `launchBounce` かつ `launchingItemIDs` に含まれ、reduceMotion でない |
 | `isAttentionRequested` | `attentionBounce` かつ identity が `attentionRequestingIdentities` に含まれる |

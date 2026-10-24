@@ -260,6 +260,21 @@ final class DockStoreTests: XCTestCase {
         XCTAssertEqual(downloads.resolvedTargetURL(downloadsDirectory: moved), moved)
     }
 
+    func testDownloadsDirectoryIsEvaluatedOnlyForTheDownloadsLocation() {
+        var evaluations = 0
+        let directory = URL(fileURLWithPath: "/Users/example/Downloads")
+        let download = DockItem(name: "Downloads", kind: .folder, target: DockItem.downloadsLocationTarget)
+        let app = DockItem(name: "App", kind: .application, target: "file:///Applications/App.app/")
+        let empty = DockItem(name: "Empty", kind: .folder, target: nil)
+
+        XCTAssertEqual(app.resolvedTargetURL(downloadsDirectory: { evaluations += 1; return directory }()),
+                       URL(string: "file:///Applications/App.app/"))
+        XCTAssertNil(empty.resolvedTargetURL(downloadsDirectory: { evaluations += 1; return directory }()))
+        XCTAssertEqual(evaluations, 0)
+        XCTAssertEqual(download.resolvedTargetURL(downloadsDirectory: { evaluations += 1; return directory }()), directory)
+        XCTAssertEqual(evaluations, 1)
+    }
+
     func testItemRemovalCanBeUndoneWithOriginalIdentityAndOrder() {
         let store = DockStore.preview()
         let original = store.editorProfile

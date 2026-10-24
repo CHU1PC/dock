@@ -82,9 +82,9 @@ struct DockItem: Codable, Equatable, Identifiable {
 
     var targetURL: URL? { resolvedTargetURL() }
 
-    func resolvedTargetURL(downloadsDirectory: URL? = Self.downloadsDirectoryURL()) -> URL? {
+    func resolvedTargetURL(downloadsDirectory: @autoclosure () -> URL? = Self.downloadsDirectoryURL()) -> URL? {
         guard let target else { return nil }
-        if target == Self.downloadsLocationTarget { return downloadsDirectory }
+        if target == Self.downloadsLocationTarget { return downloadsDirectory() }
         return URL(string: target)
     }
 
@@ -95,6 +95,12 @@ struct DockItem: Codable, Equatable, Identifiable {
 
     var applicationIdentity: String? {
         guard kind == .application else { return nil }
+        return ApplicationIdentityCache.shared.identity(target: target, bundleIdentifier: bundleIdentifier) {
+            resolveApplicationIdentity()
+        }
+    }
+
+    private func resolveApplicationIdentity() -> String? {
         if let url = targetURL {
             let canonical = url.standardizedFileURL.resolvingSymlinksInPath()
             if let identifier = Bundle(url: canonical)?.bundleIdentifier { return "bundle:\(identifier)" }
@@ -165,6 +171,7 @@ struct DockSettings: Codable, Equatable {
     var iconSize = 52.0
     var autoHide = false
     var revealAnimationDuration = 0.22
+    var hideDelay = DockSettings.defaultHideDelay
     var launchBounce = true
     var attentionBounce = true
     var showRunningApps = false
@@ -177,9 +184,11 @@ struct DockSettings: Codable, Equatable {
 
 extension DockSettings {
     static let iconSizeRange = 16.0...128.0
+    static let defaultHideDelay = 1.0
+    static let hideDelayRange = 0.0...5.0
 
     private enum CodingKeys: String, CodingKey {
-        case mode, arrangement, position, displayMode, iconSize, autoHide, revealAnimationDuration, launchBounce, attentionBounce, showRunningApps, finderEntryEnabled, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
+        case mode, arrangement, position, displayMode, iconSize, autoHide, revealAnimationDuration, hideDelay, launchBounce, attentionBounce, showRunningApps, finderEntryEnabled, minimizeWindowsIntoAppIcon, showRecentApps, displayID, dockFocusShortcut
     }
 
     init(from decoder: Decoder) throws {
@@ -191,6 +200,7 @@ extension DockSettings {
         iconSize = try values.decode(Double.self, forKey: .iconSize)
         autoHide = try values.decode(Bool.self, forKey: .autoHide)
         revealAnimationDuration = try values.decodeIfPresent(Double.self, forKey: .revealAnimationDuration) ?? 0.22
+        hideDelay = try values.decodeIfPresent(Double.self, forKey: .hideDelay) ?? DockSettings.defaultHideDelay
         launchBounce = try values.decodeIfPresent(Bool.self, forKey: .launchBounce) ?? true
         attentionBounce = try values.decodeIfPresent(Bool.self, forKey: .attentionBounce) ?? true
         showRunningApps = try values.decode(Bool.self, forKey: .showRunningApps)
@@ -231,6 +241,9 @@ struct DockDocument: Codable, Equatable {
         }
         guard settings.revealAnimationDuration.isFinite, (0...1).contains(settings.revealAnimationDuration) else {
             throw DockDataError.invalidData("Reveal animation duration must be between zero and one second.")
+        }
+        guard settings.hideDelay.isFinite, DockSettings.hideDelayRange.contains(settings.hideDelay) else {
+            throw DockDataError.invalidData("Hide delay must be between zero and five seconds.")
         }
         for profile in profiles {
             guard !profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

@@ -24,13 +24,13 @@ final class DockDividerLineTests: XCTestCase {
         XCTAssertEqual(DockDividerLine.length(iconSize: 0), 1)
     }
 
-    func testBottomLineSpansSameRangeAsIconAboveIndicatorRow() {
+    func testBottomLineSpansSameRangeAsIcon() {
         for size in [16.0, 52.0, 128.0] {
             let line = DockDividerLine.size(iconSize: size, vertical: false)
             let insets = DockDividerLine.insets(vertical: false)
-            let cellHeight = CGFloat(size) + DockDividerLine.indicatorRowHeight
+            let cellHeight = CGFloat(size)
             XCTAssertEqual(insets.top + line.height + insets.bottom, cellHeight)
-            XCTAssertEqual(insets.bottom, DockDividerLine.indicatorRowHeight)
+            XCTAssertEqual(insets.bottom, 0)
             XCTAssertEqual(insets.top, 0)
         }
     }

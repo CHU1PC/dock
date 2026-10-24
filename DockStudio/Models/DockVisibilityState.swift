@@ -12,15 +12,21 @@ struct DockVisibilityState {
         trackingMenus || hasActivePopover || keyboardFocusActive || keyboardFocusRequested || isDragging
     }
 
+    static func hasHideDelayElapsed(since lastInteraction: Date, now: Date, delay: TimeInterval) -> Bool {
+        guard delay.isFinite, DockSettings.hideDelayRange.contains(delay) else { return false }
+        return now.timeIntervalSince(lastInteraction) >= delay
+    }
+
     mutating func update(visible: Bool, autoHide: Bool, hovering: Bool, interacting: Bool,
-                         draggingOverRevealArea: Bool = false, now: Date) {
+                         draggingOverRevealArea: Bool = false,
+                         hideDelay: TimeInterval = DockSettings.defaultHideDelay, now: Date) {
         if !visible || !autoHide || !wasVisible || !wasEnabled {
             isCollapsed = false
             lastInteraction = now
         } else if hovering || interacting || draggingOverRevealArea {
             isCollapsed = false
             lastInteraction = now
-        } else if now.timeIntervalSince(lastInteraction) >= 1 {
+        } else if Self.hasHideDelayElapsed(since: lastInteraction, now: now, delay: hideDelay) {
             isCollapsed = true
         }
         wasVisible = visible

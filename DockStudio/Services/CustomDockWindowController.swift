@@ -34,16 +34,32 @@ enum DockInteractionGeometry {
         }
     }
 
+    static let revealZoneThickness: CGFloat = 2
+
     static func reveal(screen: NSRect, panel: NSRect, position: DockPosition) -> NSRect {
         switch position {
         case .bottom:
-            return NSRect(x: panel.minX, y: screen.minY, width: panel.width,
-                          height: max(8, panel.minY - screen.minY + 16))
+            return NSRect(x: panel.minX, y: screen.minY, width: panel.width, height: revealZoneThickness)
         case .left:
-            return NSRect(x: screen.minX, y: panel.minY, width: max(8, panel.minX - screen.minX + 16), height: panel.height)
+            return NSRect(x: screen.minX, y: panel.minY, width: revealZoneThickness, height: panel.height)
         case .right:
-            return NSRect(x: panel.maxX - 16, y: panel.minY,
-                          width: max(8, screen.maxX - panel.maxX + 16), height: panel.height)
+            return NSRect(x: screen.maxX - revealZoneThickness, y: panel.minY,
+                          width: revealZoneThickness, height: panel.height)
+        }
+    }
+
+    /// 表示中に、Dock の枠から画面の端までの隙間でも隠れないようにする範囲。
+    static func keepVisible(interaction: NSRect, screen: NSRect, position: DockPosition) -> NSRect {
+        switch position {
+        case .bottom:
+            return NSRect(x: interaction.minX, y: screen.minY, width: interaction.width,
+                          height: interaction.maxY - screen.minY)
+        case .left:
+            return NSRect(x: screen.minX, y: interaction.minY, width: interaction.maxX - screen.minX,
+                          height: interaction.height)
+        case .right:
+            return NSRect(x: interaction.minX, y: interaction.minY, width: screen.maxX - interaction.minX,
+                          height: interaction.height)
         }
     }
 }
@@ -331,6 +347,11 @@ final class CustomDockWindowController {
                                        position: store.document.settings.position)
     }
 
+    private var keepVisibleFrame: NSRect {
+        DockInteractionGeometry.keepVisible(interaction: interactionFrame, screen: selectedScreen?.frame ?? panel.frame,
+                                            position: store.document.settings.position)
+    }
+
     private var interactionFrame: NSRect {
         let frame = panel.frame.insetBy(dx: DockInteractionGeometry.panelPadding, dy: DockInteractionGeometry.panelPadding)
         if store.document.settings.position == .bottom {
@@ -356,12 +377,13 @@ final class CustomDockWindowController {
     private func updateVisibility() {
         let point = NSEvent.mouseLocation
         visibility.update(visible: store.isDockEffectivelyVisible, autoHide: autoHideEnabled,
-                          hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && interactionFrame.contains(point))),
+                          hovering: panel.isVisible && (revealFrame.contains(point) || (!visibility.isCollapsed && keepVisibleFrame.contains(point))),
                           interacting: DockVisibilityState.isInteracting(
                             trackingMenus: trackingMenus > 0, hasActivePopover: !store.activePopoverTokens.isEmpty,
                             keyboardFocusActive: keyboardFocusActive, keyboardFocusRequested: store.dockKeyboardFocusRequested,
                             isDragging: DockDragOutCancellation.shared.isDragging),
-                          draggingOverRevealArea: dragRevealActive, now: .now)
+                          draggingOverRevealArea: dragRevealActive,
+                          hideDelay: store.document.settings.hideDelay, now: .now)
     }
 
     private func update() {
