@@ -75,7 +75,7 @@ final class DockBarLayoutTests: XCTestCase {
                             let scale = DockAppearance.scale(index: index, hovered: hovered, maximum: maximum)
                             XCTAssertEqual(tile.width, size * scale, accuracy: 0.001, label)
                             XCTAssertEqual(tile.height, tile.width, label)
-                            XCTAssertEqual(tile.minY, 24, label)
+                            XCTAssertEqual(tile.minY, DockInteractionGeometry.bottomGap + DockBarLayout.contentBottomInset, label)
                             if let previous, snapshot.items[index - 1].kind != .spacer, snapshot.items[index - 1].kind != .clock {
                                 XCTAssertEqual(tile.minX - previous.maxX, 10, accuracy: 0.001, label)
                             }

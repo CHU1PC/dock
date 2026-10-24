@@ -59,7 +59,7 @@ enum DockBarLayout {
         var cursor = contentHorizontalInset
         var tiles: [CGRect?] = []
         var slots: [CGRect?] = []
-        let tileY = bottomGap + contentBottomInset + DockBackdropFit.runningIndicatorRow
+        let tileY = bottomGap + contentBottomInset
         for (index, item) in snapshot.items.enumerated() {
             if item.dividerBefore { cursor += dividerWidth }
             switch item.kind {
