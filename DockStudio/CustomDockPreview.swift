@@ -342,7 +342,7 @@ struct DockBar: View {
         let magnificationEnabled = temporaryMagnificationEnabled ?? store.appearance.magnification
         let maximum = magnificationEnabled ? store.appearance.magnificationScale : 1
         let scale = DockAppearance.scale(index: index, hovered: hoveredIndex, maximum: maximum)
-        let running = store.appearance.runningIndicators && item.applicationIdentity.map(runningIdentities.contains) == true
+        let running = item.applicationIdentity.map(runningIdentities.contains) == true
         let bouncing = store.document.settings.launchBounce && store.launchingItemIDs.contains(item.id)
             && !store.appearance.reduceMotion && !systemReduceMotion
         let attentionRequested = store.document.settings.attentionBounce
@@ -352,7 +352,7 @@ struct DockBar: View {
                 clickDockItem(item, modifiers: ItemClickPolicy.clickModifiers(event: NSApp.currentEvent?.modifierFlags,
                                                                                 current: NSEvent.modifierFlags))
             } label: {
-                VStack(spacing: 5) {
+                VStack(spacing: 0) {
                     let icon = ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                                         availability: store.itemAvailability.status(of: item),
                                         glassNeedsContrast: store.appearance.background == .transparent,
@@ -382,9 +382,6 @@ struct DockBar: View {
                     } else {
                         icon
                     }
-                    Circle().fill(.white).overlay(Circle().stroke(.black.opacity(0.75), lineWidth: 0.7))
-                        .frame(width: 4, height: 4).opacity(running ? 1 : 0)
-                        .accessibilityHidden(true)
                 }
                 .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
                 .contentShape(DockItemHitShape())
@@ -556,7 +553,7 @@ extension DockBar {
         DockIconSizeResizeHandle(vertical: vertical, iconSize: displayIconSize)
             .dockDividerInsets(vertical: vertical)
             .modifier(DockSeparatorContextMenu(store: store))
-        VStack(spacing: 5) {
+        VStack(spacing: 0) {
             Button { store.openTrash() } label: {
                 ItemIcon(item: item, size: displayIconSize * scale, style: store.appearance.iconStyle,
                          glassNeedsContrast: store.appearance.background == .transparent,
@@ -584,7 +581,6 @@ extension DockBar {
             } message: {
                 Text("ゴミ箱内のすべての項目を完全に削除します。この操作は取り消せません。Finder がロックされた項目を確認する場合があります。")
             }
-            Circle().fill(.clear).frame(width: 4, height: 4).accessibilityHidden(true)
         }
         .padding(vertical ? .vertical : .horizontal, itemAxisPadding)
         .contentShape(Rectangle())
@@ -1226,7 +1222,6 @@ enum DockMetrics {
         Double(slots) * (10 + iconSize)
     }
 
-    static let verticalItemPadding = DockVerticalFit.itemExtraPadding + 10
     static let verticalSeparatorLength = DockVerticalFit.separatorLength
 
     static func verticalFitContent(for store: DockStore, magnificationEnabled: Bool? = nil) -> DockVerticalFit.Content {
@@ -1246,7 +1241,7 @@ enum DockMetrics {
         let vertical = store.document.settings.position != .bottom
         let iconSize = iconSize ?? store.effectiveIconSize
         let itemPadding = vertical
-            ? DockVerticalFit.itemExtraPadding + 10 * iconSize / max(1, store.effectiveIconSize) : 10.0
+            ? 10 * iconSize / max(1, store.effectiveIconSize) : 10.0
         let itemsTotal = store.displayedItems.reduce(24.0) { sum, item in
             sum + ([.spacer, .clock, .focusTimer].contains(item.kind) ? 10 : itemPadding) + (item.kind == .spacer ? 11 :
                 [.clock, .focusTimer].contains(item.kind) ? (vertical ? 54 : item.kind == .clock ? 125 : 110) : iconSize)

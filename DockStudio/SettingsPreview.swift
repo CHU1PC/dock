@@ -242,8 +242,6 @@ struct SettingsPreview: View {
                     }.pickerStyle(.segmented)
                     Text("ガラス調は、透ける素材に元のアイコンの絵柄を重ねます。背景の色と光を取り込んだ表現になります。")
                         .font(.caption).foregroundStyle(StudioColor.muted)
-                    Divider()
-                    Toggle("起動中のアプリに点を表示", isOn: appearance(\.runningIndicators))
                 }
                 settingsGroup("ホバーとアニメーション") {
                     Toggle("ポインタを重ねたアイコンを拡大", isOn: appearance(\.magnification))

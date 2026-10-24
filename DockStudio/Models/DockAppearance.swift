@@ -66,19 +66,20 @@ struct DockAppearance: Codable, Equatable {
     var colorMode: ColorMode = .system
     var magnification = true
     var magnificationScale = 1.45
-    var runningIndicators = true
     var reduceMotion = false
+
+    private static let ignoredLegacyKeys: Set<String> = ["runningIndicators"]
 
     init() {}
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case background, color, opacity, blur, image, iconStyle, colorMode
-        case magnification, magnificationScale, runningIndicators, reduceMotion
+        case magnification, magnificationScale, reduceMotion
     }
 
     init(from decoder: Decoder) throws {
         let keys = try decoder.container(keyedBy: AppearanceKey.self)
-        let known = Set(CodingKeys.allCases.map(\.rawValue))
+        let known = Set(CodingKeys.allCases.map(\.rawValue)).union(Self.ignoredLegacyKeys)
         guard keys.allKeys.allSatisfy({ known.contains($0.stringValue) }) else {
             throw DockDataError.invalidData("Unknown appearance settings. Open this configuration with a newer version.")
         }
@@ -92,7 +93,6 @@ struct DockAppearance: Codable, Equatable {
         colorMode = try values.decodeIfPresent(ColorMode.self, forKey: .colorMode) ?? .system
         magnification = try values.decodeIfPresent(Bool.self, forKey: .magnification) ?? true
         magnificationScale = try values.decodeIfPresent(Double.self, forKey: .magnificationScale) ?? 1.45
-        runningIndicators = try values.decodeIfPresent(Bool.self, forKey: .runningIndicators) ?? true
         reduceMotion = try values.decodeIfPresent(Bool.self, forKey: .reduceMotion) ?? false
         try validate()
     }

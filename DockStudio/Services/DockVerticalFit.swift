@@ -1,7 +1,6 @@
 import Foundation
 
 enum DockVerticalFit {
-    static let itemExtraPadding = 9.0
     static let separatorLength = 30.0
 
     struct Content: Equatable {
@@ -26,7 +25,7 @@ enum DockVerticalFit {
 
     private static func terms(_ content: Content, maximumSize: Double) -> (constant: Double, perSize: Double) {
         let paddedCount = Double(content.iconItemCount + 1)
-        let constant = content.fixedLength + separatorLength + itemExtraPadding * paddedCount
+        let constant = content.fixedLength + separatorLength
             + 10 * Double(content.minimizedSlots)
         let perSize = paddedCount * (1 + 10 / max(1, maximumSize))
             + Double(content.minimizedSlots) + content.magnificationReserve
