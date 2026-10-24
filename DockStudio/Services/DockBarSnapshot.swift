@@ -46,7 +46,7 @@ enum DockBarSnapshotBuilder {
                 id: item.id, kind: item.kind, title: item.name,
                 iconKey: "\(item.kind.rawValue):\(item.target ?? item.bundleIdentifier ?? "")",
                 dividerBefore: layout.dividerBefore.contains(index),
-                isRunning: appearance.runningIndicators && identity.map(runningIdentities.contains) == true,
+                isRunning: identity.map(runningIdentities.contains) == true,
                 badge: NotificationBadgeSnapshot.badge(for: item, in: store.notificationBadges),
                 availability: store.itemAvailability.status(of: item),
                 isBouncing: settings.launchBounce && store.launchingItemIDs.contains(item.id) && !reduceMotion,

@@ -130,6 +130,20 @@ struct SettingsPreview: View {
                 .disabled(!store.document.settings.autoHide)
                 Text("0〜1秒で調整できます。0秒にすると、画面端で即時に表示します。")
                     .font(.caption).foregroundStyle(StudioColor.muted)
+                HStack {
+                    Text("隠すまでの待ち時間")
+                    Slider(value: Binding(get: { store.effectiveHideDelay },
+                                          set: { store.stageHideDelay($0) }),
+                           in: DockSettings.hideDelayRange, step: 0.1,
+                           onEditingChanged: { if !$0 { store.finishHideDelayEditing() } })
+                        .accessibilityLabel("隠すまでの待ち時間")
+                        .accessibilityValue(String(format: "%.1f秒", store.effectiveHideDelay))
+                    Text(String(format: "%.1f秒", store.effectiveHideDelay))
+                        .monospacedDigit().frame(width: 58, alignment: .trailing)
+                }
+                .disabled(!store.document.settings.autoHide)
+                Text("ポインタが Dock から外れてから隠すまでの時間を、0〜5秒で調整できます。")
+                    .font(.caption).foregroundStyle(StudioColor.muted)
                 Divider()
                 Toggle("起動中にアイコンを跳ねさせる", isOn: setting(\.launchBounce))
                 Text("Custom Dock から開いたアプリが起動を終えるまで跳ねます。「アニメーションを減らす」が有効なときは跳ねません。")
@@ -242,8 +256,6 @@ struct SettingsPreview: View {
                     }.pickerStyle(.segmented)
                     Text("ガラス調は、透ける素材に元のアイコンの絵柄を重ねます。背景の色と光を取り込んだ表現になります。")
                         .font(.caption).foregroundStyle(StudioColor.muted)
-                    Divider()
-                    Toggle("起動中のアプリに点を表示", isOn: appearance(\.runningIndicators))
                 }
                 settingsGroup("ホバーとアニメーション") {
                     Toggle("ポインタを重ねたアイコンを拡大", isOn: appearance(\.magnification))

@@ -19,6 +19,14 @@ final class DockAppearanceTests: XCTestCase {
         XCTAssertTrue(appearance.magnification)
     }
 
+    func testLegacyRunningIndicatorsKeyIsIgnoredAndNotWritten() throws {
+        let legacy = try JSONDecoder().decode(DockAppearance.self, from: Data("{\"runningIndicators\":false,\"opacity\":0.3}".utf8))
+        XCTAssertEqual(legacy.opacity, 0.3)
+        let encoded = String(decoding: try JSONEncoder().encode(legacy), as: UTF8.self)
+        XCTAssertFalse(encoded.contains("runningIndicators"))
+        XCTAssertThrowsError(try JSONDecoder().decode(DockAppearance.self, from: Data("{\"unknownKey\":1}".utf8)))
+    }
+
     func testColorModeDefaultsToSystemAndRoundTrips() throws {
         let legacy = try JSONDecoder().decode(DockAppearance.self, from: Data("{\"background\":\"color\",\"color\":3158064}".utf8))
         XCTAssertEqual(legacy.colorMode, .system)

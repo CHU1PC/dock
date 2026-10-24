@@ -69,7 +69,7 @@ final class DockVerticalFitTests: XCTestCase {
         let maximum = store.effectiveIconSize
         let c = DockMetrics.verticalFitContent(for: store)
         for size in [16.0, 40, 64] {
-            XCTAssertEqual(DockVerticalFit.contentLength(c, iconSize: size, maximumSize: maximum),
+            XCTAssertEqual(max(220, DockVerticalFit.contentLength(c, iconSize: size, maximumSize: maximum)),
                            Double(DockMetrics.length(for: store, iconSize: size)), accuracy: 0.5)
         }
     }

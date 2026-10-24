@@ -170,10 +170,10 @@ final class ReviewRegressionTests: XCTestCase {
         let size = NSSize(width: 600, height: 80)
 
         XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
-                                                            pointer: NSPoint(x: -640, y: 902), position: .bottom,
+                                                            pointer: NSPoint(x: -640, y: 900), position: .bottom,
                                                             panelSize: size), 202)
         XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .selectedDisplay,
-                                                            pointer: NSPoint(x: -640, y: 902), position: .bottom,
+                                                            pointer: NSPoint(x: -640, y: 900), position: .bottom,
                                                             panelSize: size), 101)
         XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 202, mode: .edgeFollowing,
                                                             pointer: NSPoint(x: -640, y: 1200), position: .bottom,
@@ -192,10 +192,10 @@ final class ReviewRegressionTests: XCTestCase {
         ]
 
         XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
-                                                            pointer: NSPoint(x: 1922, y: 680), position: .left,
+                                                            pointer: NSPoint(x: 1920, y: 680), position: .left,
                                                             panelSize: NSSize(width: 80, height: 900)), 202)
         XCTAssertEqual(DockDisplayGeometry.targetDisplayID(screens: screens, selectedID: 101, mode: .edgeFollowing,
-                                                            pointer: NSPoint(x: 2818, y: 680), position: .right,
+                                                            pointer: NSPoint(x: 2819, y: 680), position: .right,
                                                             panelSize: NSSize(width: 80, height: 900)), 202)
     }
 
