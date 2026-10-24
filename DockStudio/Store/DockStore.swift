@@ -24,6 +24,7 @@ final class DockStore {
     var notificationBadges: [String: String] = [:]
     var notificationBadgeAccessibilityGranted = true
     @ObservationIgnored let minimizedWindowController: MinimizedWindowController
+    @ObservationIgnored private var displayedLayoutCache = DisplayedLayoutCache()
     var recentAppItems: [DockItem] = []
     var trashState = TrashState.unknown
     var isEmptyingTrash = false
@@ -121,8 +122,10 @@ final class DockStore {
 
     func refreshNotificationBadges() async {
         let snapshot = await Task.detached(priority: .utility) { NotificationBadgeReader().read() }.value
-        notificationBadges = snapshot.badgesByPath
-        notificationBadgeAccessibilityGranted = snapshot.hasAccessibilityPermission
+        if notificationBadges != snapshot.badgesByPath { notificationBadges = snapshot.badgesByPath }
+        if notificationBadgeAccessibilityGranted != snapshot.hasAccessibilityPermission {
+            notificationBadgeAccessibilityGranted = snapshot.hasAccessibilityPermission
+        }
     }
 
     private var appearanceURL: URL? {
@@ -295,6 +298,14 @@ final class DockStore {
     var canUndoRemoval: Bool { removedItem?.profileID == editingProfileID }
 
     var displayedLayout: DockSectionLayoutResult {
+        let key = DisplayedLayoutCache.Key(
+            pinned: activeProfile.items, running: runningItems, recent: recentAppItems,
+            finderEntryEnabled: document.settings.finderEntryEnabled, showRunningApps: document.settings.showRunningApps,
+            showRecentApps: document.settings.showRecentApps, arrangement: document.settings.arrangement)
+        return displayedLayoutCache.value(for: key, now: .now) { computeDisplayedLayout() }
+    }
+
+    private func computeDisplayedLayout() -> DockSectionLayoutResult {
         let pinnedItems = FinderDockEntry.displayedItems(activeProfile.items, enabled: document.settings.finderEntryEnabled)
             .compactMap { item in
             item.kind == .applicationList ? ApplicationListEntry.currentItem(for: item) : item

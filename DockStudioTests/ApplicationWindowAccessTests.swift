@@ -4,11 +4,13 @@ import XCTest
 private final class FakeApplicationWindowProvider: ApplicationWindowProviding {
     var listing: ApplicationWindowListing = .windows([])
     private(set) var requestedBundleIdentifiers: [String] = []
+    private(set) var promptFlags: [Bool] = []
     private(set) var activatedWindowIDs: [String] = []
     var activationSucceeds = true
 
-    func windows(for bundleIdentifier: String) -> ApplicationWindowListing {
+    func windows(for bundleIdentifier: String, promptForAccess: Bool) -> ApplicationWindowListing {
         requestedBundleIdentifiers.append(bundleIdentifier)
+        promptFlags.append(promptForAccess)
         return listing
     }
 
@@ -52,5 +54,15 @@ final class ApplicationWindowAccessTests: XCTestCase {
         let access = ApplicationWindowAccess(provider: provider)
 
         XCTAssertFalse(access.activate(windowID: "2", for: "com.example.editor"))
+    }
+
+    func testAccessibilityListingNeverPromptsForPermission() {
+        let provider = FakeApplicationWindowProvider()
+        let access = ApplicationWindowAccess(provider: provider)
+
+        _ = access.windows(for: "com.example.editor")
+        _ = access.windows(for: "com.example.editor", promptForAccess: false)
+
+        XCTAssertEqual(provider.promptFlags, [true, false])
     }
 }
