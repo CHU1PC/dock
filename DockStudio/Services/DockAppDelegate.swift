@@ -118,6 +118,7 @@ final class DockAppDelegate: NSObject, NSApplicationDelegate {
             return .terminateCancel
         }
         guard store.finishIconSizeEditing(), store.finishRevealAnimationDurationEditing(),
+              store.finishHideDelayEditing(),
               store.finishAppearanceEditing() else { return cancelAfterSaveFailure(store) }
         guard store.hasPendingDrafts else { return .terminateNow }
         let alert = NSAlert()

@@ -361,7 +361,8 @@ final class CustomDockWindowController {
                             trackingMenus: trackingMenus > 0, hasActivePopover: !store.activePopoverTokens.isEmpty,
                             keyboardFocusActive: keyboardFocusActive, keyboardFocusRequested: store.dockKeyboardFocusRequested,
                             isDragging: DockDragOutCancellation.shared.isDragging),
-                          draggingOverRevealArea: dragRevealActive, now: .now)
+                          draggingOverRevealArea: dragRevealActive,
+                          hideDelay: store.document.settings.hideDelay, now: .now)
     }
 
     private func update() {
